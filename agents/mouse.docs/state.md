@@ -2,43 +2,34 @@
 
 ## Context
 ### Recent Decisions
-- Sprint 1 **COMPLETED (100% — `8/8` tasks across Phases 1–3)**, UX-approved by Smith, groomed & archived by Oracle, and closed with team retrospective.
-
-### Key Findings
-- Keeping phases to 2–3 bounded tasks in root `task.md` enabled smooth, zero-stall Bloops with `29/29` Vitest tests green.
+- Sprint 1 + Post-Launch Perspective/Door/Soundboard Polish **COMPLETED (100%)**:
+  - `32/32` Vitest tests across 8 suites green, ESLint & `tsc --noEmit` clean, Vite `dist/` bundle (`23.74 kB` gzip) verified.
+  - Published clean-room repository to `git@github.com:drusifer/dm-reloaded.git` (`main`).
+  - Lessons `001..004` recorded in `agents/oracle.docs/lessons.md`.
 
 ### Important Notes
-- Root `task.md` remains the single source of truth; ready for Sprint 2 planning (`*plan sprint`).
+- Root `task.md` is the single source of truth for Sprint tasks and Sprints 2–8 backlog.
+- Do NOT run baseline `bobp make test` on cold start unless code changes (Bounded Testing rule).
 
 ## Current Task
-**Status:** Complete (Sprint 1 — 100%)
-**Assigned to:** Cypher (`*pm launch sprint-1`)
-**Started:** 2026-11-01
-
-### Task Description
-Track Sprint 1 execution through Stage 3 Sprint Close.
+**Status:** Ready for Sprint 2 Kickoff (Cold-Start Prepared)
+**Assigned to:** Cypher (`*pm plan sprint`) / Mouse (`*sm`)
+**Started:** 2026-11-02
 
 ### Progress
-- [x] Phase 1: Toolchain, Dual-Mode Data & Headless 6 Hz Engine (Tasks 1.1–1.3 DONE)
-- [x] Phase 2: `320×200` Amiga Framebuffer, `GraphicsDatDecoder`, Pseudo-3D Viewport & Classic HUD (Tasks 2.1–2.2 DONE)
-- [x] Phase 3: Input, Paula Spatial Web Audio, QoL Automap & Playable Slice + Smith `*user test phase-3` (Tasks 3.1–3.3 DONE)
-- [x] Stage 3 Sprint Close (`*ora groom` + `bobp chat-report` + `*user test sprint-1` + `*sprint retro`)
-
-### Blockers
-None
-
-### Oracle Consultations
-Synced with `memory.md` and `lessons.md`.
+- [x] Sprint 1 Phases 1–3 (`8/8` tasks) + Stage 3 Sprint Close
+- [x] Post-Sprint-1 perspective (`item[558]`), crosswise doors/3D jambs (`78..80`, `315`), and Paula SFX Soundboard (`SFX BOARD [B]`) polish
+- [x] Clean-room push to `git@github.com:drusifer/dm-reloaded.git`
 
 ## Next Steps
-### Immediate Next Action
-Await user trigger for Sprint 2 (`*plan sprint`: Paperdoll Inventory, Item Icon Sheets `items 42..48`, Encumbrance, Cursor-Hand Throw Physics, Food/Water/Stamina/Sleep, Vi Altars).
-
-### Waiting On
-User trigger for Sprint 2.
-
-### Planned Work
-- [ ] Sprint 2 phase breakdown once Sprint 2 stories & architecture are approved
+### Immediate Next Action (Cold Start Resume)
+1. When user invokes `/sprint`, `*plan sprint`, or asks to begin Sprint 2:
+   - Start **Sprint 2 Planning (`*plan sprint`)** with `@Cypher *pm plan sprint` covering:
+     - Paperdoll Inventory screen (`item[17]` backdrop) & decoded Item Icon Sheets (`items 42..48` from `graphics.dat`)
+     - `DB5..DB10` world items (weapons, armor, scrolls, potions, chests, misc) on floor sub-tiles & wall alcoves
+     - Cursor-hand drag/equip & corridor throw physics (remote switch/plate activation)
+     - Weight/encumbrance, Food/Water/Stamina/Sleep regeneration, Champion bones & Vi Altars
+   - Enforce mandatory live PNG screenshot UX inspection (`@Smith *user test`) on every UI-facing phase.
 
 ---
-*Last updated: 2026-11-02T09:48:15-05:00*
+*Last updated: 2026-11-02T16:17:00-05:00*

@@ -66,4 +66,8 @@ sequenceDiagram
     Note right of Neo: "Neo online for *swe fix<br/>door-orientation:<br/>investigating sideways<br/>door/stair rendering at<br/>LVL:0 (7,9) DIR:WEST."
     Oracle->>All: "ora done"
     Note right of Oracle: "Fixed sideways doors<br/>across all 14<br/>Dungeon.dat levels<br/>(lowFlags & 0x08 passage<br/>bit -> 158/158 doors<br/>match walls) + wired<br/>authentic FTL 3D s…"
+    User->>All: "request"
+    Note right of User: "*prep for clear"
+    Mouse->>Cypher: "sm handoff"
+    Note right of Mouse: "Prep for /clear<br/>complete: all persona<br/>state.md files,<br/>memory.md, and<br/>lessons.md (Lessons<br/>001..004) synced, 32/32<br/>tests green & main<br/>pushed…"
 ```

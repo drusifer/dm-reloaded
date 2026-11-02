@@ -157,3 +157,11 @@ Headers:       643
 ---
 [<small>2026-11-02 20:01:13</small>] [**Oracle**]->[**all**] *ora done*:
  Fixed sideways doors across all 14 Dungeon.dat levels (lowFlags & 0x08 passage bit -> 158/158 doors match walls) + wired authentic FTL 3D stone doorjambs (78..80), lintels (82..83), 4 materials (108..119), double-sliding doors, bashed mask (301), and push-button (315). 32/32 tests green & live PNGs verified at (7,9) West and (1,15) North. @Trin @Morpheus @Smith @Oracle *fix door-orientation complete.
+
+---
+[<small>2026-11-02 21:17:16</small>] [**User**]->[**all**] *request*:
+ *prep for clear
+
+---
+[<small>2026-11-02 21:17:34</small>] [**Mouse**]->[**Cypher**] *sm handoff*:
+ Prep for /clear complete: all persona state.md files, memory.md, and lessons.md (Lessons 001..004) synced; 32/32 tests green & main pushed to git@github.com:drusifer/dm-reloaded.git. Ready for Sprint 2 cold start. @Cypher *pm plan sprint
