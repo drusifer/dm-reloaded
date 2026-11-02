@@ -2,8 +2,10 @@
 
 ## Context
 ### Recent Decisions
-- Recorded `Lesson 003` in `agents/oracle.docs/lessons.md` documenting FTL's `item[558]` 8-byte viewport blitter coordinate table (`76` ceiling, `75` floor, `85` `D0L`, `84` `D0R`, `86/87/88/89` 3-face wall cube atlases, `77..80` edge-on doorway tracks) and `SND2` `5500 Hz` PCM layout (`WALL_BUMP: 565`, `FOOTSTEP: null`).
-- Updated `README.md` with the interactive `SFX BOARD [B]` Soundboard & 31/31 test count.
+- Recorded `Lesson 004` (and refined `Lesson 003`) in `agents/oracle.docs/lessons.md`:
+  - `Dungeon.dat` `lowFlags & 0x08` encodes corridor passage direction (`0 = West-East passage -> NORTH_SOUTH slab`, `1 = North-South passage -> WEST_EAST slab`), verified across 158/158 interior flanked doors in all 14 levels.
+  - `sprites 78, 79, 80` are crosswise 3D stone doorjambs (paired with lintels `82, 83` and push-button `315`), while only `sprite 77` is the depth-1 edge-on doorway track.
+  - `DB0` `w1 & 0x03` maps all 4 door materials (`108..119`), `(w1 & 0x20) === 0` maps horizontal double-sliding doors, and `sprite 301` masks bashed doors.
 
 ## Current Task
 **Status:** Complete (Lessons & Docs Synchronized)
@@ -11,8 +13,7 @@
 **Started:** 2026-11-02
 
 ### Progress
-- [x] Added `Lesson 003` to `agents/oracle.docs/lessons.md`
-- [x] Updated `README.md`
+- [x] Updated `Lesson 003` and added `Lesson 004` in `agents/oracle.docs/lessons.md`
 
 ---
-*Last updated: 2026-11-02T14:25:45-05:00*
+*Last updated: 2026-11-02T15:01:00-05:00*

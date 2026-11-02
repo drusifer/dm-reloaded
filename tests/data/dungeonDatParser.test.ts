@@ -147,8 +147,31 @@ describe.runIf(existsSync(EXTRACTED_DM1_DAT))('Real 1988 Amiga Dungeon.dat parse
     expect(state.party.champions).toHaveLength(1);
     expect(state.party.champions[0]?.name).toBe('HALK');
 
-    // 3. Step West onto (6,9) floor pressure plate -> opens wooden door at (5,9) over 4 ticks!
-    expect(getTile(state.levels, 0, 5, 9)?.door?.progress).toBe(4);
+    // 3. Step West onto (6,9) floor pressure plate -> opens NORTH_SOUTH iron portcullis grate at (5,9) over 4 ticks!
+    const exitDoor = getTile(state.levels, 0, 5, 9)?.door;
+    expect(exitDoor?.orientation).toBe('NORTH_SOUTH');
+    expect(exitDoor?.material).toBe('IRON_GRATE');
+    expect(exitDoor?.progress).toBe(4);
+
+    // Regression: every flanked interior door across all 14 levels matches its corridor walls
+    for (const lvl of bundle.dungeon.levels) {
+      for (let y = 1; y < lvl.height - 1; y++) {
+        for (let x = 1; x < lvl.width - 1; x++) {
+          const t = lvl.tiles[y]?.[x];
+          if (t?.type !== 'DOOR' || !t.door) continue;
+          const nWall = lvl.tiles[y - 1]?.[x]?.type === 'WALL';
+          const sWall = lvl.tiles[y + 1]?.[x]?.type === 'WALL';
+          const wWall = lvl.tiles[y]?.[x - 1]?.type === 'WALL';
+          const eWall = lvl.tiles[y]?.[x + 1]?.type === 'WALL';
+          if (nWall && sWall && !wWall && !eWall) {
+            expect(t.door.orientation).toBe('NORTH_SOUTH');
+          } else if (wWall && eWall && !nWall && !sWall) {
+            expect(t.door.orientation).toBe('WEST_EAST');
+          }
+        }
+      }
+    }
+
     face(3);
     step(); // (6,9) triggers Actu[2] -> target (5,9)
     state = dispatchCommand(state, { type: 'TICK', count: 4 }).state;

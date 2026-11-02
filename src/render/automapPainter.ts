@@ -85,7 +85,11 @@ export function paintAutomapOverlay(
         fb.fillRect(px, py, cellSize, cellSize, INK_FLOOR);
         fb.strokeRect(px, py, cellSize, cellSize, PARCHMENT_DARK);
         if (tile.type === 'DOOR') {
-          fb.fillRect(px + 1, py + 2, cellSize - 2, 3, INK_DOOR);
+          if (tile.door?.orientation === 'NORTH_SOUTH') {
+            fb.fillRect(px + 2, py + 1, 3, cellSize - 2, INK_DOOR);
+          } else {
+            fb.fillRect(px + 1, py + 2, cellSize - 2, 3, INK_DOOR);
+          }
         } else if (tile.type === 'STAIRS') {
           fb.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2, INK_STAIRS);
         } else if (tile.type === 'PIT' && tile.pit?.open) {

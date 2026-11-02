@@ -15,6 +15,7 @@ import {
   type CampaignBundle,
   type ChampionDefinition,
   type Direction,
+  type DoorMaterial,
   type DoorProgress,
   type DungeonLevel,
   type Tile,
@@ -391,18 +392,30 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
           const progress: DoorProgress =
             rawDoorState <= 5 ? (rawDoorState as DoorProgress) : 4;
           const doorEntry = chain.find((e) => e.category === 0);
-          let w1 = 0;
+          let w1 = 0x20;
           if (doorEntry) {
             w1 = readU16BE(buf, (dbOffsets[0] ?? 0) + doorEntry.index * 4 + 2);
           }
+          const rawMaterial = w1 & 0x03;
+          const material: DoorMaterial =
+            rawMaterial === 0
+              ? 'IRON_GRATE'
+              : rawMaterial === 1
+                ? 'WOODEN'
+                : rawMaterial === 2
+                  ? 'METAL'
+                  : 'RA_MAGIC';
           doorState = {
-            orientation: (lowFlags & 0x08) !== 0 ? 'NORTH_SOUTH' : 'WEST_EAST',
-            material: (w1 & 0x01) !== 0 ? 'WOODEN' : 'IRON_GRATE',
+            // In FTL Dungeon.dat, bit 3 (0x08)=1 means North-South passage (West/East walls -> WEST_EAST door slab);
+            // bit 3 (0x08)=0 means West-East passage (North/South walls -> NORTH_SOUTH door slab).
+            orientation: (lowFlags & 0x08) !== 0 ? 'WEST_EAST' : 'NORTH_SOUTH',
+            material,
             progress,
             targetProgress: progress === 0 ? 0 : 4,
             hasButton: (w1 & 0x40) !== 0,
             fireballDestructible: (w1 & 0x80) !== 0,
-            bashable: (w1 & 0x100) !== 0
+            bashable: (w1 & 0x100) !== 0,
+            opensHorizontally: (w1 & 0x20) === 0
           };
         }
 
@@ -419,7 +432,7 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
         if (tileType === 'STAIRS') {
           stairsState = {
             direction: (lowFlags & 0x04) !== 0 ? 'UP' : 'DOWN',
-            orientation: (lowFlags & 0x08) !== 0 ? 'NORTH_SOUTH' : 'WEST_EAST'
+            orientation: (lowFlags & 0x08) !== 0 ? 'WEST_EAST' : 'NORTH_SOUTH'
           };
         }
 

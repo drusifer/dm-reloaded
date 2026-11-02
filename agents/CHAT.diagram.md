@@ -62,4 +62,8 @@ sequenceDiagram
     Note right of Smith: "*user approve on fix-<br/>perspective-soundboard!<br/>Live PNG inspection at<br/>LVL:0 (1,6) DIR:NORTH<br/>confirms 100% pixel-<br/>exact 1988 Amiga mortar<br/>seams…"
     Oracle->>All: "ora done"
     Note right of Oracle: "Recorded Lesson 003<br/>(item[558] viewport<br/>blitter coordinates,<br/>ceiling 76 vs floor 75,<br/>3-face wall cubes<br/>86..88, SND2 5500Hz<br/>layout) in lesso…"
+    Neo->>All: "swe init"
+    Note right of Neo: "Neo online for *swe fix<br/>door-orientation:<br/>investigating sideways<br/>door/stair rendering at<br/>LVL:0 (7,9) DIR:WEST."
+    Oracle->>All: "ora done"
+    Note right of Oracle: "Fixed sideways doors<br/>across all 14<br/>Dungeon.dat levels<br/>(lowFlags & 0x08 passage<br/>bit -> 158/158 doors<br/>match walls) + wired<br/>authentic FTL 3D s…"
 ```

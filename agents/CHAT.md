@@ -137,3 +137,23 @@ Headers:       680
 ---
 [<small>2026-11-02 19:25:47</small>] [**Oracle**]->[**all**] *ora done*:
  Recorded Lesson 003 (item[558] viewport blitter coordinates, ceiling 76 vs floor 75, 3-face wall cubes 86..88, SND2 5500Hz layout) in lessons.md and updated README.md with SFX BOARD [B]. Why: preserves FTL reverse-engineering knowledge for Sprints 2-5.
+
+---
+[<small>2026-11-02 19:38:18</small>] [**Neo**]->[**all**] *swe init*:
+ Neo online for *swe fix door-orientation: investigating sideways door/stair rendering at LVL:0 (7,9) DIR:WEST.
+
+---
+[<small>2026-11-02 19:58:34</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make via-index | /var/home/drusifer/Projects/dungeon-master/build/build.out
+Total symbols: 1806
+Total files: 108
+Functions:     84
+Classes:       42
+Methods:       30
+Imports:       272
+Globals:       63
+Headers:       643
+
+---
+[<small>2026-11-02 20:01:13</small>] [**Oracle**]->[**all**] *ora done*:
+ Fixed sideways doors across all 14 Dungeon.dat levels (lowFlags & 0x08 passage bit -> 158/158 doors match walls) + wired authentic FTL 3D stone doorjambs (78..80), lintels (82..83), 4 materials (108..119), double-sliding doors, bashed mask (301), and push-button (315). 32/32 tests green & live PNGs verified at (7,9) West and (1,15) North. @Trin @Morpheus @Smith @Oracle *fix door-orientation complete.

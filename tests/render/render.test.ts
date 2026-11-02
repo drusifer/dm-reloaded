@@ -223,4 +223,29 @@ describe('Phase 2: GraphicsDatParser & 320x200 Amiga Renderer', () => {
     const d0rOuterTop = fb.getPixel(vp.x + 222, vp.y + 2);
     expect(d0rOuterTop[0]).toBeGreaterThan(80);
   });
+
+  it('renders crosswise doors across the hallway at LVL:0 (7,9) DIR:WEST with symmetric 3D stone doorjambs', () => {
+    if (!existsSync(EXTRACTED_GFX_PATH) || !existsSync(EXTRACTED_DUNGEON_PATH)) {
+      return;
+    }
+    const campaign = parseDungeonDat(new Uint8Array(readFileSync(EXTRACTED_DUNGEON_PATH)));
+    const gfx = parseGraphicsDat(new Uint8Array(readFileSync(EXTRACTED_GFX_PATH)));
+    const base = createInitialGameState(campaign);
+
+    // User screenshot position: Level 0, (7, 9), facing West (3) -> door at (5, 9) is at depth 2 across hallway
+    const stateAt79West = {
+      ...base,
+      party: { ...base.party, level: 0, x: 7, y: 9, facing: 3 as const }
+    };
+    const fb = new Framebuffer();
+    renderFrame(fb, stateAt79West, { graphics: gfx });
+
+    const vp = LAYOUT_RECTS.VIEWPORT;
+    // Left 3D stone doorjamb (sprite 79 at x=48..95 -> opaque stone around x=68..75)
+    expect(countNonBlackPixelsInRect(fb, vp.x + 66, vp.y + 30, 10, 40)).toBeGreaterThan(250);
+    // Right 3D stone doorjamb (sprite 79 flipped at x=128..175 -> opaque stone around x=148..155)
+    expect(countNonBlackPixelsInRect(fb, vp.x + 148, vp.y + 30, 10, 40)).toBeGreaterThan(250);
+    // Iron portcullis grate bars span across the center opening (x=80..143, y=24..82)
+    expect(countNonBlackPixelsInRect(fb, vp.x + 84, vp.y + 26, 56, 52)).toBeGreaterThan(400);
+  });
 });

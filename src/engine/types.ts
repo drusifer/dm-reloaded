@@ -28,7 +28,7 @@ export type TurnDirection = 'LEFT' | 'RIGHT';
 
 export type TileType = 'WALL' | 'FLOOR' | 'PIT' | 'STAIRS' | 'DOOR' | 'TELEPORTER' | 'TRICK_WALL';
 
-export type DoorMaterial = 'IRON_GRATE' | 'WOODEN' | 'RA_MAGIC';
+export type DoorMaterial = 'IRON_GRATE' | 'WOODEN' | 'METAL' | 'RA_MAGIC';
 
 /**
  * Door openness ranges from 0 (fully open) through 1..3 (animating) to 4 (fully closed), or 5 (bashed open).
@@ -43,6 +43,7 @@ export interface DoorState {
   readonly hasButton: boolean;
   readonly bashable: boolean;
   readonly fireballDestructible: boolean;
+  readonly opensHorizontally?: boolean;
 }
 
 export interface PitState {

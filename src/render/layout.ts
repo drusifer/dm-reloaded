@@ -22,7 +22,7 @@ export const LAYOUT_RECTS = {
   AUTOMAP_PILL: { x: 273, y: 10, w: 46, h: 8 },
   AUDIO_PILL: { x: 273, y: 19, w: 46, h: 9 },
   VIEWPORT: { x: 0, y: 33, w: 224, h: 136 },
-  VIEWPORT_CENTER_HIT: { x: 48, y: 48, w: 128, h: 104 },
+  VIEWPORT_CENTER_HIT: { x: 32, y: 42, w: 160, h: 110 },
   RIGHT_DECK: { x: 224, y: 33, w: 96, h: 136 },
   MOVEMENT_PAD: { x: 224, y: 124, w: 96, h: 45 },
   MESSAGE_STRIP: { x: 0, y: 169, w: 320, h: 31 },

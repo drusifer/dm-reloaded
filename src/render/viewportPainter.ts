@@ -371,7 +371,8 @@ function drawCenterTileContents(
     }
   }
 
-  // 3. Doors (FTL item[558] offsets 3412, 3652, 3892 for crosswise doors; 4100..4148 for parallel doors)
+  // 3. Doors (FTL item[558] offsets 3412..3964 for crosswise slabs, 4060/4084 for lintels 82/83,
+  //    4108..4155 for 3D stone doorjambs 78/79/80, and 4100 for depth-1 parallel doorway track 77)
   if (tile.type === 'DOOR' && tile.door && depth >= 1) {
     const facingNorthSouth = partyFacing === 0 || partyFacing === 2;
     const isCrosswise = facingNorthSouth
@@ -379,54 +380,229 @@ function drawCenterTileContents(
       : tile.door.orientation === 'NORTH_SOUTH';
 
     if (!isCrosswise) {
-      // Edge-on parallel doorway slot (item[77] at D1, item[79] at D2, item[80] at D3)
-      const edgeSpec = depth === 1
-        ? { id: 77, dx: 96, dy: 0 }
-        : depth === 2
-          ? { id: 79, dx: 88, dy: 22 }
-          : { id: 80, dx: 96, dy: 27 };
-      const edgeSprite = bundle?.sprites.get(edgeSpec.id);
-      if (edgeSprite) {
-        fb.blitSprite(
-          edgeSprite,
-          vpX + edgeSpec.dx,
-          vpY + edgeSpec.dy,
-          palette,
-          { transparentIndex: PALETTE_INDEX.FLESH_KEY },
-          vp
-        );
+      // Edge-on parallel doorway slot at depth 1 only (item[558] off=4100 -> sprite 77, 32x123 at x=96, y=0)
+      if (depth === 1) {
+        const edgeSprite = bundle?.sprites.get(77);
+        if (edgeSprite) {
+          fb.blitSprite(
+            edgeSprite,
+            vpX + 96,
+            vpY,
+            palette,
+            { transparentIndex: PALETTE_INDEX.FLESH_KEY },
+            vp
+          );
+        }
       }
     } else {
-      // Crosswise doorway facing the party
+      // Crosswise doorway spanning across the hallway ahead
       const doorGeom = depth === 1
-        ? { slabX: 64, slabY: 17, slabW: 96, fullH: 86, jambW: 12, lintelId: 82, lintelX: 48, lintelY: 14 }
+        ? {
+            slabX: 64,
+            slabY: 17,
+            slabW: 96,
+            fullH: 86,
+            jambW: 12,
+            jambId: 78,
+            leftJambX: 43,
+            rightJambX: 149,
+            jambY: 14,
+            lintelId: 82,
+            lintelX: 48,
+            lintelY: 14
+          }
         : depth === 2
-          ? { slabX: 80, slabY: 24, slabW: 64, fullH: 59, jambW: 8, lintelId: 83, lintelX: 64, lintelY: 22 }
-          : { slabX: 88, slabY: 28, slabW: 48, fullH: 40, jambW: 5, lintelId: 0, lintelX: 83, lintelY: 26 };
+          ? {
+              slabX: 80,
+              slabY: 24,
+              slabW: 64,
+              fullH: 59,
+              jambW: 8,
+              jambId: 79,
+              leftJambX: 48,
+              rightJambX: 128,
+              jambY: 22,
+              lintelId: 83,
+              lintelX: 64,
+              lintelY: 22
+            }
+          : {
+              slabX: 88,
+              slabY: 28,
+              slabW: 48,
+              fullH: 40,
+              jambW: 5,
+              jambId: 80,
+              leftJambX: 64,
+              rightJambX: 128,
+              jambY: 27,
+              lintelId: 0,
+              lintelX: 83,
+              lintelY: 26
+            };
 
+      // 3a. Door slab first so 3D stone jamb grooves & lintel overhang cleanly frame its edges
+      const progress = tile.door.progress;
+      if (progress > 0) {
+        const doorSpriteId = tile.door.material === 'IRON_GRATE'
+          ? (depth === 3 ? 108 : depth === 2 ? 109 : 110)
+          : tile.door.material === 'WOODEN'
+            ? (depth === 3 ? 111 : depth === 2 ? 112 : 113)
+            : tile.door.material === 'METAL'
+              ? (depth === 3 ? 114 : depth === 2 ? 115 : 116)
+              : (depth === 3 ? 117 : depth === 2 ? 118 : 119);
+        const doorSprite = bundle?.sprites.get(doorSpriteId);
+
+        if (doorSprite) {
+          if (tile.door.opensHorizontally && progress >= 1 && progress <= 3) {
+            // Double-sliding horizontal door halves (FTL item[558] offsets 3444..3484, 3684..3724, 3924..3964)
+            const stepW = depth === 1 ? 12 : depth === 2 ? 8 : 6;
+            const halfW = stepW * progress;
+            const midSrcX = Math.floor(doorSprite.width / 2);
+            fb.blitSprite(
+              doorSprite,
+              vpX + doorGeom.slabX,
+              vpY + doorGeom.slabY,
+              palette,
+              {
+                transparentIndex: PALETTE_INDEX.FLESH_KEY,
+                srcX: Math.max(0, midSrcX - halfW),
+                srcWidth: halfW,
+                srcHeight: Math.min(doorSprite.height, doorGeom.fullH),
+                dstWidth: halfW,
+                dstHeight: doorGeom.fullH
+              },
+              vp
+            );
+            fb.blitSprite(
+              doorSprite,
+              vpX + doorGeom.slabX + doorGeom.slabW - halfW,
+              vpY + doorGeom.slabY,
+              palette,
+              {
+                transparentIndex: PALETTE_INDEX.FLESH_KEY,
+                srcX: midSrcX,
+                srcWidth: halfW,
+                srcHeight: Math.min(doorSprite.height, doorGeom.fullH),
+                dstWidth: halfW,
+                dstHeight: doorGeom.fullH
+              },
+              vp
+            );
+          } else {
+            const closedFraction = progress === 5 ? 1 : progress / 4;
+            const slabH = Math.max(2, Math.round(doorGeom.fullH * closedFraction));
+            const srcCropY = Math.max(0, doorSprite.height - Math.round(doorSprite.height * closedFraction));
+            const smashMask = progress === 5 ? bundle?.sprites.get(301) : undefined;
+
+            if (smashMask) {
+              // Bashed door: skip pixels where FTL smash mask item[301] is 0 (black breach hole) so corridor shows through
+              const visibleH = Math.min(doorSprite.height - srcCropY, slabH);
+              for (let row = 0; row < visibleH; row += 1) {
+                const maskY = Math.min(smashMask.height - 1, Math.floor((row * smashMask.height) / visibleH));
+                for (let col = 0; col < doorGeom.slabW; col += 1) {
+                  const maskX = Math.min(smashMask.width - 1, Math.floor((col * smashMask.width) / doorGeom.slabW));
+                  if (smashMask.pixels[maskY * smashMask.width + maskX] === 0) {
+                    continue;
+                  }
+                  const srcX = Math.min(doorSprite.width - 1, Math.floor((col * doorSprite.width) / doorGeom.slabW));
+                  const colorIdx = doorSprite.pixels[(srcCropY + row) * doorSprite.width + srcX] ?? PALETTE_INDEX.FLESH_KEY;
+                  if (colorIdx !== PALETTE_INDEX.FLESH_KEY) {
+                    fb.setPixel(
+                      vpX + doorGeom.slabX + col,
+                      vpY + doorGeom.slabY + row,
+                      palette[colorIdx] ?? [0, 0, 0]
+                    );
+                  }
+                }
+              }
+            } else {
+              fb.blitSprite(
+                doorSprite,
+                vpX + doorGeom.slabX,
+                vpY + doorGeom.slabY,
+                palette,
+                {
+                  transparentIndex: PALETTE_INDEX.FLESH_KEY,
+                  srcY: srcCropY,
+                  srcHeight: Math.min(doorSprite.height - srcCropY, slabH),
+                  dstWidth: doorGeom.slabW,
+                  dstHeight: slabH
+                },
+                vp
+              );
+            }
+          }
+        } else {
+          const closedFraction = progress === 5 ? 1 : progress / 4;
+          const slabH = Math.max(2, Math.round(doorGeom.fullH * closedFraction));
+          if (tile.door.material === 'WOODEN') {
+            const wood = palette[PALETTE_INDEX.LIGHT_BROWN] ?? [146, 73, 0];
+            const darkWood = palette[PALETTE_INDEX.DARK_BROWN] ?? [90, 36, 0];
+            fb.fillRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY, doorGeom.slabW, slabH, wood);
+            for (let px = vpX + doorGeom.slabX + 6; px < vpX + doorGeom.slabX + doorGeom.slabW; px += 8) {
+              fb.fillRect(px, vpY + doorGeom.slabY, 1, slabH, darkWood);
+            }
+            fb.fillRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY + slabH - 2, doorGeom.slabW, 2, darkWood);
+          } else if (tile.door.material === 'IRON_GRATE' || tile.door.material === 'METAL') {
+            const iron = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [160, 160, 160];
+            const barStep = depth === 1 ? 8 : 5;
+            for (let px = vpX + doorGeom.slabX + 3; px < vpX + doorGeom.slabX + doorGeom.slabW - 2; px += barStep) {
+              fb.fillRect(px, vpY + doorGeom.slabY, 2, slabH, iron);
+            }
+            for (let py = vpY + doorGeom.slabY + 6; py < vpY + doorGeom.slabY + slabH; py += barStep * 2) {
+              fb.fillRect(vpX + doorGeom.slabX, py, doorGeom.slabW, 2, iron);
+            }
+          } else {
+            const magic = palette[PALETTE_INDEX.CYAN] ?? [0, 200, 200];
+            fb.fillDitherRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY, doorGeom.slabW, slabH, magic);
+          }
+        }
+      }
+
+      // 3b. Authentic 3D stone doorjambs (sprites 78, 79, 80) and top lintels (sprites 82, 83)
       const frameDark = palette[PALETTE_INDEX.DARK_GRAY] ?? [72, 72, 72];
       const frameLight = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [155, 155, 155];
       const frameBorder = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
 
-      // Left & right stone door jambs
-      fb.drawBevelBox(
-        vpX + doorGeom.slabX - doorGeom.jambW,
-        vpY + doorGeom.slabY - 2,
-        doorGeom.jambW,
-        doorGeom.fullH + 4,
-        frameDark,
-        frameLight,
-        frameBorder
-      );
-      fb.drawBevelBox(
-        vpX + doorGeom.slabX + doorGeom.slabW,
-        vpY + doorGeom.slabY - 2,
-        doorGeom.jambW,
-        doorGeom.fullH + 4,
-        frameDark,
-        frameLight,
-        frameBorder
-      );
+      const jambSprite = bundle?.sprites.get(doorGeom.jambId);
+      if (jambSprite) {
+        fb.blitSprite(
+          jambSprite,
+          vpX + doorGeom.leftJambX,
+          vpY + doorGeom.jambY,
+          palette,
+          { transparentIndex: PALETTE_INDEX.FLESH_KEY, flipX: false },
+          vp
+        );
+        fb.blitSprite(
+          jambSprite,
+          vpX + doorGeom.rightJambX,
+          vpY + doorGeom.jambY,
+          palette,
+          { transparentIndex: PALETTE_INDEX.FLESH_KEY, flipX: true },
+          vp
+        );
+      } else {
+        fb.drawBevelBox(
+          vpX + doorGeom.slabX - doorGeom.jambW,
+          vpY + doorGeom.slabY - 2,
+          doorGeom.jambW,
+          doorGeom.fullH + 4,
+          frameDark,
+          frameLight,
+          frameBorder
+        );
+        fb.drawBevelBox(
+          vpX + doorGeom.slabX + doorGeom.slabW,
+          vpY + doorGeom.slabY - 2,
+          doorGeom.jambW,
+          doorGeom.fullH + 4,
+          frameDark,
+          frameLight,
+          frameBorder
+        );
+      }
 
       const lintelSprite = doorGeom.lintelId > 0 ? bundle?.sprites.get(doorGeom.lintelId) : undefined;
       if (lintelSprite) {
@@ -438,7 +614,7 @@ function drawCenterTileContents(
           { transparentIndex: PALETTE_INDEX.FLESH_KEY },
           vp
         );
-      } else {
+      } else if (!jambSprite) {
         fb.drawBevelBox(
           vpX + doorGeom.slabX - doorGeom.jambW,
           vpY + doorGeom.slabY - 4,
@@ -450,69 +626,34 @@ function drawCenterTileContents(
         );
       }
 
+      // 3c. Authentic door push-button (sprite 315, 16x9) mounted on right stone doorjamb
       if (tile.door.hasButton && depth <= 2) {
-        const btnW = depth === 1 ? 6 : 4;
-        const btnH = depth === 1 ? 8 : 5;
-        fb.drawBevelBox(
-          vpX + doorGeom.slabX + doorGeom.slabW + Math.max(1, Math.floor((doorGeom.jambW - btnW) / 2)),
-          vpY + doorGeom.slabY + Math.floor(doorGeom.fullH * 0.42),
-          btnW,
-          btnH,
-          palette[PALETTE_INDEX.LIGHT_BROWN] ?? [150, 90, 20],
-          palette[PALETTE_INDEX.YELLOW] ?? [220, 200, 50],
-          frameBorder
-        );
-      }
-
-      const progress = tile.door.progress;
-      if (progress > 0) {
-        const closedFraction = progress === 5 ? 1 : progress / 4;
-        const slabH = Math.max(2, Math.round(doorGeom.fullH * closedFraction));
-        const doorSpriteId = progress === 5
-          ? (depth === 3 ? 117 : depth === 2 ? 118 : 119)
-          : tile.door.material === 'IRON_GRATE'
-            ? (depth === 3 ? 108 : depth === 2 ? 109 : 110)
-            : tile.door.material === 'WOODEN'
-              ? (depth === 3 ? 111 : depth === 2 ? 112 : 113)
-              : (depth === 3 ? 114 : depth === 2 ? 115 : 116);
-        const doorSprite = bundle?.sprites.get(doorSpriteId);
-
-        if (doorSprite) {
-          const srcCropY = Math.max(0, doorSprite.height - Math.round(doorSprite.height * closedFraction));
+        const btnSprite = bundle?.sprites.get(315);
+        if (btnSprite) {
+          const btnX = depth === 1 ? 163 : 146;
+          const btnY = depth === 1 ? 48 : 44;
+          const btnW = depth === 1 ? 16 : 10;
+          const btnH = depth === 1 ? 9 : 6;
           fb.blitSprite(
-            doorSprite,
-            vpX + doorGeom.slabX,
-            vpY + doorGeom.slabY,
+            btnSprite,
+            vpX + btnX,
+            vpY + btnY,
             palette,
-            {
-              transparentIndex: PALETTE_INDEX.FLESH_KEY,
-              srcY: srcCropY,
-              srcHeight: Math.min(doorSprite.height - srcCropY, slabH),
-              dstWidth: doorGeom.slabW,
-              dstHeight: slabH
-            },
+            { transparentIndex: PALETTE_INDEX.FLESH_KEY, dstWidth: btnW, dstHeight: btnH },
             vp
           );
-        } else if (tile.door.material === 'WOODEN') {
-          const wood = palette[PALETTE_INDEX.LIGHT_BROWN] ?? [146, 73, 0];
-          const darkWood = palette[PALETTE_INDEX.DARK_BROWN] ?? [90, 36, 0];
-          fb.fillRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY, doorGeom.slabW, slabH, wood);
-          for (let px = vpX + doorGeom.slabX + 6; px < vpX + doorGeom.slabX + doorGeom.slabW; px += 8) {
-            fb.fillRect(px, vpY + doorGeom.slabY, 1, slabH, darkWood);
-          }
-          fb.fillRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY + slabH - 2, doorGeom.slabW, 2, darkWood);
-        } else if (tile.door.material === 'IRON_GRATE') {
-          const iron = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [160, 160, 160];
-          const barStep = depth === 1 ? 8 : 5;
-          for (let px = vpX + doorGeom.slabX + 3; px < vpX + doorGeom.slabX + doorGeom.slabW - 2; px += barStep) {
-            fb.fillRect(px, vpY + doorGeom.slabY, 2, slabH, iron);
-          }
-          for (let py = vpY + doorGeom.slabY + 6; py < vpY + doorGeom.slabY + slabH; py += barStep * 2) {
-            fb.fillRect(vpX + doorGeom.slabX, py, doorGeom.slabW, 2, iron);
-          }
         } else {
-          const magic = palette[PALETTE_INDEX.CYAN] ?? [0, 200, 200];
-          fb.fillDitherRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY, doorGeom.slabW, slabH, magic);
+          const btnW = depth === 1 ? 6 : 4;
+          const btnH = depth === 1 ? 8 : 5;
+          fb.drawBevelBox(
+            vpX + doorGeom.slabX + doorGeom.slabW + Math.max(1, Math.floor((doorGeom.jambW - btnW) / 2)),
+            vpY + doorGeom.slabY + Math.floor(doorGeom.fullH * 0.42),
+            btnW,
+            btnH,
+            palette[PALETTE_INDEX.LIGHT_BROWN] ?? [150, 90, 20],
+            palette[PALETTE_INDEX.YELLOW] ?? [220, 200, 50],
+            frameBorder
+          );
         }
       }
     }
