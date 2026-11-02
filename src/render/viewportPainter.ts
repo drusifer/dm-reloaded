@@ -1,0 +1,762 @@
+/**
+ * Depth-3 first-person pseudo-3D dungeon viewport painter (224x136 at y=33).
+ *
+ * TLDR:
+ *   Uses exact 1988 FTL Amiga item[558] blitter coordinates for ceiling (item[76], 224x29),
+ *   floor (item[75], 224x70), 3-face wall cubes (items 88, 87, 86, 85=D0L, 84=D0R, 89=D3LL/RR),
+ *   pits (items 50..56), stairs (items 90..103), doors (items 77..83 & 108..119), teleporter
+ *   haze, and wall features (Champion Mirrors, Sconces, Buttons, Inscriptions) with full
+ *   procedural Clean-Room fallback.
+ */
+
+import { DIRECTION_DELTAS } from '../engine/types';
+import type { Direction, DungeonLevel, GameState, Tile, WallFeature } from '../engine/types';
+import { extractChampionPortrait } from '../data/graphicsDatParser';
+import type { GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
+import { drawBitmapText } from './bitmapFont';
+import type { Framebuffer } from './framebuffer';
+import { LAYOUT_RECTS } from './layout';
+import { PALETTE_INDEX, getViewportLightPalette } from './palette';
+
+interface DepthFrustum {
+  readonly leftOuterX: number;
+  readonly leftInnerX: number;
+  readonly rightInnerX: number;
+  readonly rightOuterX: number;
+  readonly topOuterY: number;
+  readonly topInnerY: number;
+  readonly bottomInnerY: number;
+  readonly bottomOuterY: number;
+}
+
+// Viewport-local (0..224, 0..136) perspective planes aligned to FTL item[558] wall blitter rects
+const FRUSTUMS: Readonly<Record<0 | 1 | 2 | 3, DepthFrustum>> = {
+  0: {
+    leftOuterX: 0,
+    leftInnerX: 32,
+    rightInnerX: 192,
+    rightOuterX: 224,
+    topOuterY: 0,
+    topInnerY: 9,
+    bottomInnerY: 120,
+    bottomOuterY: 136
+  },
+  1: {
+    leftOuterX: 32,
+    leftInnerX: 60,
+    rightInnerX: 164,
+    rightOuterX: 192,
+    topOuterY: 9,
+    topInnerY: 20,
+    bottomInnerY: 91,
+    bottomOuterY: 120
+  },
+  2: {
+    leftOuterX: 60,
+    leftInnerX: 74,
+    rightInnerX: 150,
+    rightOuterX: 164,
+    topOuterY: 20,
+    topInnerY: 25,
+    bottomInnerY: 76,
+    bottomOuterY: 91
+  },
+  3: {
+    leftOuterX: 74,
+    leftInnerX: 84,
+    rightInnerX: 140,
+    rightOuterX: 150,
+    topOuterY: 25,
+    topInnerY: 29,
+    bottomInnerY: 67,
+    bottomOuterY: 76
+  }
+};
+
+function isOpaqueWall(tile: Tile): boolean {
+  if (tile.type === 'WALL') {
+    return true;
+  }
+  if (tile.type === 'TRICK_WALL') {
+    return !(tile.trickWall?.open ?? false) && !(tile.trickWall?.illusionary ?? false);
+  }
+  return false;
+}
+
+function getLevelTile(level: DungeonLevel, x: number, y: number): Tile {
+  if (y < 0 || y >= level.height || x < 0 || x >= level.width) {
+    return {
+      type: 'WALL',
+      rawFlags: 0,
+      wallFeatures: [],
+      actuators: [],
+      itemNames: []
+    };
+  }
+  return level.tiles[y]?.[x] ?? {
+    type: 'WALL',
+    rawFlags: 0,
+    wallFeatures: [],
+    actuators: [],
+    itemNames: []
+  };
+}
+
+function worldTileAtViewOffset(
+  partyX: number,
+  partyY: number,
+  facing: Direction,
+  forward: number,
+  lateral: number
+): { readonly wx: number; readonly wy: number } {
+  const fwd = DIRECTION_DELTAS[facing];
+  const rightDir = ((facing + 1) & 3) as Direction;
+  const right = DIRECTION_DELTAS[rightDir];
+  return {
+    wx: partyX + fwd.dx * forward + right.dx * lateral,
+    wy: partyY + fwd.dy * forward + right.dy * lateral
+  };
+}
+
+function drawStoneWallRect(
+  fb: Framebuffer,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  palette: readonly RgbColor[],
+  parity: number
+): void {
+  if (w <= 0 || h <= 0) {
+    return;
+  }
+  const base = palette[PALETTE_INDEX.MEDIUM_GRAY] ?? [100, 100, 100];
+  const dark = palette[PALETTE_INDEX.DARK_GRAY] ?? [60, 60, 60];
+  const mortar = palette[PALETTE_INDEX.DARKEST_GRAY_KEY] ?? [35, 35, 35];
+  const hi = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [150, 150, 150];
+
+  fb.fillRect(x, y, w, h, base);
+  fb.strokeRect(x, y, w, h, mortar);
+
+  const courseH = Math.max(6, Math.floor(h / 4));
+  for (let row = 0; row * courseH < h; row += 1) {
+    const ry = y + row * courseH;
+    fb.fillRect(x, ry, w, 1, mortar);
+    if (ry + 1 < y + h) {
+      fb.fillRect(x + 1, ry + 1, Math.max(0, w - 2), 1, hi);
+    }
+    const brickW = Math.max(8, Math.floor(w / 3));
+    const shift = ((row + parity) & 1) === 0 ? 0 : Math.floor(brickW / 2);
+    for (let bx = x + shift; bx < x + w; bx += brickW) {
+      fb.fillRect(bx, ry, 1, Math.min(courseH, y + h - ry), mortar);
+      if (bx + 1 < x + w) {
+        fb.fillRect(bx + 1, ry + 1, 1, Math.max(0, Math.min(courseH - 2, y + h - ry - 1)), dark);
+      }
+    }
+  }
+}
+
+function drawSideWallTrapezoid(
+  fb: Framebuffer,
+  vpX: number,
+  vpY: number,
+  side: 'LEFT' | 'RIGHT',
+  frustum: DepthFrustum,
+  palette: readonly RgbColor[],
+  parity: number
+): void {
+  const xStart = side === 'LEFT' ? frustum.leftOuterX : frustum.rightInnerX;
+  const xEnd = side === 'LEFT' ? frustum.leftInnerX : frustum.rightOuterX;
+  const span = Math.max(1, xEnd - xStart);
+
+  const stone = palette[PALETTE_INDEX.DARK_GRAY] ?? [70, 70, 70];
+  const mortar = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
+  const hi = palette[PALETTE_INDEX.MEDIUM_GRAY] ?? [110, 110, 110];
+
+  for (let dx = 0; dx < span; dx += 1) {
+    const t = side === 'LEFT' ? dx / span : (span - 1 - dx) / span;
+    const colTop = Math.round(frustum.topOuterY + (frustum.topInnerY - frustum.topOuterY) * t);
+    const colBot = Math.round(frustum.bottomOuterY + (frustum.bottomInnerY - frustum.bottomOuterY) * t);
+    const px = vpX + xStart + dx;
+    const colH = Math.max(1, colBot - colTop);
+    fb.fillRect(px, vpY + colTop, 1, colH, ((dx + parity) & 3) === 0 ? hi : stone);
+    fb.setPixel(px, vpY + colTop, mortar);
+    fb.setPixel(px, vpY + colBot - 1, mortar);
+    const midY = vpY + Math.floor((colTop + colBot) / 2);
+    fb.setPixel(px, midY, mortar);
+  }
+}
+
+function drawWallFeatureOnFrontWall(
+  fb: Framebuffer,
+  feature: WallFeature,
+  wallX: number,
+  wallY: number,
+  wallW: number,
+  wallH: number,
+  depth: 1 | 2 | 3,
+  palette: readonly RgbColor[],
+  bundle: GraphicsBundle | undefined,
+  tick: number
+): void {
+  const cx = wallX + Math.floor(wallW / 2);
+  const cy = wallY + Math.floor(wallH / 2);
+
+  if (feature.kind === 'CHAMPION_MIRROR') {
+    const frameW = depth === 1 ? 44 : depth === 2 ? 26 : 16;
+    const frameH = depth === 1 ? 40 : depth === 2 ? 24 : 14;
+    const fx = cx - Math.floor(frameW / 2);
+    const fy = cy - Math.floor(frameH / 2) - (depth === 1 ? 6 : 2);
+    const silver = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [180, 180, 180];
+    const cyan = palette[PALETTE_INDEX.CYAN] ?? [0, 180, 180];
+    const dark = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
+
+    fb.drawBevelBox(fx, fy, frameW, frameH, dark, silver, dark);
+    fb.fillRect(fx + 2, fy + 2, frameW - 4, frameH - 4, cyan);
+
+    const portrait = bundle && feature.portraitIndex !== undefined
+      ? extractChampionPortrait(bundle, feature.portraitIndex)
+      : null;
+    if (portrait) {
+      fb.blitSprite(
+        portrait,
+        fx + 3,
+        fy + 3,
+        palette,
+        { dstWidth: Math.max(4, frameW - 6), dstHeight: Math.max(4, frameH - 6) },
+        LAYOUT_RECTS.VIEWPORT
+      );
+    } else if (depth === 1 && feature.text) {
+      const label = feature.text.split('\n')[0] ?? 'HERO';
+      drawBitmapText(
+        fb,
+        label.slice(0, 6),
+        fx + 4,
+        fy + frameH + 3,
+        palette[PALETTE_INDEX.WHITE] ?? [220, 220, 220],
+        bundle?.systemFont
+      );
+    }
+    return;
+  }
+
+  if (feature.kind === 'SCONCE') {
+    const bracketColor = palette[PALETTE_INDEX.DARK_BROWN] ?? [90, 45, 0];
+    const woodColor = palette[PALETTE_INDEX.LIGHT_BROWN] ?? [140, 75, 0];
+    const sW = depth === 1 ? 6 : 4;
+    const sH = depth === 1 ? 16 : 10;
+    fb.fillRect(cx - Math.floor(sW / 2), cy - 2, sW, sH, bracketColor);
+    if (feature.hasTorch) {
+      fb.fillRect(cx - 1, cy - 6, 3, 8, woodColor);
+      const flicker = (tick & 1) === 0;
+      const flameOuter = palette[PALETTE_INDEX.ORANGE] ?? [255, 160, 0];
+      const flameInner = palette[PALETTE_INDEX.YELLOW] ?? [255, 255, 0];
+      fb.fillRect(cx - (flicker ? 3 : 2), cy - 12, flicker ? 7 : 5, 6, flameOuter);
+      fb.fillRect(cx - 1, cy - 10, 3, 4, flameInner);
+    }
+    return;
+  }
+
+  if (feature.kind === 'BUTTON') {
+    const bSize = depth === 1 ? 10 : 6;
+    fb.drawBevelBox(
+      cx - Math.floor(bSize / 2),
+      cy - Math.floor(bSize / 2),
+      bSize,
+      bSize,
+      palette[PALETTE_INDEX.LIGHT_GRAY] ?? [160, 160, 160],
+      palette[PALETTE_INDEX.WHITE] ?? [230, 230, 230],
+      palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0]
+    );
+    return;
+  }
+
+  if (feature.kind === 'INSCRIPTION' && feature.text && depth <= 2) {
+    const lines = feature.text.split('\n').slice(0, 3);
+    const textColor = palette[PALETTE_INDEX.WHITE] ?? [220, 220, 220];
+    const shadowColor = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
+    const plaqueW = Math.min(wallW - 8, Math.max(36, Math.max(...lines.map((l) => l.length)) * 6 + 6));
+    const plaqueH = lines.length * 8 + 4;
+    const px = cx - Math.floor(plaqueW / 2);
+    const py = cy - Math.floor(plaqueH / 2);
+    fb.strokeRect(px, py, plaqueW, plaqueH, shadowColor);
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i] ?? '';
+      const maxChars = Math.max(1, Math.floor((wallW - 10) / 6));
+      const trimmed = line.slice(0, maxChars);
+      const lx = cx - Math.floor((trimmed.length * 6) / 2);
+      const ly = py + 3 + i * 8;
+      drawBitmapText(fb, trimmed, lx + 1, ly + 1, shadowColor, bundle?.systemFont);
+      drawBitmapText(fb, trimmed, lx, ly, textColor, bundle?.systemFont);
+    }
+  }
+}
+
+function drawCenterTileContents(
+  fb: Framebuffer,
+  tile: Tile,
+  depth: 0 | 1 | 2 | 3,
+  partyFacing: Direction,
+  vpX: number,
+  vpY: number,
+  palette: readonly RgbColor[],
+  bundle: GraphicsBundle | undefined
+): void {
+  const vp = LAYOUT_RECTS.VIEWPORT;
+  const f = FRUSTUMS[depth];
+  const openW = f.rightInnerX - f.leftInnerX;
+  const openH = f.bottomInnerY - f.topInnerY;
+  const x0 = vpX + f.leftInnerX;
+  const y0 = vpY + f.topInnerY;
+
+  // 1. Floor pits (FTL item[558] offsets 4372, 4396, 4420, 4444 -> sprites 56, 54, 52, 50)
+  if (tile.type === 'PIT' && tile.pit && (tile.pit.open || tile.pit.illusionary)) {
+    const pitSpec = depth === 0
+      ? { id: 56, dx: 16, dy: 124 }
+      : depth === 1
+        ? { id: 54, dx: 32, dy: 93 }
+        : depth === 2
+          ? { id: 52, dx: 64, dy: 77 }
+          : { id: 50, dx: 64, dy: 66 };
+    const pitSprite = bundle?.sprites.get(pitSpec.id);
+    if (pitSprite) {
+      fb.blitSprite(
+        pitSprite,
+        vpX + pitSpec.dx,
+        vpY + pitSpec.dy,
+        palette,
+        { transparentIndex: PALETTE_INDEX.FLESH_KEY },
+        vp
+      );
+    } else if (depth >= 1) {
+      const pitW = Math.max(16, Math.floor(openW * 0.68));
+      const pitH = depth === 1 ? 14 : depth === 2 ? 8 : 5;
+      const px = vpX + Math.floor((224 - pitW) / 2);
+      const py = vpY + f.bottomInnerY + 2;
+      fb.fillRect(px, py, pitW, pitH, palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0]);
+      fb.strokeRect(px, py, pitW, pitH, palette[PALETTE_INDEX.DARK_GRAY] ?? [60, 60, 60]);
+    }
+  }
+
+  // 2. Stairs Up / Down (FTL item[558] offsets 4548..4684 -> Down: 95,93,91; Up: 102,100,98)
+  if (tile.type === 'STAIRS' && tile.stairs && depth >= 1) {
+    const stairsSpec = tile.stairs.direction === 'DOWN'
+      ? (depth === 1 ? { id: 95, dx: 32, dy: 9 } : depth === 2 ? { id: 93, dx: 64, dy: 22 } : { id: 91, dx: 64, dy: 25 })
+      : (depth === 1 ? { id: 102, dx: 32, dy: 18 } : depth === 2 ? { id: 100, dx: 64, dy: 24 } : { id: 98, dx: 64, dy: 28 });
+    const stairsSprite = bundle?.sprites.get(stairsSpec.id);
+    if (stairsSprite) {
+      fb.blitSprite(
+        stairsSprite,
+        vpX + stairsSpec.dx,
+        vpY + stairsSpec.dy,
+        palette,
+        { transparentIndex: PALETTE_INDEX.FLESH_KEY },
+        vp
+      );
+    } else {
+      const stepCount = 5;
+      const stepH = Math.max(2, Math.floor(openH / (stepCount + 2)));
+      const dark = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
+      const light = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [160, 160, 160];
+      const mid = palette[PALETTE_INDEX.MEDIUM_GRAY] ?? [105, 105, 105];
+      fb.fillRect(x0 + 4, y0 + 2, Math.max(8, openW - 8), openH - 2, dark);
+      for (let s = 0; s < stepCount; s += 1) {
+        const sy = tile.stairs.direction === 'UP'
+          ? y0 + openH - (s + 1) * stepH
+          : y0 + Math.floor(openH * 0.45) + s * Math.max(2, Math.floor(stepH * 0.6));
+        const inset = s * 2;
+        fb.fillRect(x0 + 4 + inset, sy, Math.max(6, openW - 8 - inset * 2), 2, light);
+        fb.fillRect(x0 + 4 + inset, sy + 2, Math.max(6, openW - 8 - inset * 2), Math.max(1, stepH - 2), mid);
+      }
+    }
+  }
+
+  // 3. Doors (FTL item[558] offsets 3412, 3652, 3892 for crosswise doors; 4100..4148 for parallel doors)
+  if (tile.type === 'DOOR' && tile.door && depth >= 1) {
+    const facingNorthSouth = partyFacing === 0 || partyFacing === 2;
+    const isCrosswise = facingNorthSouth
+      ? tile.door.orientation === 'WEST_EAST'
+      : tile.door.orientation === 'NORTH_SOUTH';
+
+    if (!isCrosswise) {
+      // Edge-on parallel doorway slot (item[77] at D1, item[79] at D2, item[80] at D3)
+      const edgeSpec = depth === 1
+        ? { id: 77, dx: 96, dy: 0 }
+        : depth === 2
+          ? { id: 79, dx: 88, dy: 22 }
+          : { id: 80, dx: 96, dy: 27 };
+      const edgeSprite = bundle?.sprites.get(edgeSpec.id);
+      if (edgeSprite) {
+        fb.blitSprite(
+          edgeSprite,
+          vpX + edgeSpec.dx,
+          vpY + edgeSpec.dy,
+          palette,
+          { transparentIndex: PALETTE_INDEX.FLESH_KEY },
+          vp
+        );
+      }
+    } else {
+      // Crosswise doorway facing the party
+      const doorGeom = depth === 1
+        ? { slabX: 64, slabY: 17, slabW: 96, fullH: 86, jambW: 12, lintelId: 82, lintelX: 48, lintelY: 14 }
+        : depth === 2
+          ? { slabX: 80, slabY: 24, slabW: 64, fullH: 59, jambW: 8, lintelId: 83, lintelX: 64, lintelY: 22 }
+          : { slabX: 88, slabY: 28, slabW: 48, fullH: 40, jambW: 5, lintelId: 0, lintelX: 83, lintelY: 26 };
+
+      const frameDark = palette[PALETTE_INDEX.DARK_GRAY] ?? [72, 72, 72];
+      const frameLight = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [155, 155, 155];
+      const frameBorder = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
+
+      // Left & right stone door jambs
+      fb.drawBevelBox(
+        vpX + doorGeom.slabX - doorGeom.jambW,
+        vpY + doorGeom.slabY - 2,
+        doorGeom.jambW,
+        doorGeom.fullH + 4,
+        frameDark,
+        frameLight,
+        frameBorder
+      );
+      fb.drawBevelBox(
+        vpX + doorGeom.slabX + doorGeom.slabW,
+        vpY + doorGeom.slabY - 2,
+        doorGeom.jambW,
+        doorGeom.fullH + 4,
+        frameDark,
+        frameLight,
+        frameBorder
+      );
+
+      const lintelSprite = doorGeom.lintelId > 0 ? bundle?.sprites.get(doorGeom.lintelId) : undefined;
+      if (lintelSprite) {
+        fb.blitSprite(
+          lintelSprite,
+          vpX + doorGeom.lintelX,
+          vpY + doorGeom.lintelY,
+          palette,
+          { transparentIndex: PALETTE_INDEX.FLESH_KEY },
+          vp
+        );
+      } else {
+        fb.drawBevelBox(
+          vpX + doorGeom.slabX - doorGeom.jambW,
+          vpY + doorGeom.slabY - 4,
+          doorGeom.slabW + doorGeom.jambW * 2,
+          4,
+          frameDark,
+          frameLight,
+          frameBorder
+        );
+      }
+
+      if (tile.door.hasButton && depth <= 2) {
+        const btnW = depth === 1 ? 6 : 4;
+        const btnH = depth === 1 ? 8 : 5;
+        fb.drawBevelBox(
+          vpX + doorGeom.slabX + doorGeom.slabW + Math.max(1, Math.floor((doorGeom.jambW - btnW) / 2)),
+          vpY + doorGeom.slabY + Math.floor(doorGeom.fullH * 0.42),
+          btnW,
+          btnH,
+          palette[PALETTE_INDEX.LIGHT_BROWN] ?? [150, 90, 20],
+          palette[PALETTE_INDEX.YELLOW] ?? [220, 200, 50],
+          frameBorder
+        );
+      }
+
+      const progress = tile.door.progress;
+      if (progress > 0) {
+        const closedFraction = progress === 5 ? 1 : progress / 4;
+        const slabH = Math.max(2, Math.round(doorGeom.fullH * closedFraction));
+        const doorSpriteId = progress === 5
+          ? (depth === 3 ? 117 : depth === 2 ? 118 : 119)
+          : tile.door.material === 'IRON_GRATE'
+            ? (depth === 3 ? 108 : depth === 2 ? 109 : 110)
+            : tile.door.material === 'WOODEN'
+              ? (depth === 3 ? 111 : depth === 2 ? 112 : 113)
+              : (depth === 3 ? 114 : depth === 2 ? 115 : 116);
+        const doorSprite = bundle?.sprites.get(doorSpriteId);
+
+        if (doorSprite) {
+          const srcCropY = Math.max(0, doorSprite.height - Math.round(doorSprite.height * closedFraction));
+          fb.blitSprite(
+            doorSprite,
+            vpX + doorGeom.slabX,
+            vpY + doorGeom.slabY,
+            palette,
+            {
+              transparentIndex: PALETTE_INDEX.FLESH_KEY,
+              srcY: srcCropY,
+              srcHeight: Math.min(doorSprite.height - srcCropY, slabH),
+              dstWidth: doorGeom.slabW,
+              dstHeight: slabH
+            },
+            vp
+          );
+        } else if (tile.door.material === 'WOODEN') {
+          const wood = palette[PALETTE_INDEX.LIGHT_BROWN] ?? [146, 73, 0];
+          const darkWood = palette[PALETTE_INDEX.DARK_BROWN] ?? [90, 36, 0];
+          fb.fillRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY, doorGeom.slabW, slabH, wood);
+          for (let px = vpX + doorGeom.slabX + 6; px < vpX + doorGeom.slabX + doorGeom.slabW; px += 8) {
+            fb.fillRect(px, vpY + doorGeom.slabY, 1, slabH, darkWood);
+          }
+          fb.fillRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY + slabH - 2, doorGeom.slabW, 2, darkWood);
+        } else if (tile.door.material === 'IRON_GRATE') {
+          const iron = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [160, 160, 160];
+          const barStep = depth === 1 ? 8 : 5;
+          for (let px = vpX + doorGeom.slabX + 3; px < vpX + doorGeom.slabX + doorGeom.slabW - 2; px += barStep) {
+            fb.fillRect(px, vpY + doorGeom.slabY, 2, slabH, iron);
+          }
+          for (let py = vpY + doorGeom.slabY + 6; py < vpY + doorGeom.slabY + slabH; py += barStep * 2) {
+            fb.fillRect(vpX + doorGeom.slabX, py, doorGeom.slabW, 2, iron);
+          }
+        } else {
+          const magic = palette[PALETTE_INDEX.CYAN] ?? [0, 200, 200];
+          fb.fillDitherRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY, doorGeom.slabW, slabH, magic);
+        }
+      }
+    }
+  }
+
+  // 4. Blue Teleporter Haze (visible at depths 0..3 when active & visibleHaze)
+  if (tile.type === 'TELEPORTER' && tile.teleporter?.active && tile.teleporter.visibleHaze) {
+    const cyan = palette[PALETTE_INDEX.CYAN] ?? [0, 219, 219];
+    const blue = palette[PALETTE_INDEX.BLUE] ?? [0, 0, 255];
+    for (let py = y0; py < y0 + openH; py += 2) {
+      for (let px = x0; px < x0 + openW; px += 2) {
+        if (((px + py) & 2) === 0) {
+          fb.setPixel(px, py, cyan);
+        } else {
+          fb.setPixel(px + 1, py, blue);
+        }
+      }
+    }
+  }
+}
+
+export function paintDungeonViewport(
+  fb: Framebuffer,
+  state: GameState,
+  bundle?: GraphicsBundle
+): void {
+  const vp = LAYOUT_RECTS.VIEWPORT;
+  const level = state.levels[state.party.level];
+  if (!level) {
+    fb.fillRect(vp.x, vp.y, vp.w, vp.h, [0, 0, 0]);
+    return;
+  }
+
+  const effectiveLight = Math.max(0, Math.min(5, level.ambientLight + state.party.torchLight));
+  if (effectiveLight <= 0) {
+    // Pitch-black dungeon when unlit (Story 1.1 AC)
+    fb.fillRect(vp.x, vp.y, vp.w, vp.h, [0, 0, 0]);
+    return;
+  }
+
+  const nearPalette = getViewportLightPalette(effectiveLight, 0, bundle);
+  const flipParity = state.party.stepParity === 1;
+
+  // 1. Dark horizon backdrop (y=29..65 when corridor is open past depth 3)
+  fb.fillRect(vp.x, vp.y, vp.w, vp.h, nearPalette[PALETTE_INDEX.BLACK] ?? [0, 0, 0]);
+
+  // 2. Authentic FTL Ceiling (item[76], 224x29 at y=0..28) & Flagstone Floor (item[75], 224x70 at y=66..135)
+  const ceilingSprite = bundle?.sprites.get(76);
+  const floorSprite = bundle?.sprites.get(75);
+  if (ceilingSprite) {
+    fb.blitSprite(ceilingSprite, vp.x, vp.y, nearPalette, { flipX: flipParity }, vp);
+  } else {
+    fb.fillRect(vp.x, vp.y, vp.w, 29, nearPalette[PALETTE_INDEX.DARKEST_GRAY_KEY] ?? [36, 36, 36]);
+  }
+
+  if (floorSprite) {
+    fb.blitSprite(floorSprite, vp.x, vp.y + vp.h - floorSprite.height, nearPalette, { flipX: flipParity }, vp);
+  } else {
+    fb.fillDitherRect(
+      vp.x,
+      vp.y + 66,
+      vp.w,
+      70,
+      nearPalette[PALETTE_INDEX.DARK_GRAY] ?? [73, 73, 73],
+      nearPalette[PALETTE_INDEX.DARKEST_GRAY_KEY] ?? [36, 36, 36]
+    );
+  }
+
+  const oppositeFace = ((state.party.facing + 2) & 3) as Direction;
+
+  // 3. Painter's algorithm from depth 3 back to depth 0 using exact FTL item[558] blitter rects
+  for (const depth of [3, 2, 1, 0] as const) {
+    const palette = getViewportLightPalette(effectiveLight, depth, bundle);
+    const frustum = FRUSTUMS[depth];
+
+    // Far-outer corners at depth 3 (D3LL at lateral=-2, D3RR at lateral=+2 -> item[89], 16x49)
+    if (depth === 3) {
+      const farLeftCoords = worldTileAtViewOffset(state.party.x, state.party.y, state.party.facing, 3, -2);
+      const farRightCoords = worldTileAtViewOffset(state.party.x, state.party.y, state.party.facing, 3, 2);
+      const farCornerSprite = bundle?.sprites.get(89);
+
+      if (isOpaqueWall(getLevelTile(level, farLeftCoords.wx, farLeftCoords.wy)) && farCornerSprite) {
+        fb.blitSprite(
+          farCornerSprite,
+          vp.x,
+          vp.y + 25,
+          palette,
+          { transparentIndex: PALETTE_INDEX.FLESH_KEY, flipX: false },
+          vp
+        );
+      }
+      if (isOpaqueWall(getLevelTile(level, farRightCoords.wx, farRightCoords.wy)) && farCornerSprite) {
+        fb.blitSprite(
+          farCornerSprite,
+          vp.x + 208,
+          vp.y + 25,
+          palette,
+          { transparentIndex: PALETTE_INDEX.FLESH_KEY, flipX: true },
+          vp
+        );
+      }
+    }
+
+    const leftCoords = worldTileAtViewOffset(state.party.x, state.party.y, state.party.facing, depth, -1);
+    const rightCoords = worldTileAtViewOffset(state.party.x, state.party.y, state.party.facing, depth, 1);
+    const centerCoords = worldTileAtViewOffset(state.party.x, state.party.y, state.party.facing, depth, 0);
+
+    const leftTile = getLevelTile(level, leftCoords.wx, leftCoords.wy);
+    const rightTile = getLevelTile(level, rightCoords.wx, rightCoords.wy);
+    const centerTile = getLevelTile(level, centerCoords.wx, centerCoords.wy);
+
+    // Left flanking wall cube (D3L=88[32..115], D2L=87[61..135], D1L=86[192..255], D0L=85[0..31])
+    if (isOpaqueWall(leftTile)) {
+      if (depth === 0) {
+        const d0l = bundle?.sprites.get(85);
+        if (d0l) {
+          fb.blitSprite(d0l, vp.x, vp.y, palette, { transparentIndex: PALETTE_INDEX.FLESH_KEY }, vp);
+        } else {
+          drawSideWallTrapezoid(fb, vp.x, vp.y, 'LEFT', frustum, palette, state.party.stepParity);
+        }
+      } else {
+        const cubeSpec = depth === 1
+          ? { id: 86, dstX: 0, dstY: 9, w: 64, h: 111, srcX: 192 }
+          : depth === 2
+            ? { id: 87, dstX: 0, dstY: 20, w: 75, h: 71, srcX: 61 }
+            : { id: 88, dstX: 0, dstY: 25, w: 84, h: 51, srcX: 32 };
+        const cubeSprite = bundle?.sprites.get(cubeSpec.id);
+        if (cubeSprite) {
+          fb.blitSprite(
+            cubeSprite,
+            vp.x + cubeSpec.dstX,
+            vp.y + cubeSpec.dstY,
+            palette,
+            {
+              transparentIndex: PALETTE_INDEX.FLESH_KEY,
+              srcX: cubeSpec.srcX,
+              srcWidth: cubeSpec.w,
+              dstWidth: cubeSpec.w,
+              dstHeight: cubeSpec.h
+            },
+            vp
+          );
+        } else {
+          drawStoneWallRect(
+            fb,
+            vp.x,
+            vp.y + frustum.topOuterY,
+            frustum.leftOuterX,
+            frustum.bottomOuterY - frustum.topOuterY,
+            palette,
+            state.party.stepParity + depth
+          );
+          drawSideWallTrapezoid(fb, vp.x, vp.y, 'LEFT', frustum, palette, state.party.stepParity + depth);
+        }
+      }
+    }
+
+    // Right flanking wall cube (D3R=88[0..84], D2R=87[0..74], D1R=86[0..63], D0R=84[0..31])
+    if (isOpaqueWall(rightTile)) {
+      if (depth === 0) {
+        const d0r = bundle?.sprites.get(84);
+        if (d0r) {
+          fb.blitSprite(d0r, vp.x + 192, vp.y, palette, { transparentIndex: PALETTE_INDEX.FLESH_KEY }, vp);
+        } else {
+          drawSideWallTrapezoid(fb, vp.x, vp.y, 'RIGHT', frustum, palette, state.party.stepParity);
+        }
+      } else {
+        const cubeSpec = depth === 1
+          ? { id: 86, dstX: 160, dstY: 9, w: 64, h: 111, srcX: 0 }
+          : depth === 2
+            ? { id: 87, dstX: 149, dstY: 20, w: 75, h: 71, srcX: 0 }
+            : { id: 88, dstX: 139, dstY: 25, w: 85, h: 51, srcX: 0 };
+        const cubeSprite = bundle?.sprites.get(cubeSpec.id);
+        if (cubeSprite) {
+          fb.blitSprite(
+            cubeSprite,
+            vp.x + cubeSpec.dstX,
+            vp.y + cubeSpec.dstY,
+            palette,
+            {
+              transparentIndex: PALETTE_INDEX.FLESH_KEY,
+              srcX: cubeSpec.srcX,
+              srcWidth: cubeSpec.w,
+              dstWidth: cubeSpec.w,
+              dstHeight: cubeSpec.h
+            },
+            vp
+          );
+        } else {
+          drawStoneWallRect(
+            fb,
+            vp.x + frustum.rightOuterX,
+            vp.y + frustum.topOuterY,
+            224 - frustum.rightOuterX,
+            frustum.bottomOuterY - frustum.topOuterY,
+            palette,
+            state.party.stepParity + depth
+          );
+          drawSideWallTrapezoid(fb, vp.x, vp.y, 'RIGHT', frustum, palette, state.party.stepParity + depth);
+        }
+      }
+    }
+
+    // Center wall (D3C=88, D2C=87, D1C=86) or open tile contents (pits, stairs, doors, teleporters)
+    if ((depth === 1 || depth === 2 || depth === 3) && isOpaqueWall(centerTile)) {
+      const centerSpec = depth === 1
+        ? { id: 86, dstX: 32, dstY: 9, w: 160, h: 111, srcX: flipParity ? 32 : 48 }
+        : depth === 2
+          ? { id: 87, dstX: 60, dstY: 20, w: 104, h: 71, srcX: flipParity ? 17 : 16 }
+          : { id: 88, dstX: 74, dstY: 25, w: 76, h: 51, srcX: flipParity ? 22 : 18 };
+
+      const wallX = vp.x + centerSpec.dstX;
+      const wallY = vp.y + centerSpec.dstY;
+      const wallW = centerSpec.w;
+      const wallH = centerSpec.h;
+      const frontSprite = bundle?.sprites.get(centerSpec.id);
+
+      if (frontSprite) {
+        fb.blitSprite(
+          frontSprite,
+          wallX,
+          wallY,
+          palette,
+          {
+            transparentIndex: PALETTE_INDEX.FLESH_KEY,
+            srcX: centerSpec.srcX,
+            srcWidth: wallW,
+            dstWidth: wallW,
+            dstHeight: wallH
+          },
+          vp
+        );
+      } else {
+        drawStoneWallRect(fb, wallX, wallY, wallW, wallH, palette, state.party.stepParity + depth);
+      }
+
+      // Draw features mounted on the face pointing back toward the party
+      for (const feat of centerTile.wallFeatures) {
+        if (feat.face === oppositeFace) {
+          drawWallFeatureOnFrontWall(fb, feat, wallX, wallY, wallW, wallH, depth, palette, bundle, state.tick);
+        }
+      }
+    } else {
+      drawCenterTileContents(fb, centerTile, depth, state.party.facing, vp.x, vp.y, palette, bundle);
+    }
+  }
+}

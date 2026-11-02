@@ -1,0 +1,22 @@
+# Bob Protocol / via — machine-local config and index, not portable
+.mcp.json
+.via/
+
+# Node / Build outputs
+node_modules/
+dist/
+build/
+coverage/
+
+# Copyrighted original disk images & extracted raw archives (local-only, never committed)
+*.zip
+*.ZIP
+*.adf
+*.ADF
+*.ipf
+*.IPF
+*.lzx
+*.LZX
+*.dat
+*.DAT
+public/assets/extracted/
