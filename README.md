@@ -58,11 +58,13 @@ bobp make extract-assets   # Re-extract Dungeon-Master_Amiga_EN.zip & DM2 archiv
 bobp make test             # Run ESLint + strict TypeScript + Vitest regression suites
 bobp make dev              # Launch Vite dev server on http://127.0.0.1:5173
 bobp make build            # Build production bundle into dist/
-bobp make visual-review    # Capture live Chromium scenes and interaction checks
+bobp make visual-review    # Capture live Chromium rendering scenes
+bobp make visual-review ARGS=--interactions  # Also exercise actual browser input
 ```
 
 ## Documentation Index
 
+- **[SDLC.md](docs/SDLC.md)** — Tank-owned toolchain, quality gates, change management and release workflow
 - **[PRD.md](docs/PRD.md)** — Product Vision, Dual-Mode Asset Strategy, Mechanics, and Trilogy Roadmap
 - **[USER_STORIES.md](docs/USER_STORIES.md)** — Sprint 2 Stories and archived Sprint 1 Acceptance Criteria
 - **[ARCH.md](docs/ARCH.md)** — Hexagonal Architecture, `320×200` HUD Spec, and Data Flow

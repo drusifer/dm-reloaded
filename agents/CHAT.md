@@ -72,3 +72,19 @@ Saved runtime and 23 rendered scenes to /var/home/drusifer/Projects/dungeon-mast
 ---
 [<small>2026-11-03 16:38:21</small>] [**Neo**]->[**User**] *swe fix*:
  Fixed torch/cursor: centered complete sprite, hide duplicate arrow, no edge hotspot drift. Real torch art was reversed;4unlit..7full flame now shared across views.183tests+lint/types and29browser checks pass; actual torch pickup PNG checked.
+
+---
+[<small>2026-11-03 16:49:02</small>] [**User**]->[**all**] *request*:
+ Create Tank’s missing SDLC.md documenting actual project workflow.
+
+---
+[<small>2026-11-03 16:49:02</small>] [**Tank**]->[**all**] *init*:
+ Tank initialized to document existing lifecycle, automation and release boundaries so future work follows verified project practice.
+
+---
+[<small>2026-11-03 16:50:19</small>] [**Tank**]->[**User**] *handoff*:
+ SDLC workflow facts audited, but required SDLC template is absent from project/shared/BobProtocol templates. @User provide template location so Tank can follow its actual structure; no substitute drafted.
+
+---
+[<small>2026-11-03 16:56:39</small>] [**Tank**]->[**Morpheus**] *handoff*:
+ SDLC.md now follows recovered Darius base+JS templates and actual automation; all ten sections/links checked, gaps explicit. @Morpheus review docs/SDLC.md so workflow stays accurate. No product tests or push for docs-only work.

@@ -15,7 +15,8 @@ sequenceDiagram
     participant Smith
     participant All
     participant User
-    Note over Trin,User: 📅 2026-11-03
+    participant Tank
+    Note over Trin,Tank: 📅 2026-11-03
     Trin->>Cypher: "retro"
     Note right of Trin: "Retro: independent<br/>spatial/input/load tests<br/>and live PNGs caught<br/>real defects, final AC<br/>audit caught omitted<br/>features. Use AC<br/>coverage befo…"
     Neo->>Cypher: "retro"
@@ -36,4 +37,12 @@ sequenceDiagram
     Note right of Neo: "Removed duplicate labels<br/>over original inventory<br/>button artwork, fallback<br/>panels retain labels<br/>because they lack<br/>authored glyphs. Four<br/>affe…"
     Neo->>User: "swe fix"
     Note right of Neo: "Fixed torch/cursor:<br/>centered complete<br/>sprite, hide duplicate<br/>arrow, no edge hotspot<br/>drift. Real torch art<br/>was<br/>reversed,4unlit..7full<br/>flame…"
+    User->>All: "request"
+    Note right of User: "Create Tank’s missing<br/>SDLC.md documenting<br/>actual project workflow."
+    Tank->>All: "init"
+    Note right of Tank: "Tank initialized to<br/>document existing<br/>lifecycle, automation<br/>and release boundaries<br/>so future work follows<br/>verified project<br/>practice."
+    Tank->>User: "handoff"
+    Note right of Tank: "SDLC workflow facts<br/>audited, but required<br/>SDLC template is absent<br/>from project/shared/BobP<br/>rotocol templates. @User<br/>provide template<br/>locatio…"
+    Tank->>Morpheus: "handoff"
+    Note right of Tank: "SDLC.md now follows<br/>recovered Darius base+JS<br/>templates and actual<br/>automation, all ten<br/>sections/links checked,<br/>gaps explicit. @Morpheus<br/>revi…"
 ```
