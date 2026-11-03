@@ -1,20 +1,17 @@
 # Agent State
 
 ## Context
-### Recent Decisions
-- Approved `*qa uat door-orientation`:
-  1. Verified 158/158 interior flanked doors across all 14 levels of `Dungeon.dat` match their corridor walls (`NORTH_SOUTH` slab between North/South walls; `WEST_EAST` slab between West/East walls).
-  2. Verified `LVL:0 (7,9) DIR:WEST` renders the crosswise iron portcullis grate (`sprite 109`) framed symmetrically by left & right 3D stone doorjambs (`sprite 79`) and top lintel (`sprite 83`).
-  3. Verified `32/32` Vitest tests, ESLint, and `tsc --noEmit` passed cleanly; respected Bounded Testing (no redundant re-runs).
+- Sprint2 final acceptance QA PASS on2026-11-03 after initially approved phases were reopened for missing story criteria.
+- Reopened fixes: lateral alcove features/items (36independent depth/facing/occlusion cases), equipment-derived armor/attributes/mana with immutable base values and real gameplay consumers, depletion warnings and gameover/restart feedback.
+- Earlier spatial/input/load regressions remain in tests: sleep composition, projectile lane, shutdoor occlusion, map rightclick priority, cursor load stable living-leader ownership.
+- Final aggregate177/177+lint/tsc14:04:24; build14:04:32; browser27checks/20scenes/errors[]14:04:48; additional equipment gameplay2/2tests14:04:59; added-test lint/tsc14:05:15.
+- Actual browser exercised Dexhelm equip/unequip and restart; parent inspected side alcoves/warnings/gameover/derived stat snapshot. No known functional blocker from final review.
+- Trace audit unavailable(missing jinja2 masked by Makefile||true). No clean trace verdict. Shared make output requires serialization; no redundant unchanged full-suite rerun.
 
 ## Current Task
-**Status:** Complete (UAT Approved — Handed Off to Morpheus)
-**Assigned to:** Trin (`*qa`)
-**Started:** 2026-11-02
+Final accepted-story QA100% complete. Report agents/trin.docs/Sprint2_Final_Acceptance_Summary_2026-11-03T14-06.md. Retrospective posted to Cypher after correction archive CHAT_sprint-2-acceptance.md. QA and retro complete; no source changes/checks pending.
 
-### Progress
-- [x] Verified 14-level door orientation sweep & `(7,9) DIR:WEST` render assertions (32/32 green)
-- [x] Handed off to `@Morpheus *lead review door-orientation`
-
----
-*Last updated: 2026-11-02T15:00:15-05:00*
+## Next Steps
+1. Parent completes other domain retrospectives and Cypher launch.
+2. Trin retrospective complete: explicit accepted-story coverage before approval, independent spatial/state tests, live PNG contrast checks, serialized make logs and separate trace dependency repair.
+3. Preserve root task.md as sole task board and avoid redundant tests. No QA work remains for Sprint2.

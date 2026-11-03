@@ -7,7 +7,9 @@
  *   utility pills) and enforces 1988 Purist Mode keyboard gating until QoL Mode is active.
  */
 
+import { DIRECTION_DELTAS, type EquipSlotId } from '../engine/types';
 import type { GameCommand, GameState } from '../engine/types';
+import { BACKPACK_SLOT_RECTS, CHEST_SLOT_RECTS, EQUIP_SLOT_RECTS, championHandRect, championSlotRect } from '../render/layout';
 import { FRAMEBUFFER_HEIGHT, FRAMEBUFFER_WIDTH, LAYOUT_RECTS, pointInRect } from '../render';
 
 export interface BoundingClientRectLike {
@@ -50,7 +52,9 @@ export function clientPointToAmigaCoords(
 /**
  * Resolves a [0..319, 0..199] Amiga pixel click into a pure GameCommand, or null if non-interactive.
  */
-export function resolvePointerHitCommand(px: number, py: number, state: GameState): GameCommand | null {
+export function resolvePointerHitCommand(px: number, py: number, state: GameState, button = 0): GameCommand | null {
+  if (state.gameOver) return null;
+  if (state.party.sleeping) return { type: 'SET_SLEEPING', sleeping: false };
   // 1. Top-right utility pills (x=272..319) are always reachable
   if (pointInRect(px, py, LAYOUT_RECTS.QOL_PILL)) {
     return { type: 'TOGGLE_QOL_MODE' };
@@ -78,6 +82,38 @@ export function resolvePointerHitCommand(px: number, py: number, state: GameStat
     return null;
   }
 
+  if (state.settings.qolMode && state.settings.automapOpen && pointInRect(px, py, LAYOUT_RECTS.VIEWPORT)) return { type: 'TOGGLE_AUTOMAP' };
+  if (pointInRect(px, py, LAYOUT_RECTS.SLEEP_PILL)) return { type: 'SET_SLEEPING', sleeping: true };
+  if (button === 2) {
+    const index = px < 272 && py < 29 ? Math.floor(px / 68) : state.openInventoryChampionIndex ?? state.party.leaderIndex;
+    return { type: 'TOGGLE_INVENTORY', championIndex: index };
+  }
+  if (button !== 0) return null;
+  for (let i = 0; i < state.party.champions.length; i++) {
+    if (!pointInRect(px, py, championSlotRect(i))) continue;
+    for (const slot of ['leftHand', 'rightHand'] as const) {
+      if (pointInRect(px, py, championHandRect(i, slot))) return { type: 'CLICK_EQUIP_SLOT', championIndex: i, slot };
+    }
+    return py < 9 ? { type: 'TOGGLE_INVENTORY', championIndex: i } : { type: 'SELECT_LEADER', championIndex: i };
+  }
+  const inventoryIndex = state.openInventoryChampionIndex;
+  if (inventoryIndex !== null && pointInRect(px, py, LAYOUT_RECTS.VIEWPORT)) {
+    if (pointInRect(px,py,LAYOUT_RECTS.INVENTORY_CLOSE)) return { type: 'TOGGLE_INVENTORY', championIndex: null };
+    if (pointInRect(px,py,LAYOUT_RECTS.INVENTORY_SLEEP)) return { type: 'SET_SLEEPING', sleeping: true };
+    if (pointInRect(px,py,LAYOUT_RECTS.INVENTORY_EYE)) return { type: 'INSPECT_HAND_ITEM', championIndex: inventoryIndex };
+    if (pointInRect(px,py,LAYOUT_RECTS.INVENTORY_MOUTH)) return { type: 'CONSUME_HAND_ITEM', championIndex: inventoryIndex };
+    const container=state.openContainerId ? state.items[state.openContainerId] : undefined;
+    if (container?.contents) {
+      const slotIndex=CHEST_SLOT_RECTS.findIndex(rect=>pointInRect(px,py,rect));
+      if (slotIndex>=0) return {type:'CLICK_CONTAINER_SLOT',slotIndex};
+    }
+    for (const slot of Object.keys(EQUIP_SLOT_RECTS) as EquipSlotId[]) {
+      if (pointInRect(px,py,EQUIP_SLOT_RECTS[slot])) return {type:'CLICK_EQUIP_SLOT',championIndex:inventoryIndex,slot};
+    }
+    const slotIndex=BACKPACK_SLOT_RECTS.findIndex(rect=>pointInRect(px,py,rect));
+    return slotIndex>=0 ? {type:'CLICK_BACKPACK_SLOT',championIndex:inventoryIndex,slotIndex} : null;
+  }
+
   // 3. Classic 6-button Movement Arrow Pad (224, 124, 96, 45)
   const pad = LAYOUT_RECTS.MOVEMENT_PAD;
   if (pointInRect(px, py, pad)) {
@@ -95,9 +131,17 @@ export function resolvePointerHitCommand(px: number, py: number, state: GameStat
 
   // 4. Center viewport ahead interaction (switches, sconces, mirrors, door buttons)
   if (pointInRect(px, py, LAYOUT_RECTS.VIEWPORT)) {
+    if (state.openInventoryChampionIndex !== null) return {type:'TOGGLE_INVENTORY',championIndex:null};
     if (state.settings.qolMode && state.settings.automapOpen) {
       return { type: 'TOGGLE_AUTOMAP' };
     }
+    const delta=DIRECTION_DELTAS[state.party.facing];
+    const tile=state.levels.find(level=>level.id===state.party.level)?.tiles[state.party.y+delta.dy]?.[state.party.x+delta.dx];
+    const face=(state.party.facing+2)&3;
+    if (pointInRect(px,py,LAYOUT_RECTS.WALL_FEATURE_HIT) && tile?.wallFeatures.some(feature=>feature.face===face && ['KEYHOLE','VI_ALTAR','FOUNTAIN','ALCOVE'].includes(feature.kind))) return {type:'INTERACT_AHEAD'};
+    if (pointInRect(px,py,LAYOUT_RECTS.FLOOR_LEFT_HIT)) return {type:'PICKUP_OR_DROP_FLOOR',quadrant:state.party.facing};
+    if (pointInRect(px,py,LAYOUT_RECTS.FLOOR_RIGHT_HIT)) return {type:'PICKUP_OR_DROP_FLOOR',quadrant:((state.party.facing+1)&3) as 0|1|2|3};
+    if (state.handItem && py<132) return {type:'THROW_HAND_ITEM',side:px<112?'LEFT':'RIGHT'};
     if (pointInRect(px, py, LAYOUT_RECTS.VIEWPORT_CENTER_HIT)) {
       return { type: 'INTERACT_AHEAD' };
     }
@@ -111,10 +155,13 @@ export function resolvePointerHitCommand(px: number, py: number, state: GameStat
  * Escape always cancels active modals; QWEASD / Arrow keys / M require settings.qolMode === true.
  */
 export function resolveKeyboardCommand(key: string, state: GameState): GameCommand | null {
+  if (state.gameOver) return null;
+  if (state.party.sleeping) return {type:'SET_SLEEPING',sleeping:false};
   if (key === 'Escape') {
     if (state.activeMirror !== null) {
       return { type: 'CANCEL_MIRROR' };
     }
+    if (state.openInventoryChampionIndex !== null) return {type:'TOGGLE_INVENTORY',championIndex:null};
     if (state.settings.qolMode && state.settings.automapOpen) {
       return { type: 'TOGGLE_AUTOMAP' };
     }
@@ -125,6 +172,10 @@ export function resolveKeyboardCommand(key: string, state: GameState): GameComma
   if (!state.settings.qolMode || state.activeMirror !== null) {
     return null;
   }
+
+  if (/^[1-4]$/.test(key)) return {type:'TOGGLE_INVENTORY',championIndex:Number(key)-1};
+  if (key.toLowerCase()==='z') return {type:'SET_SLEEPING',sleeping:true};
+  if (state.openInventoryChampionIndex!==null) return null;
 
   switch (key) {
     case 'w':

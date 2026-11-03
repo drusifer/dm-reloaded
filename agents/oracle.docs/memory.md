@@ -2,8 +2,8 @@ Consolidated index of project-wide decisions, historical context, and key milest
 
 TLDR:
     Goal: Provide rapid project context and decision history for all BobProtocol personas on entry.
-    Status: Sprint 1 + Post-Launch Perspective/Door/Soundboard Polish completed on 2026-11-02 (32/32 Vitest tests green; published to git@github.com:drusifer/dm-reloaded.git).
-    Action: Consult memory.md and lessons.md (Lessons 001..004) before Sprint 2 planning or architectural changes.
+    Status: Sprint 2 implementation, grooming and final QA/architecture/live browser gates complete; retrospective recorded; delivered locally. Sprint 1 history retained below.
+    Action: Consult task.md and current persona state for gate status; review the lessons before changes.
 
 # Project Memory
 
@@ -31,6 +31,9 @@ This file serves as a consolidated index of project-wide decisions, historical c
 | 2026-11-01 | ADR-003 | Dual-Mode `CampaignProvider` (`CleanRoomProvider` + `DungeonDatParser`) | Out-of-the-box legal playability + genuine 1988 `.DAT` fidelity | Engine consumes normalized `CampaignBundle` |
 | 2026-11-01 | ADR-004 | Purist Default + Toggleable QoL + Auto WebAudio Unlock | Balances 1988 authenticity with browser HCI best practices | `SettingsState` gates `QWEASD` & automap; `x=272..319` utility pills |
 | 2026-11-01 | ADR-005 | Local Amiga `.zip`/`.adf` Asset Extraction (`scripts/extract_assets.py`) | Unpacks user-provided original DM1 & DM2 disks without committing copyrighted binaries | Gitignored `public/assets/extracted/` holds unpacked `.dat` & `.LZX` |
+| 2026-11-02 | ADR-006 | Empirically Verified FTL Item Catalog (`item[556]`, `42..48`, `559`) | Exact 199 item names, 224 `16×16` icons, and 180 6-byte descriptors + clean-room fallback | Zero guesswork across all `DB5..DB10` world & starting items |
+| 2026-11-02 | ADR-007 | Normalized `ItemInstance` Entity Map & Persistent `handItem` | Items move seamlessly across floor, alcoves, paperdoll, chests, cursor, and projectiles | Serializable `GameState.items` prevents duplication/loss |
+| 2026-11-02 | ADR-008 | Modular 6 Hz `inventory.ts`, `projectiles.ts` & `survival.ts` Engines | Keeps headless simulation SOLID and independently unit-testable | Clean seam for Sprint 3 spells & combat |
 
 ## Repository Structure Memory
 - `agents/`: Persona-specific documentation, `CHAT.md`, `lessons.md` (`Lessons 001..004`), `memory.md`, and `state.md` working memory.
@@ -39,3 +42,12 @@ This file serves as a consolidated index of project-wide decisions, historical c
 - `scripts/extract_assets.py`: Amiga OFS `.adf` + `0x8104` + DM2 split `.LZX` asset extractor.
 - `src/`: TypeScript application split into `engine/`, `data/`, `render/`, `audio/`, `input/`, `ui/` (`soundboard.ts`), and `main.ts`.
 - `tests/`: Headless Vitest unit, UAT, and vertical-slice integration suites (`32/32` passing across 8 suites).
+
+
+## Sprint 2 Delivery Preparation — 2026-11-03
+
+Implemented physical inventory and nested chest weight, world items/throws, survival/torches/bones/Vi Altars, semantic new-painter sprites, measured paperdoll/chest coordinates, input/cursor lifecycle, five synthesized cue defaults, contact sheet and browser visual/interaction automation. Phase 2 passed independent QA, architecture and live PNG review after one combined fix cycle. Final Phase 3/load QA, architecture and Smith end-to-end gates passed: 177 aggregate tests + 2 additional independent QA tests, lint/strict TypeScript, production build and 27 live Chromium checks with zero browser exceptions. Final accepted-story corrections and retrospective complete; delivered locally, with no deployment claim.
+
+README now documents actual input controls and limits. See `docs/ARCH.md` section 7 and `docs/DECISIONS.md` ADR-009 clarification for partial adapter migration, art limitations and future exporter/filter/loader work. The separate trace audit could not run because its Python environment lacks jinja2; product test passes do not replace audit evidence.
+
+Final accepted-story completion and local launch: see [Sprint2 close summary](../cypher.docs/Sprint2_Close_Summary_2026-11-03T14-08.md) and [corrective acceptance archive](../chat_archive/CHAT_sprint-2-acceptance.md). No deployment.

@@ -1,19 +1,11 @@
 # Agent State
 
 ## Context
-### Recent Decisions
-- Recorded `Lesson 004` (and refined `Lesson 003`) in `agents/oracle.docs/lessons.md`:
-  - `Dungeon.dat` `lowFlags & 0x08` encodes corridor passage direction (`0 = West-East passage -> NORTH_SOUTH slab`, `1 = North-South passage -> WEST_EAST slab`), verified across 158/158 interior flanked doors in all 14 levels.
-  - `sprites 78, 79, 80` are crosswise 3D stone doorjambs (paired with lintels `82, 83` and push-button `315`), while only `sprite 77` is the depth-1 edge-on doorway track.
-  - `DB0` `w1 & 0x03` maps all 4 door materials (`108..119`), `(w1 & 0x20) === 0` maps horizontal double-sliding doors, and `sprite 301` masks bashed doors.
+README/ARCH/DECISIONS/USER_STORIES/memory/lessons reconciled. ArchivesCHAT_sprint-2.md andCHAT_sprint-2-acceptance.md preserve initial and corrective approvals. Lesson008 requires final criteria audit; ADR-010 cites primary numeric equipment source.
+Final evidence177aggregate tests+2additional independent gameplay tests, final ESLint/strict TypeScript, production build,27live browser checks and20rendered scenes all pass. Final approvals inCHAT_sprint-2-acceptance.md supersede incomplete earlier approvals. Trace audit unavailable missingjinja2; not claimed clean. Existing dirty changes preserved, no commit/deploy.
 
 ## Current Task
-**Status:** Complete (Lessons & Docs Synchronized)
-**Assigned to:** Oracle (`*ora`)
-**Started:** 2026-11-02
+Sprint2 complete100%; implementation, QA/architecture/Smith gates, docs, archives and retrospective complete. Cypher local launch recorded inCHAT. Close summary agents/cypher.docs/Sprint2_Close_Summary_2026-11-03T14-08.md.
 
-### Progress
-- [x] Updated `Lesson 003` and added `Lesson 004` in `agents/oracle.docs/lessons.md`
-
----
-*Last updated: 2026-11-02T15:01:00-05:00*
+## Next Steps
+Await next user request. Do not start future sprint automatically. Consult root task.md backlog and Oracle lessons on cold start; useVIA andbobp make, serialize capture writers, test only changed code.

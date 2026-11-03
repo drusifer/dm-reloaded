@@ -3,11 +3,16 @@
  *
  * TLDR:
  *   Defines pure, serializable TypeScript interfaces for DungeonData, Tiles, Actuators,
- *   Champions, PartyState, GameState, GameCommand, EngineEvent, and CampaignBundle.
- *   Zero DOM, Canvas, or WebAudio dependencies so all simulation logic runs headlessly.
+ *   ItemDef/ItemInstance, ChampionInventory, Projectiles, Champions, PartyState, GameState,
+ *   GameCommand, EngineEvent, and CampaignBundle. Zero DOM, Canvas, or WebAudio dependencies.
  */
 
 export type Direction = 0 | 1 | 2 | 3; // 0=North, 1=East, 2=South, 3=West
+
+/**
+ * 2-bit tile quadrant for floor item stacks: 0=NW, 1=NE, 2=SE, 3=SW.
+ */
+export type SubTileQuadrant = 0 | 1 | 2 | 3;
 
 export const DIRECTION_NAMES: readonly ['NORTH', 'EAST', 'SOUTH', 'WEST'] = [
   'NORTH',
@@ -93,7 +98,15 @@ export interface Actuator {
   readonly isLocal: boolean;
 }
 
-export type WallFeatureKind = 'INSCRIPTION' | 'CHAMPION_MIRROR' | 'BUTTON' | 'SCONCE' | 'ALCOVE';
+export type WallFeatureKind =
+  | 'INSCRIPTION'
+  | 'CHAMPION_MIRROR'
+  | 'BUTTON'
+  | 'SCONCE'
+  | 'ALCOVE'
+  | 'VI_ALTAR'
+  | 'FOUNTAIN'
+  | 'KEYHOLE';
 
 export interface WallFeature {
   readonly face: Direction;
@@ -104,6 +117,84 @@ export interface WallFeature {
   readonly hasTorch?: boolean;
   readonly actuatorId?: number;
   readonly graphicIndex?: number;
+  readonly ornamentId?: number;
+  readonly requiredItemIcon?: number;
+  readonly consumesKey?: boolean;
+  readonly unlocked?: boolean;
+}
+
+export type ItemCategory = 'WEAPON' | 'CLOTHES' | 'SCROLL' | 'POTION' | 'CHEST' | 'MISC';
+
+export type EquipSlotId =
+  | 'head'
+  | 'neck'
+  | 'torso'
+  | 'legs'
+  | 'feet'
+  | 'leftHand'
+  | 'rightHand'
+  | 'pouch1'
+  | 'pouch2'
+  | 'quiver1'
+  | 'quiver2'
+  | 'quiver3'
+  | 'quiver4';
+
+export const ALL_EQUIP_SLOTS: readonly EquipSlotId[] = [
+  'head',
+  'neck',
+  'torso',
+  'legs',
+  'feet',
+  'leftHand',
+  'rightHand',
+  'pouch1',
+  'pouch2',
+  'quiver1',
+  'quiver2',
+  'quiver3',
+  'quiver4'
+];
+
+export const BACKPACK_SLOT_COUNT = 17;
+export const CHEST_SLOT_COUNT = 8;
+
+export interface ItemDef {
+  readonly defId: number; // 0..179 ObjectDescriptor index
+  readonly category: ItemCategory;
+  readonly subtype: number;
+  readonly iconIndex: number; // 0..198 icon & name index
+  readonly name: string;
+  readonly equipMask: number; // FTL 16-bit compatibility bitmask
+  readonly floorSpriteIndex: number;
+  readonly weightTenthsKg: number; // 10 = 1.0 kg
+  readonly armorStrength: number;
+  readonly nutritionValue: number;
+  readonly waterValue: number;
+  readonly passThroughGrate: boolean;
+  readonly lightBonus: number;
+}
+
+export type ItemInstanceId = string;
+
+export interface ItemInstance {
+  readonly instanceId: ItemInstanceId;
+  readonly defId: number;
+  readonly iconIndex: number;
+  readonly name: string;
+  readonly charges: number;
+  readonly poisoned?: boolean;
+  readonly cursed?: boolean;
+  readonly broken?: boolean;
+  readonly scrollText?: readonly string[];
+  readonly contents?: readonly ItemInstanceId[];
+  readonly bonesChampionId?: string;
+}
+
+export interface StartingGearSpec {
+  readonly category: ItemCategory;
+  readonly subtype: number;
+  readonly charges?: number;
 }
 
 export interface Tile {
@@ -117,6 +208,8 @@ export interface Tile {
   readonly wallFeatures: readonly WallFeature[];
   readonly actuators: readonly Actuator[];
   readonly itemNames: readonly string[];
+  readonly floorItems?: Readonly<Record<SubTileQuadrant, readonly ItemInstanceId[]>>;
+  readonly wallItems?: Readonly<Record<Direction, readonly ItemInstanceId[]>>;
 }
 
 export interface DungeonLevel {
@@ -153,15 +246,25 @@ export interface ChampionDefinition {
   readonly attributes: ChampionAttributes;
   readonly skills: readonly number[]; // 16 hidden sub-skills (0..15 ranks)
   readonly startingItems: readonly string[];
+  readonly startingGearDefs?: readonly StartingGearSpec[];
+}
+
+export interface ChampionInventory {
+  readonly slots: Readonly<Record<EquipSlotId, ItemInstanceId | null>>;
+  readonly backpack: readonly (ItemInstanceId | null)[]; // 17 slots
 }
 
 export interface ChampionState extends ChampionDefinition {
+  readonly alive: boolean;
   readonly health: number;
   readonly stamina: number;
   readonly mana: number;
+  readonly food: number;  // -1024 .. 2048 (healthy default 1500)
+  readonly water: number; // -1024 .. 2048 (healthy default 1500)
   readonly mode: 'RESURRECTED' | 'REINCARNATED';
   readonly leftHand: string | null;
   readonly rightHand: string | null;
+  readonly inventory: ChampionInventory;
 }
 
 export interface MirrorModalState {
@@ -180,6 +283,18 @@ export interface PendingActuatorOp {
   readonly playSound: boolean;
 }
 
+export interface ProjectileState {
+  readonly id: string;
+  readonly itemId: ItemInstanceId;
+  readonly level: number;
+  readonly x: number;
+  readonly y: number;
+  readonly direction: Direction;
+  readonly lane: 'LEFT' | 'RIGHT';
+  readonly kineticEnergy: number;
+  readonly stepEnergyCost: number;
+}
+
 export interface PartyState {
   readonly level: number;
   readonly x: number;
@@ -187,13 +302,15 @@ export interface PartyState {
   readonly facing: Direction;
   readonly stepParity: 0 | 1;
   readonly moveCooldownTicks: number;
-  readonly torchLight: number; // 0..5 bonus light from party torches/spells
+  readonly torchLight: number; // 0..5 bonus light from party torches/spells/illumulet
+  readonly sleeping: boolean;
+  readonly leaderIndex: number;
   readonly champions: readonly ChampionState[];
   readonly visitedTiles: Readonly<Record<string, true>>;
 }
 
 export interface SettingsState {
-  readonly qolMode: boolean; // false = 1988 Purist Mode default; true = QWEASD + Automap
+  readonly qolMode: boolean; // false = 1988 Purist Mode default; true = QWEASD + 1-4 + Z + Automap
   readonly automapOpen: boolean;
   readonly audioMuted: boolean;
 }
@@ -208,6 +325,7 @@ export interface DungeonData {
   readonly startFacing: Direction;
   readonly levels: readonly DungeonLevel[];
   readonly champions: Readonly<Record<string, ChampionDefinition>>;
+  readonly initialItems?: Readonly<Record<ItemInstanceId, ItemInstance>>;
 }
 
 export interface CampaignBundle {
@@ -225,6 +343,12 @@ export interface GameState {
   readonly rngState: number;
   readonly levels: readonly DungeonLevel[];
   readonly championsCatalog: Readonly<Record<string, ChampionDefinition>>;
+  readonly items: Readonly<Record<ItemInstanceId, ItemInstance>>;
+  readonly handItem: ItemInstanceId | null;
+  readonly openInventoryChampionIndex: number | null;
+  readonly openContainerId: ItemInstanceId | null;
+  readonly projectiles: readonly ProjectileState[];
+  readonly gameOver: boolean;
   readonly party: PartyState;
   readonly activeMirror: MirrorModalState | null;
   readonly pendingActuators: readonly PendingActuatorOp[];
@@ -243,7 +367,17 @@ export type GameCommand =
   | { readonly type: 'TICK'; readonly count?: number }
   | { readonly type: 'TOGGLE_QOL_MODE' }
   | { readonly type: 'TOGGLE_AUTOMAP' }
-  | { readonly type: 'SET_AUDIO_MUTED'; readonly muted: boolean };
+  | { readonly type: 'SET_AUDIO_MUTED'; readonly muted: boolean }
+  | { readonly type: 'TOGGLE_INVENTORY'; readonly championIndex: number | null }
+  | { readonly type: 'SELECT_LEADER'; readonly championIndex: number }
+  | { readonly type: 'CLICK_EQUIP_SLOT'; readonly championIndex: number; readonly slot: EquipSlotId }
+  | { readonly type: 'CLICK_BACKPACK_SLOT'; readonly championIndex: number; readonly slotIndex: number }
+  | { readonly type: 'CLICK_CONTAINER_SLOT'; readonly slotIndex: number }
+  | { readonly type: 'INSPECT_HAND_ITEM'; readonly championIndex: number }
+  | { readonly type: 'CONSUME_HAND_ITEM'; readonly championIndex: number }
+  | { readonly type: 'PICKUP_OR_DROP_FLOOR'; readonly quadrant: SubTileQuadrant }
+  | { readonly type: 'THROW_HAND_ITEM'; readonly side: 'LEFT' | 'RIGHT' }
+  | { readonly type: 'SET_SLEEPING'; readonly sleeping: boolean };
 
 export type SoundCueId =
   | 'FOOTSTEP'
@@ -252,7 +386,12 @@ export type SoundCueId =
   | 'DOOR_CLANK'
   | 'PIT_FALL'
   | 'TELEPORT_BUZZ'
-  | 'CHAMPION_REVIVE';
+  | 'CHAMPION_REVIVE'
+  | 'ITEM_PICKUP'
+  | 'THROW_SWOOSH'
+  | 'GULP'
+  | 'LOCK_CLICK'
+  | 'CHAMPION_DEATH';
 
 export type EngineEvent =
   | { readonly type: 'STEP_TAKEN'; readonly level: number; readonly x: number; readonly y: number }
@@ -273,6 +412,16 @@ export type EngineEvent =
   | { readonly type: 'MIRROR_CANCELLED' }
   | { readonly type: 'CHAMPION_RECRUITED'; readonly championId: string; readonly name: string; readonly mode: RecruitMode }
   | { readonly type: 'TORCH_TAKEN'; readonly wallX: number; readonly wallY: number }
+  | { readonly type: 'ITEM_PICKED_UP'; readonly itemId: ItemInstanceId; readonly name: string }
+  | { readonly type: 'ITEM_DROPPED'; readonly itemId: ItemInstanceId; readonly name: string }
+  | { readonly type: 'ITEM_EQUIPPED'; readonly championId: string; readonly slot: EquipSlotId; readonly itemId: ItemInstanceId | null }
+  | { readonly type: 'ITEM_THROWN'; readonly itemId: ItemInstanceId; readonly side: 'LEFT' | 'RIGHT' }
+  | { readonly type: 'ITEM_CONSUMED'; readonly championId: string; readonly itemName: string }
+  | { readonly type: 'FOUNTAIN_USED'; readonly refilledItem: string | null }
+  | { readonly type: 'LOCK_UNLOCKED'; readonly x: number; readonly y: number; readonly itemName: string }
+  | { readonly type: 'CHAMPION_DIED'; readonly championId: string; readonly name: string }
+  | { readonly type: 'CHAMPION_REVIVED_AT_ALTAR'; readonly championId: string; readonly name: string }
+  | { readonly type: 'SLEEP_STATE_CHANGED'; readonly sleeping: boolean }
   | { readonly type: 'SOUND_CUE'; readonly cue: SoundCueId; readonly sourceLevel: number; readonly sourceX: number; readonly sourceY: number }
   | { readonly type: 'MESSAGE_LOGGED'; readonly text: string };
 

@@ -3,10 +3,18 @@
  *
  * TLDR:
  *   Unpacks the 575-item Big-Endian graphics.dat container, decoding all 535 FTL 4bpp
- *   byte-aligned RLE sprites (including Champion portraits item[26] and HUD/wall art),
- *   33 signed 8-bit Paula PCM sound effects, the 6x6 1bpp system font (item[557]),
- *   and the 6-level 9-bit $0RGB torchlight palette table (item[562]).
+ *   byte-aligned RLE sprites (including Champion portraits item[26], Paperdoll item[17],
+ *   and 16x16 Item Icon Sheets items 42..48), 33 signed 8-bit Paula PCM sound effects,
+ *   item[556] names, item[559] ObjectDescriptors, item[557] font, and item[562] light ramps.
  */
+
+import type { ItemDef } from '../engine/types';
+import {
+  ITEM_CATALOG_180,
+  ITEM_NAMES_199,
+  parseItemNamesFrom556,
+  parseObjectDescriptorsFrom559
+} from './itemCatalog';
 
 export interface DecodedSprite {
   readonly index: number;
@@ -30,6 +38,8 @@ export interface GraphicsBundle {
   readonly sounds: ReadonlyMap<number, DecodedSound>;
   readonly systemFont: Uint8Array | null;
   readonly lightPalettes: readonly (readonly RgbColor[])[]; // 6 levels: 0=darkest lit .. 5=brightest
+  readonly itemNames: readonly string[];
+  readonly itemCatalog: readonly ItemDef[];
 }
 
 /**
@@ -169,8 +179,6 @@ function decodePcmSoundItem(index: number, itemBytes: Uint8Array): DecodedSound 
   }
   const declaredSamples = readU16BE(itemBytes, 0);
   const headerBytes = itemBytes.length - declaredSamples;
-  // All 33 Amiga DM1 PCM items (533..555 and 563..574) store [uint16be sampleCount]
-  // followed by 0..2 pad/loop header bytes and signed 8-bit Paula PCM samples (~5500 Hz).
   if (declaredSamples > 0 && headerBytes >= 2 && headerBytes <= 5) {
     const sampleOffset = headerBytes;
     const sampleCount = Math.min(declaredSamples, itemBytes.length - sampleOffset);
@@ -190,7 +198,6 @@ function extractPalettesFromItem562(itemBytes: Uint8Array): readonly (readonly R
   if (itemBytes.length < 1470) {
     return null;
   }
-  // Offsets 1438 (dimmest) stepping by -32 back to 1278 (brightest)
   const palettes: RgbColor[][] = [];
   for (let level = 0; level < 6; level += 1) {
     const baseOffset = 1438 - level * 32;
@@ -205,7 +212,7 @@ function extractPalettesFromItem562(itemBytes: Uint8Array): readonly (readonly R
 }
 
 /**
- * Parses the complete 575-item Amiga graphics.dat binary into decoded sprites, PCM sounds, font, and palettes.
+ * Parses the complete 575-item Amiga graphics.dat binary into decoded sprites, PCM sounds, item catalog, font, and palettes.
  */
 export function parseGraphicsDat(rawBytes: Uint8Array): GraphicsBundle {
   if (rawBytes.length < 10) {
@@ -226,6 +233,8 @@ export function parseGraphicsDat(rawBytes: Uint8Array): GraphicsBundle {
   const sounds = new Map<number, DecodedSound>();
   let systemFont: Uint8Array | null = null;
   let lightPalettes: readonly (readonly RgbColor[])[] = buildDefaultLightPalettes();
+  let raw556: Uint8Array | null = null;
+  let raw559: Uint8Array | null = null;
 
   let offset = headerBytes;
   for (let index = 0; index < itemCount; index += 1) {
@@ -236,8 +245,16 @@ export function parseGraphicsDat(rawBytes: Uint8Array): GraphicsBundle {
     const slice = rawBytes.subarray(offset, offset + size);
     offset += size;
 
+    if (index === 556) {
+      raw556 = slice;
+      continue;
+    }
     if (index === 557 && slice.length === 768) {
       systemFont = new Uint8Array(slice);
+      continue;
+    }
+    if (index === 559) {
+      raw559 = slice;
       continue;
     }
     if (index === 562) {
@@ -260,13 +277,18 @@ export function parseGraphicsDat(rawBytes: Uint8Array): GraphicsBundle {
     }
   }
 
+  const itemNames = raw556 ? parseItemNamesFrom556(raw556) : ITEM_NAMES_199;
+  const itemCatalog = raw559 ? parseObjectDescriptorsFrom559(raw559, itemNames) : ITEM_CATALOG_180;
+
   return {
     source: 'AMIGA_GRAPHICS_DAT',
     itemCount,
     sprites,
     sounds,
     systemFont,
-    lightPalettes
+    lightPalettes,
+    itemNames,
+    itemCatalog
   };
 }
 
@@ -300,6 +322,34 @@ export function extractChampionPortrait(bundle: GraphicsBundle, portraitIndex: n
 }
 
 /**
+ * Slices an individual 16x16 Item Icon (0..223) from Amiga graphics.dat items 42..48 (each 256x32 = 16 cols x 2 rows).
+ */
+export function extractItemIcon(bundle: GraphicsBundle, iconIndex: number): DecodedSprite | null {
+  const clamped = Math.max(0, Math.min(223, iconIndex));
+  const sheetIndex = 42 + Math.floor(clamped / 32);
+  const sheet = bundle.sprites.get(sheetIndex);
+  if (!sheet || sheet.width < 256 || sheet.height < 32) {
+    return null;
+  }
+  const local = clamped % 32;
+  const col = local % 16;
+  const row = Math.floor(local / 16);
+  const out = new Uint8Array(16 * 16);
+
+  for (let y = 0; y < 16; y += 1) {
+    const srcRowStart = (row * 16 + y) * sheet.width + col * 16;
+    out.set(sheet.pixels.subarray(srcRowStart, srcRowStart + 16), y * 16);
+  }
+
+  return {
+    index: 4200 + clamped,
+    width: 16,
+    height: 16,
+    pixels: out
+  };
+}
+
+/**
  * Clean-room fallback graphics bundle when Amiga graphics.dat has not been extracted locally.
  */
 export function createCleanRoomGraphicsBundle(): GraphicsBundle {
@@ -309,6 +359,8 @@ export function createCleanRoomGraphicsBundle(): GraphicsBundle {
     sprites: new Map(),
     sounds: new Map(),
     systemFont: null,
-    lightPalettes: buildDefaultLightPalettes()
+    lightPalettes: buildDefaultLightPalettes(),
+    itemNames: ITEM_NAMES_199,
+    itemCatalog: ITEM_CATALOG_180
   };
 }

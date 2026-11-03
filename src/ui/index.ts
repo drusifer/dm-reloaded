@@ -16,3 +16,5 @@ export {
   serializeSoundboardPreset
 } from './soundboard';
 export type { SoundboardController, SoundboardPreset } from './soundboard';
+export { mountContactSheetUI } from './contactSheet';
+export type { ContactSheetController } from './contactSheet';

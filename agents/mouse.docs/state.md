@@ -1,35 +1,11 @@
 # Agent State
 
 ## Context
-### Recent Decisions
-- Sprint 1 + Post-Launch Perspective/Door/Soundboard Polish **COMPLETED (100%)**:
-  - `32/32` Vitest tests across 8 suites green, ESLint & `tsc --noEmit` clean, Vite `dist/` bundle (`23.74 kB` gzip) verified.
-  - Published clean-room repository to `git@github.com:drusifer/dm-reloaded.git` (`main`).
-  - Lessons `001..004` recorded in `agents/oracle.docs/lessons.md`.
-
-### Important Notes
-- Root `task.md` is the single source of truth for Sprint tasks and Sprints 2–8 backlog.
-- Do NOT run baseline `bobp make test` on cold start unless code changes (Bounded Testing rule).
+All Sprint2 tasks including3.3final acceptance complete. Root task.md is sole board. Initial phase approvals were reopened for omitted criteria, then QA/architecture/Smith approved final scope. Keep make calls serial.
+Final evidence177aggregate tests+2additional independent gameplay tests, final ESLint/strict TypeScript, production build,27live browser checks and20rendered scenes all pass. Final approvals inCHAT_sprint-2-acceptance.md supersede incomplete earlier approvals. Trace audit unavailable missingjinja2; not claimed clean. Existing dirty changes preserved, no commit/deploy.
 
 ## Current Task
-**Status:** Ready for Sprint 2 Kickoff (Cold-Start Prepared)
-**Assigned to:** Cypher (`*pm plan sprint`) / Mouse (`*sm`)
-**Started:** 2026-11-02
-
-### Progress
-- [x] Sprint 1 Phases 1–3 (`8/8` tasks) + Stage 3 Sprint Close
-- [x] Post-Sprint-1 perspective (`item[558]`), crosswise doors/3D jambs (`78..80`, `315`), and Paula SFX Soundboard (`SFX BOARD [B]`) polish
-- [x] Clean-room push to `git@github.com:drusifer/dm-reloaded.git`
+Sprint2 complete100%; implementation, QA/architecture/Smith gates, docs, archives and retrospective complete. Cypher local launch recorded inCHAT. Close summary agents/cypher.docs/Sprint2_Close_Summary_2026-11-03T14-08.md.
 
 ## Next Steps
-### Immediate Next Action (Cold Start Resume)
-1. When user invokes `/sprint`, `*plan sprint`, or asks to begin Sprint 2:
-   - Start **Sprint 2 Planning (`*plan sprint`)** with `@Cypher *pm plan sprint` covering:
-     - Paperdoll Inventory screen (`item[17]` backdrop) & decoded Item Icon Sheets (`items 42..48` from `graphics.dat`)
-     - `DB5..DB10` world items (weapons, armor, scrolls, potions, chests, misc) on floor sub-tiles & wall alcoves
-     - Cursor-hand drag/equip & corridor throw physics (remote switch/plate activation)
-     - Weight/encumbrance, Food/Water/Stamina/Sleep regeneration, Champion bones & Vi Altars
-   - Enforce mandatory live PNG screenshot UX inspection (`@Smith *user test`) on every UI-facing phase.
-
----
-*Last updated: 2026-11-02T16:17:00-05:00*
+Await next user request. Do not start future sprint automatically. Consult root task.md backlog and Oracle lessons on cold start; useVIA andbobp make, serialize capture writers, test only changed code.

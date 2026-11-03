@@ -66,7 +66,7 @@ describe('Phase 3: InputController (320x200 Hitboxes & Purist/QoL Keyboard)', ()
     // Utility pills at x=272..319
     expect(resolvePointerHitCommand(280, 4, state)).toEqual({ type: 'TOGGLE_QOL_MODE' });
     expect(resolvePointerHitCommand(280, 13, state)).toEqual({ type: 'TOGGLE_AUTOMAP' });
-    expect(resolvePointerHitCommand(280, 22, state)).toEqual({
+    expect(resolvePointerHitCommand(307, 22, state)).toEqual({
       type: 'SET_AUDIO_MUTED',
       muted: true
     });

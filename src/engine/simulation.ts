@@ -8,21 +8,38 @@
  *   starter torches, Champion Mirror Resurrect/Reincarnate/Cancel, and Purist/QoL toggles.
  */
 
-import { applyActuatorSignal, stepDoorsOnLevels, updateTileInLevels } from './actuators';
+import {
+  applyActuatorSignal,
+  mapCoordsBetweenLevels,
+  stepDoorsOnLevels,
+  triggerActuatorList,
+  updateTileInLevels
+} from './actuators';
 import { nextRandom } from './clock';
 import {
+  applyInventoryCommand,
+  encumbranceCooldownPenalty,
+  grantStartingGear,
+  partyLightBonus
+} from './inventory';
+import { launchProjectile, stepProjectiles } from './projectiles';
+import { setSleeping, stepSurvival } from './survival';
+import { interactWallFeatures } from './wallInteractions';
+import {
+  ALL_EQUIP_SLOTS,
+  BACKPACK_SLOT_COUNT,
   DIRECTION_DELTAS,
-  type Actuator,
   type CampaignBundle,
   type ChampionDefinition,
   type ChampionState,
   type Direction,
   type DungeonLevel,
   type EngineEvent,
+  type EquipSlotId,
   type GameCommand,
   type GameState,
+  type ItemInstanceId,
   type MoveDirection,
-  type PendingActuatorOp,
   type RecruitMode,
   type SimulationStepResult,
   type Tile
@@ -55,7 +72,7 @@ export function getTile(
 export function effectiveLightLevel(state: GameState): number {
   const lvl = state.levels.find((l) => l.id === state.party.level);
   const ambient = lvl ? lvl.ambientLight : 0;
-  return Math.max(0, Math.min(5, ambient + state.party.torchLight));
+  return Math.max(0, Math.min(5, ambient + partyLightBonus(state)));
 }
 
 /**
@@ -104,9 +121,17 @@ export function createInitialGameState(bundle: CampaignBundle): GameState {
       stepParity: 0,
       moveCooldownTicks: 0,
       torchLight: 3, // Starter torchlight so descent into Level 1 is never pitch-black (HCI #5)
+      sleeping: false,
+      leaderIndex: 0,
       champions: [],
       visitedTiles: { [startKey]: true }
     },
+    items: dungeon.initialItems ?? {},
+    handItem: null,
+    openInventoryChampionIndex: null,
+    openContainerId: null,
+    projectiles: [],
+    gameOver: false,
     activeMirror: null,
     pendingActuators: [],
     messages: ['ENTER THE HALL OF CHAMPIONS.'],
@@ -135,89 +160,6 @@ function resolveMoveVector(facing: Direction, move: MoveDirection): { readonly d
     case 'STRAFE_RIGHT':
       return DIRECTION_DELTAS[((facing + 1) % 4) as Direction];
   }
-}
-
-function mapCoordsBetweenLevels(
-  levels: readonly DungeonLevel[],
-  fromLevelId: number,
-  toLevelId: number,
-  x: number,
-  y: number
-): { readonly x: number; readonly y: number } {
-  const fromLvl = levels.find((l) => l.id === fromLevelId);
-  const toLvl = levels.find((l) => l.id === toLevelId);
-  if (!fromLvl || !toLvl) {
-    return { x, y };
-  }
-  const worldX = fromLvl.offsetX + x;
-  const worldY = fromLvl.offsetY + y;
-  const mappedX = Math.max(0, Math.min(toLvl.width - 1, worldX - toLvl.offsetX));
-  const mappedY = Math.max(0, Math.min(toLvl.height - 1, worldY - toLvl.offsetY));
-  return { x: mappedX, y: mappedY };
-}
-
-function triggerActuatorList(
-  state: GameState,
-  levelId: number,
-  tileX: number,
-  tileY: number,
-  actuators: readonly Actuator[],
-  events: EngineEvent[]
-): GameState {
-  let nextLevels = state.levels;
-  const nextPending: PendingActuatorOp[] = [...state.pendingActuators];
-
-  for (const act of actuators) {
-    if (act.onceOnly && act.triggered) {
-      continue;
-    }
-    if (act.isLocal || act.rawType === 127) {
-      continue;
-    }
-
-    if (act.onceOnly) {
-      nextLevels = updateTileInLevels(nextLevels, levelId, tileX, tileY, (t) => ({
-        ...t,
-        actuators: t.actuators.map((a) => (a.id === act.id ? { ...a, triggered: true } : a))
-      }));
-    }
-
-    if (act.playSound) {
-      events.push({
-        type: 'SOUND_CUE',
-        cue: 'SWITCH_CLICK',
-        sourceLevel: levelId,
-        sourceX: tileX,
-        sourceY: tileY
-      });
-    }
-
-    if (act.delayTicks > 0) {
-      nextPending.push({
-        dueTick: state.tick + act.delayTicks,
-        action: act.action,
-        targetLevel: act.targetLevel,
-        targetX: act.targetX,
-        targetY: act.targetY,
-        playSound: act.playSound
-      });
-    } else {
-      nextLevels = applyActuatorSignal(
-        nextLevels,
-        act.targetLevel,
-        act.targetX,
-        act.targetY,
-        act.action,
-        events
-      );
-    }
-  }
-
-  return {
-    ...state,
-    levels: nextLevels,
-    pendingActuators: nextPending
-  };
 }
 
 function resolvePostStepHazards(state: GameState, events: EngineEvent[]): GameState {
@@ -398,7 +340,7 @@ function handleMove(state: GameState, direction: MoveDirection, events: EngineEv
     return {
       ...state,
       messages: nextMessages,
-      party: { ...state.party, moveCooldownTicks: BASE_MOVE_COOLDOWN_TICKS }
+      party: { ...state.party, moveCooldownTicks: BASE_MOVE_COOLDOWN_TICKS + encumbranceCooldownPenalty(state) }
     };
   }
 
@@ -421,7 +363,7 @@ function handleMove(state: GameState, direction: MoveDirection, events: EngineEv
       x: targetX,
       y: targetY,
       stepParity: nextParity,
-      moveCooldownTicks: BASE_MOVE_COOLDOWN_TICKS,
+      moveCooldownTicks: BASE_MOVE_COOLDOWN_TICKS + encumbranceCooldownPenalty(state),
       visitedTiles: { ...state.party.visitedTiles, [visitedKey]: true }
     }
   };
@@ -516,6 +458,12 @@ function handleInteractAhead(state: GameState, events: EngineEvent[]): GameState
     };
   }
 
+  // 3b. Hand-aware wall features: keyholes, Vi Altars, fountains, alcoves
+  const wallResult = interactWallFeatures(state, aheadTile, aheadX, aheadY, oppositeFace, events);
+  if (wallResult) {
+    return wallResult;
+  }
+
   // 4. Wall inscription plaque
   const inscription = facingFeatures.find((f) => f.kind === 'INSCRIPTION' && f.text);
   if (inscription && inscription.text) {
@@ -524,9 +472,11 @@ function handleInteractAhead(state: GameState, events: EngineEvent[]): GameState
     return { ...state, messages: msgs };
   }
 
-  // 5. Wall actuators (buttons/levers) on oppositeFace
+  // 5. Wall actuators (buttons/levers) on oppositeFace.
+  // rawType 127 (Champion Mirror) and rawType 4 (key-gated keyhole) are excluded: keyholes only
+  // respond to the matching held item, never to a plain click.
   const facingActuators = aheadTile.actuators.filter(
-    (a) => a.face === oppositeFace && a.rawType !== 127
+    (a) => a.face === oppositeFace && a.rawType !== 127 && a.rawType !== 4
   );
   if (facingActuators.length > 0) {
     events.push({
@@ -541,6 +491,20 @@ function handleInteractAhead(state: GameState, events: EngineEvent[]): GameState
   return state;
 }
 
+/** Default survival/inventory fields for a newly recruited champion. */
+function freshVitals(): Pick<ChampionState, 'alive' | 'food' | 'water' | 'inventory'> {
+  const slots = {} as Record<EquipSlotId, ItemInstanceId | null>;
+  for (const slot of ALL_EQUIP_SLOTS) {
+    slots[slot] = null;
+  }
+  return {
+    alive: true,
+    food: 1500,
+    water: 1500,
+    inventory: { slots, backpack: new Array<ItemInstanceId | null>(BACKPACK_SLOT_COUNT).fill(null) }
+  };
+}
+
 function buildRecruitedChampion(
   def: ChampionDefinition,
   mode: RecruitMode,
@@ -551,6 +515,7 @@ function buildRecruitedChampion(
       nextRng: rngState,
       champion: {
         ...def,
+        ...freshVitals(),
         health: def.maxHealth,
         stamina: def.maxStamina,
         mana: def.maxMana,
@@ -571,6 +536,7 @@ function buildRecruitedChampion(
     nextRng: r2.nextState,
     champion: {
       ...def,
+      ...freshVitals(),
       maxHealth: def.maxHealth + hpBonus,
       health: def.maxHealth + hpBonus,
       stamina: def.maxStamina,
@@ -612,7 +578,7 @@ function stepSingleTick(state: GameState, events: EngineEvent[]): GameState {
   // 2. Step animating doors
   nextLevels = stepDoorsOnLevels(nextLevels, events);
 
-  return {
+  const advanced: GameState = {
     ...state,
     tick: nextTick,
     levels: nextLevels,
@@ -622,13 +588,30 @@ function stepSingleTick(state: GameState, events: EngineEvent[]): GameState {
       moveCooldownTicks: nextCooldown
     }
   };
+
+  // 3. Flying projectiles, then survival vitals / torch burn / death
+  return stepSurvival(stepProjectiles(advanced, events), events);
 }
+
+/** Commands that do not wake a sleeping party (time passing and pure settings). */
+const SLEEP_TRANSPARENT_COMMANDS: ReadonlySet<GameCommand['type']> = new Set([
+  'TICK',
+  'SET_SLEEPING',
+  'SET_AUDIO_MUTED',
+  'TOGGLE_QOL_MODE',
+  'TOGGLE_AUTOMAP'
+]);
 
 /**
  * Pure simulation reducer processing a single GameCommand and returning { state, events }.
  */
 export function dispatchCommand(state: GameState, command: GameCommand): SimulationStepResult {
   const events: EngineEvent[] = [];
+
+  // Any click / key while asleep only wakes the party ("CLICK OR PRESS ANY KEY TO WAKE").
+  if (state.party.sleeping && !SLEEP_TRANSPARENT_COMMANDS.has(command.type)) {
+    return { state: setSleeping(state, false, events), events };
+  }
 
   switch (command.type) {
     case 'TURN': {
@@ -673,11 +656,13 @@ export function dispatchCommand(state: GameState, command: GameCommand): Simulat
         return { state, events };
       }
       const { wallX, wallY, face, champion } = state.activeMirror;
-      const { champion: recruited, nextRng } = buildRecruitedChampion(
+      const { champion: baseRecruit, nextRng } = buildRecruitedChampion(
         champion,
         command.mode,
         state.rngState
       );
+      const gear = grantStartingGear(state.items, baseRecruit);
+      const recruited = gear.champion;
 
       // Remove mirror from wall after champion steps out (1988 Amiga rule)
       let nextLevels = updateTileInLevels(state.levels, state.party.level, wallX, wallY, (t) => ({
@@ -730,6 +715,7 @@ export function dispatchCommand(state: GameState, command: GameCommand): Simulat
           ...state,
           rngState: nextRng,
           levels: nextLevels,
+          items: gear.items,
           activeMirror: null,
           messages: msgs,
           party: {
@@ -794,5 +780,28 @@ export function dispatchCommand(state: GameState, command: GameCommand): Simulat
         events
       };
     }
+
+    // Sprint 2 inventory-domain commands (InventoryEngine). Blocked while the Champion Mirror modal is open.
+    case 'TOGGLE_INVENTORY':
+    case 'SELECT_LEADER':
+    case 'CLICK_EQUIP_SLOT':
+    case 'CLICK_BACKPACK_SLOT':
+    case 'CLICK_CONTAINER_SLOT':
+    case 'INSPECT_HAND_ITEM':
+    case 'CONSUME_HAND_ITEM':
+    case 'PICKUP_OR_DROP_FLOOR': {
+      if (state.activeMirror) {
+        return { state, events };
+      }
+      const inv = applyInventoryCommand(state, command, events);
+      return { state: inv.state, events };
+    }
+
+    // Reducers owned by ProjectileEngine / SurvivalEngine.
+    case 'THROW_HAND_ITEM':
+      return { state: launchProjectile(state, command.side, events), events };
+
+    case 'SET_SLEEPING':
+      return { state: setSleeping(state, command.sleeping, events), events };
   }
 }

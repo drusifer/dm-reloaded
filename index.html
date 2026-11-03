@@ -242,6 +242,83 @@
         color: #9aa6ba;
         text-align: center;
       }
+
+      /* graphics.dat Sprite Contact Sheet Overlay */
+      #contact-sheet-toggle {
+        position: fixed;
+        bottom: 12px;
+        right: 150px;
+        z-index: 30;
+        background: #1a212b;
+        color: #8cc8f5;
+        border: 1px solid #355068;
+        padding: 6px 11px;
+        font: 700 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        border-radius: 3px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+      }
+      #contact-sheet-toggle:hover,
+      #contact-sheet-toggle.open {
+        background: #23364a;
+        border-color: #4eb0e3;
+      }
+      #contact-sheet-panel {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        bottom: 48px;
+        z-index: 45;
+        background: rgba(13, 16, 22, 0.97);
+        border: 1px solid #3a4659;
+        border-radius: 5px;
+        box-shadow: 0 22px 64px rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        font-size: 12px;
+      }
+      #contact-sheet-panel[hidden] {
+        display: none;
+      }
+      .cs-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        padding: 10px 12px;
+        background: #161c26;
+        border-bottom: 1px solid #2a3444;
+      }
+      .cs-readout {
+        flex: 1;
+        color: #8cf5b2;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      .cs-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .cs-btn,
+      .cs-select {
+        background: #222b38;
+        color: #dce4f2;
+        border: 1px solid #3d4d63;
+        padding: 5px 9px;
+        border-radius: 3px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .cs-scroll {
+        flex: 1;
+        overflow: auto;
+      }
+      .cs-canvas {
+        display: block;
+        image-rendering: pixelated;
+      }
     </style>
   </head>
   <body>

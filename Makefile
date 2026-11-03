@@ -1,4 +1,4 @@
-.PHONY: help setup install extract-assets dev build test test-q lint typecheck tldr via-index judge-trace clean
+.PHONY: help setup install extract-assets dev build test test-q lint typecheck tldr via-index judge-trace clean visual-review visual-review-setup
 
 DATE ?= $(shell date +%F)
 
@@ -49,3 +49,9 @@ judge-trace: ## Run BobProtocol session trace annotation for QA gate verificatio
 
 clean: ## Remove dist/ and build/ artifacts
 	rm -rf dist build/tldr_prep
+
+visual-review: ## Capture live Chromium sprint scenes and original inventory panels (temporary Playwright runner)
+	npm exec --yes --package=@playwright/test@1.64.1 -- node scripts/sprint2-visual-review.mjs $(ARGS)
+
+visual-review-setup: ## Download temporary Chromium for the live visual review runner
+	npm exec --yes --package=@playwright/test@1.64.1 -- playwright install chromium

@@ -1,3 +1,4 @@
+import { itemIconIndex } from '../data/itemCatalog';
 /**
  * Classic 320x200 Amiga HUD, Movement Pad, Utility Pills, Message Strip, and Mirror Modal painter.
  *
@@ -8,14 +9,17 @@
  */
 
 import { DIRECTION_NAMES } from '../engine/types';
+import { getItemDef } from '../data/itemCatalog';
+import { partyLightBonus } from '../engine/inventory';
 import type { ChampionState, GameState, MirrorModalState } from '../engine/types';
 import { extractChampionPortrait } from '../data/graphicsDatParser';
 import type { GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
 import { drawBitmapText } from './bitmapFont';
 import type { Framebuffer } from './framebuffer';
-import { LAYOUT_RECTS, championSlotRect } from './layout';
+import { LAYOUT_RECTS, championSlotRect, championHandRect } from './layout';
 import type { AudioUnlockBadge, ScreenRect } from './layout';
 import { PALETTE_INDEX, getUiPalette } from './palette';
+import { createSpriteSource } from './spriteSource';
 
 function drawStatBar(
   fb: Framebuffer,
@@ -63,6 +67,13 @@ function paintChampionSlot(
     bundle?.systemFont
   );
 
+  if (!champion.alive) {
+    drawBitmapText(fb, 'DEAD', rect.x + 23, rect.y + 13, uiPalette[PALETTE_INDEX.WHITE] ?? [255, 255, 255], bundle?.systemFont);
+    const skull = createSpriteSource(bundle).getSprite('inventory.skull');
+    fb.blitSprite(skull, rect.x + 3, rect.y + 10, uiPalette, { dstWidth: 16, dstHeight: 16, transparentIndex: 0 });
+    return;
+  }
+
   // Mini portrait or hand slots
   const portrait = bundle ? extractChampionPortrait(bundle, champion.portraitIndex) : null;
   if (portrait) {
@@ -71,24 +82,12 @@ function paintChampionSlot(
     fb.drawBevelBox(rect.x + 2, rect.y + 9, 20, 18, mid, light, black);
   }
 
-  const handLabel = (champion.leftHand ?? champion.rightHand ?? 'HANDS').slice(0, 4);
-  drawBitmapText(
-    fb,
-    handLabel,
-    rect.x + 24,
-    rect.y + 14,
-    champion.leftHand === 'TORCH' || champion.rightHand === 'TORCH'
-      ? (uiPalette[PALETTE_INDEX.ORANGE] ?? [255, 180, 0])
-      : (uiPalette[PALETTE_INDEX.WHITE] ?? [255, 255, 255]),
-    bundle?.systemFont
-  );
-
-  // Health (Red), Stamina (Green), Mana (Blue) vertical bars on right edge of slot (x + 51..64)
+  // Health (Red), Stamina (Green), Mana (Blue) vertical bars between portrait and hand targets (x + 25..37)
   drawStatBar(
     fb,
-    rect.x + 51,
-    rect.y + 3,
-    23,
+    rect.x + 25,
+    rect.y + 10,
+    16,
     champion.health,
     champion.maxHealth,
     uiPalette[PALETTE_INDEX.RED] ?? [255, 0, 0],
@@ -96,9 +95,9 @@ function paintChampionSlot(
   );
   drawStatBar(
     fb,
-    rect.x + 56,
-    rect.y + 3,
-    23,
+    rect.x + 30,
+    rect.y + 10,
+    16,
     champion.stamina,
     champion.maxStamina,
     uiPalette[PALETTE_INDEX.LIGHT_GREEN] ?? [0, 219, 0],
@@ -106,9 +105,9 @@ function paintChampionSlot(
   );
   drawStatBar(
     fb,
-    rect.x + 61,
-    rect.y + 3,
-    23,
+    rect.x + 35,
+    rect.y + 10,
+    16,
     champion.mana,
     champion.maxMana,
     uiPalette[PALETTE_INDEX.CYAN] ?? [0, 219, 219],
@@ -290,7 +289,18 @@ export function paintHud(
 
   // 4 Champion Status Boxes strictly inside x=0..271
   for (let i = 0; i < 4; i += 1) {
-    paintChampionSlot(fb, i, state.party.champions[i], uiPalette, bundle);
+    const champion = state.party.champions[i];
+    paintChampionSlot(fb, i, champion, uiPalette, bundle);
+    if (champion?.alive) {
+      for (const hand of ['leftHand', 'rightHand'] as const) {
+        const id = champion.inventory.slots[hand];
+        const item = id ? state.items[id] : undefined;
+        const rect=championHandRect(i,hand);
+        fb.fillRect(rect.x, rect.y, rect.w, rect.h, dark);
+        if (item) fb.blitSprite(createSpriteSource(bundle).getSprite(`item.icon.${itemIconIndex(item)}`),
+          rect.x, rect.y, uiPalette, { dstWidth: rect.w, dstHeight: rect.h, transparentIndex: 0 });
+      }
+    }
   }
 
   // Non-overlapping Utility Pills strictly inside x=272..319 (Smith Gate 2 requirement)
@@ -317,15 +327,11 @@ export function paintHud(
     uiPalette,
     bundle
   );
-  const sndLabel = state.settings.audioMuted || audioStatus === 'MUTED'
-    ? 'SND:MUT'
-    : audioStatus === 'ACTIVE'
-      ? 'SND:ON'
-      : 'SND:LCK';
+  paintPill(fb, LAYOUT_RECTS.SLEEP_PILL, 'ZZZ', state.party.sleeping, uiPalette, bundle);
   paintPill(
     fb,
     LAYOUT_RECTS.AUDIO_PILL,
-    sndLabel,
+    'SFX',
     audioStatus === 'ACTIVE' && !state.settings.audioMuted,
     uiPalette,
     bundle
@@ -346,7 +352,7 @@ export function paintHud(
     bundle?.systemFont
   );
 
-  const lightVal = (state.levels[state.party.level]?.ambientLight ?? 0) + state.party.torchLight;
+  const lightVal = (state.levels[state.party.level]?.ambientLight ?? 0) + partyLightBonus(state);
   drawBitmapText(
     fb,
     lightVal > 0 ? `LIGHT:${Math.min(5, lightVal)}/5` : 'DARK! TORCH?',
@@ -387,6 +393,22 @@ export function paintHud(
 
   if (state.settings.qolMode) {
     drawBitmapText(fb, '[QWEASD/M]', 254, msgRect.y + 21, cyan, bundle?.systemFont);
+  }
+
+  if (state.handItem) {
+    const item = state.items[state.handItem];
+    if (item) {
+      const weight = (bundle?.itemCatalog.find(def => def.defId === item.defId) ?? getItemDef(item.defId)).weightTenthsKg;
+      fb.fillRect(2, msgRect.y + 2, 316, 9, black);
+      drawBitmapText(fb, `HELD: ${item.name} (${(weight / 10).toFixed(1)} KG)`,
+        4, msgRect.y + 3, gold, bundle?.systemFont, 51);
+
+    }
+  }
+  if (state.party.sleeping) {
+    const viewport = LAYOUT_RECTS.VIEWPORT;
+    fb.fillDitherRect(viewport.x, viewport.y, viewport.w, viewport.h, black, [8, 8, 12]);
+    drawBitmapText(fb, 'SLEEPING - CLICK OR ANY KEY', 32, 96, light, bundle?.systemFont);
   }
 
   // Champion Mirror Modal overlay when inspecting a Hall of Champions mirror

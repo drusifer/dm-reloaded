@@ -8,7 +8,7 @@
  *   assigning or silencing FOOTSTEP), and one-click JSON export.
  */
 
-import { AMIGA_SOUND_ITEM_MAP } from '../audio';
+import { AMIGA_SOUND_ITEM_MAP, SYNTH_SOUND_ITEM } from '../audio';
 import type { PaulaStereoAudio } from '../audio';
 import type { DecodedSound, GraphicsBundle } from '../data/graphicsDatParser';
 import type { SoundCueId } from '../engine/types';
@@ -22,7 +22,12 @@ export const ALL_SOUND_CUES: readonly SoundCueId[] = [
   'FOOTSTEP',
   'TELEPORT_BUZZ',
   'CHAMPION_REVIVE',
-  'PIT_FALL'
+  'PIT_FALL',
+  'ITEM_PICKUP',
+  'THROW_SWOOSH',
+  'GULP',
+  'LOCK_CLICK',
+  'CHAMPION_DEATH'
 ];
 
 /**
@@ -371,6 +376,10 @@ export function mountSoundboardUI(
       noneOpt.value = '';
       noneOpt.textContent = 'NONE (Silent)';
       select.append(noneOpt);
+      const synthOpt=document.createElement('option');
+      synthOpt.value=String(SYNTH_SOUND_ITEM);
+      synthOpt.textContent='SYNTHESIZED';
+      select.append(synthOpt);
 
       for (const s of sortedSounds) {
         const opt = document.createElement('option');
@@ -401,7 +410,8 @@ export function mountSoundboardUI(
       testCueBtn.addEventListener('click', () => {
         const itemId = preset.cueMap[cue];
         if (itemId !== null) {
-          audio.playRawSoundItem(itemId, { pan: testPan, sampleRateHz: preset.sampleRateHz });
+          if (itemId===SYNTH_SOUND_ITEM) audio.playCue(cue,0,0,0,{level:0,x:0,y:0,facing:0});
+          else audio.playRawSoundItem(itemId, { pan: testPan, sampleRateHz: preset.sampleRateHz });
         }
       });
 

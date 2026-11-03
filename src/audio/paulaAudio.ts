@@ -24,6 +24,9 @@ export interface SpatialAcoustics {
  * Note: Normal party floor footsteps are silent (null) in original 1988 Amiga Dungeon Master,
  * while bumping into walls plays item[565] ("OOF!"). Users can reassign any cue live via Soundboard.
  */
+/** Explicit synthesized route; null always means the user chose silence. */
+export const SYNTH_SOUND_ITEM = -1;
+
 export const AMIGA_SOUND_ITEM_MAP: Readonly<Record<SoundCueId, number | null>> = {
   SWITCH_CLICK: 534,
   WALL_BUMP: 565,
@@ -31,7 +34,13 @@ export const AMIGA_SOUND_ITEM_MAP: Readonly<Record<SoundCueId, number | null>> =
   FOOTSTEP: null,
   TELEPORT_BUZZ: 547,
   CHAMPION_REVIVE: 545,
-  PIT_FALL: 539
+  PIT_FALL: 539,
+  // No guessed Amiga mappings: use synthesized cues until the user assigns a sample.
+  ITEM_PICKUP: SYNTH_SOUND_ITEM,
+  THROW_SWOOSH: SYNTH_SOUND_ITEM,
+  GULP: SYNTH_SOUND_ITEM,
+  LOCK_CLICK: SYNTH_SOUND_ITEM,
+  CHAMPION_DEATH: SYNTH_SOUND_ITEM
 };
 
 /**
@@ -279,7 +288,12 @@ export class PaulaStereoAudio {
         DOOR_CLANK: { f0: 165, f1: 82, dur: 0.16 },
         PIT_FALL: { f0: 440, f1: 90, dur: 0.35 },
         TELEPORT_BUZZ: { f0: 280, f1: 620, dur: 0.22 },
-        CHAMPION_REVIVE: { f0: 262, f1: 524, dur: 0.28 }
+        CHAMPION_REVIVE: { f0: 262, f1: 524, dur: 0.28 },
+        ITEM_PICKUP: { f0: 480, f1: 640, dur: 0.05 },
+        THROW_SWOOSH: { f0: 700, f1: 200, dur: 0.12 },
+        GULP: { f0: 220, f1: 110, dur: 0.18 },
+        LOCK_CLICK: { f0: 1100, f1: 700, dur: 0.05 },
+        CHAMPION_DEATH: { f0: 330, f1: 55, dur: 0.6 }
       };
       const spec = freqMap[cue];
 

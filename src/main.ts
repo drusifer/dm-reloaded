@@ -30,8 +30,8 @@ import {
   computeCanvasPresentationRect,
   renderFrame
 } from './render';
-import { mountSoundboardUI } from './ui';
-import type { SoundboardController } from './ui';
+import { mountContactSheetUI, mountSoundboardUI } from './ui';
+import type { ContactSheetController, SoundboardController } from './ui';
 
 export interface RuntimeAssets {
   readonly campaign: CampaignBundle;
@@ -113,14 +113,18 @@ export function startDungeonMasterApp(
     ctx.imageSmoothingEnabled = false;
   }
 
+  const originalCursor = canvas.style.cursor;
   const framebuffer = new Framebuffer();
   const accumulator = new FixedTickAccumulator();
   const audio = new PaulaStereoAudio(assets.graphics);
   let state = createInitialGameState(assets.campaign);
+  let pointer: { x: number; y: number } | null = null;
 
   let soundboard: SoundboardController | null = null;
+  let contactSheet: ContactSheetController | null = null;
   if (typeof document !== 'undefined' && document.body) {
     soundboard = mountSoundboardUI(document.body, audio, assets.graphics);
+    contactSheet = mountContactSheetUI(document.body, assets.graphics);
   }
 
   const syncCanvasDisplaySize = (): void => {
@@ -143,12 +147,24 @@ export function startDungeonMasterApp(
     if (!amigaPt) {
       return;
     }
-    const cmd = resolvePointerHitCommand(amigaPt.x, amigaPt.y, state);
+    pointer = amigaPt;
+    if (state.gameOver) {
+      ev.preventDefault();
+      state = createInitialGameState(assets.campaign);
+      return;
+    }
+    const cmd = resolvePointerHitCommand(amigaPt.x, amigaPt.y, state, ev.button);
     if (cmd) {
       ev.preventDefault();
       applyCommand(cmd);
     }
   };
+
+  const onPointerMove = (ev: PointerEvent): void => {
+    pointer=clientPointToAmigaCoords(ev.clientX,ev.clientY,canvas.getBoundingClientRect());
+  };
+  const onPointerLeave = (): void => { pointer=null; };
+  const onContextMenu = (ev: MouseEvent): void => { ev.preventDefault(); };
 
   const onKeyDown = (ev: KeyboardEvent): void => {
     if (isEditableTarget(ev.target)) {
@@ -159,10 +175,32 @@ export function startDungeonMasterApp(
     }
 
     audio.unlockFromGesture();
+    if (state.gameOver) {
+      ev.preventDefault();
+      if (ev.key === 'Enter') state = createInitialGameState(assets.campaign);
+      return;
+    }
+    if (state.party.sleeping) {
+      ev.preventDefault();
+      applyCommand({type:'SET_SLEEPING',sleeping:false});
+      return;
+    }
 
     if (ev.key === 'b' || ev.key === 'B') {
       ev.preventDefault();
       soundboard?.toggle();
+      return;
+    }
+
+    if (ev.key === 'g' || ev.key === 'G') {
+      ev.preventDefault();
+      contactSheet?.toggle();
+      return;
+    }
+
+    if (ev.key === 'Escape' && contactSheet?.isOpen()) {
+      ev.preventDefault();
+      contactSheet.close();
       return;
     }
 
@@ -182,6 +220,9 @@ export function startDungeonMasterApp(
   syncCanvasDisplaySize();
   window.addEventListener('resize', syncCanvasDisplaySize);
   canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerleave', onPointerLeave);
+  canvas.addEventListener('contextmenu', onContextMenu);
   window.addEventListener('keydown', onKeyDown);
 
   let rafId = 0;
@@ -196,9 +237,13 @@ export function startDungeonMasterApp(
       applyCommand({ type: 'TICK', count: dueTicks });
     }
 
+    canvas.style.cursor = state.handItem && pointer && !state.party.sleeping && !state.gameOver
+      ? 'none' : originalCursor;
+
     renderFrame(framebuffer, state, {
       graphics: assets.graphics,
-      audioStatus: audio.getStatus()
+      audioStatus: audio.getStatus(),
+      pointer
     });
 
     if (ctx) {
@@ -221,10 +266,15 @@ export function startDungeonMasterApp(
     dispatch: applyCommand,
     destroy: () => {
       window.cancelAnimationFrame(rafId);
+      canvas.style.cursor = originalCursor;
       window.removeEventListener('resize', syncCanvasDisplaySize);
       canvas.removeEventListener('pointerdown', onPointerDown);
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerleave', onPointerLeave);
+      canvas.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('keydown', onKeyDown);
       soundboard?.destroy();
+      contactSheet?.destroy();
     }
   };
 }

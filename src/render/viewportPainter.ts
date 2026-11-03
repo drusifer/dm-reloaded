@@ -1,3 +1,4 @@
+import { itemIconIndex } from '../data/itemCatalog';
 /**
  * Depth-3 first-person pseudo-3D dungeon viewport painter (224x136 at y=33).
  *
@@ -10,13 +11,15 @@
  */
 
 import { DIRECTION_DELTAS } from '../engine/types';
+import { partyLightBonus } from '../engine/inventory';
 import type { Direction, DungeonLevel, GameState, Tile, WallFeature } from '../engine/types';
 import { extractChampionPortrait } from '../data/graphicsDatParser';
-import type { GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
+import type { DecodedSprite, GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
 import { drawBitmapText } from './bitmapFont';
 import type { Framebuffer } from './framebuffer';
 import { LAYOUT_RECTS } from './layout';
 import { PALETTE_INDEX, getViewportLightPalette } from './palette';
+import { createSpriteSource } from './spriteSource';
 
 interface DepthFrustum {
   readonly leftOuterX: number;
@@ -201,6 +204,18 @@ function drawWallFeatureOnFrontWall(
 ): void {
   const cx = wallX + Math.floor(wallW / 2);
   const cy = wallY + Math.floor(wallH / 2);
+  const featureKey = feature.kind === 'ALCOVE' ? 'wall.alcove'
+    : feature.kind === 'FOUNTAIN' ? 'wall.fountain'
+      : feature.kind === 'KEYHOLE' ? 'wall.keyhole'
+        : feature.kind === 'VI_ALTAR' ? 'wall.altar' : null;
+  if (featureKey) {
+    const sprite = createSpriteSource(bundle).getSprite(featureKey);
+    const width = Math.max(8, Math.floor(wallW * 0.38));
+    const height = Math.max(8, Math.floor(wallH * 0.45));
+    fb.blitSprite(sprite, cx - Math.floor(width / 2), cy - Math.floor(height / 2), palette,
+      { dstWidth: width, dstHeight: height, transparentIndex: 0 }, LAYOUT_RECTS.VIEWPORT);
+    return;
+  }
 
   if (feature.kind === 'CHAMPION_MIRROR') {
     const frameW = depth === 1 ? 44 : depth === 2 ? 26 : 16;
@@ -675,6 +690,120 @@ function drawCenterTileContents(
   }
 }
 
+/** Draw objects within their tile's painter pass, so nearer walls occlude them. */
+function paintTileItems(
+  fb: Framebuffer, state: GameState, tile: Tile, depth: 0 | 1 | 2 | 3,
+  wx: number, wy: number, palette: readonly RgbColor[], bundle?: GraphicsBundle
+): void {
+  const source = createSpriteSource(bundle);
+  const vp = LAYOUT_RECTS.VIEWPORT;
+  const oppositeFace = ((state.party.facing + 2) & 3) as Direction;
+  const size = [24, 18, 11, 7][depth]!;
+  const floorY = [131, 110, 86, 73][depth]!;
+  const spread = [53, 35, 23, 15][depth]!;
+  const draw = (id: string, x: number, y: number, stack: number) => {
+    const item = state.items[id];
+    if (!item) return;
+    fb.blitSprite(source.getSprite(`item.icon.${itemIconIndex(item)}`),
+      vp.x + x - Math.floor(size / 2) + (stack % 3), vp.y + y - size - Math.floor(stack / 3),
+      palette, { dstWidth: size, dstHeight: size, transparentIndex: 0 }, vp);
+  };
+  if (isOpaqueWall(tile)) {
+    if (!tile.wallFeatures.some(feature => feature.face === oppositeFace
+      && (feature.kind === 'ALCOVE' || feature.kind === 'VI_ALTAR'))) return;
+    (tile.wallItems?.[oppositeFace] ?? []).forEach((id, index) => draw(id, 112, floorY - size, index));
+    return;
+  }
+  // Quadrants are NW, NE, SE, SW in world space; rotate into the viewer's frame.
+  for (const quadrant of [0, 1, 2, 3] as const) {
+    const relative = (quadrant - state.party.facing + 4) % 4;
+    if (depth === 0 && relative >= 2) continue;
+    const left = relative === 0 || relative === 3;
+    const far = relative < 2;
+    const door = tile.door;
+    const crosswise = door && (state.party.facing % 2 === 0
+      ? door.orientation === 'WEST_EAST' : door.orientation === 'NORTH_SOUTH');
+    // The slab lies at the tile midpoint: the far floor quadrants are behind it.
+    if (far && crosswise && door?.progress === 4 && door.material !== 'IRON_GRATE') continue;
+    const y = floorY - (far ? Math.max(2, Math.floor(size * 0.4)) : 0);
+    (tile.floorItems?.[quadrant] ?? []).forEach((id, index) => draw(id, 112 + (left ? -spread : spread), y, index));
+  }
+  for (const projectile of state.projectiles) {
+    if (projectile.level === state.party.level && projectile.x === wx && projectile.y === wy) {
+      // Lane belongs to travel direction; an approaching throw swaps screen sides.
+      const relativeDirection = (projectile.direction - state.party.facing + 4) % 4;
+      const horizontalProjection = [1, 0, -1, 0][relativeDirection]!;
+      draw(projectile.itemId, 112 + (projectile.lane === 'LEFT' ? -spread : spread) * horizontalProjection, floorY - size, 0);
+    }
+  }
+}
+
+/** Project a sprite into a side-wall plane; vertical edges converge with the corridor. */
+function blitSideWallSprite(
+  fb: Framebuffer,
+  sprite: DecodedSprite,
+  palette: readonly RgbColor[],
+  depth: 0 | 1 | 2 | 3,
+  side: 'LEFT' | 'RIGHT',
+  area: { readonly u0: number; readonly u1: number; readonly v0: number; readonly v1: number }
+): void {
+  const frustum = FRUSTUMS[depth];
+  const vp = LAYOUT_RECTS.VIEWPORT;
+  const nearX = side === 'LEFT' ? frustum.leftOuterX : frustum.rightOuterX;
+  const farX = side === 'LEFT' ? frustum.leftInnerX : frustum.rightInnerX;
+  const width = Math.abs(farX - nearX);
+  for (let step = Math.ceil(width * area.u0); step < width * area.u1; step++) {
+    const u = step / width;
+    const x = vp.x + nearX + (side === 'LEFT' ? step : -1 - step);
+    const top = vp.y + frustum.topOuterY + u * (frustum.topInnerY - frustum.topOuterY);
+    const bottom = vp.y + frustum.bottomOuterY + u * (frustum.bottomInnerY - frustum.bottomOuterY);
+    const y0 = top + area.v0 * (bottom - top);
+    const y1 = top + area.v1 * (bottom - top);
+    // Reversing screen-x on the right mirrors the same near-to-far sprite samples.
+    const sx = Math.min(sprite.width - 1, Math.floor((u - area.u0) / (area.u1 - area.u0) * sprite.width));
+    for (let y = Math.ceil(y0); y < y1; y++) {
+      const sy = Math.min(sprite.height - 1, Math.floor((y - y0) / (y1 - y0) * sprite.height));
+      const colorIndex = sprite.pixels[sy * sprite.width + sx] ?? 0;
+      if (colorIndex !== 0) fb.setPixel(x, y, palette[colorIndex] ?? [0, 0, 0]);
+    }
+  }
+}
+
+/** Side wall faces point into the corridor; paint before nearer center walls occlude them. */
+function paintSideWallFeatures(
+  fb: Framebuffer,
+  state: GameState,
+  tile: Tile,
+  depth: 0 | 1 | 2 | 3,
+  side: 'LEFT' | 'RIGHT',
+  palette: readonly RgbColor[],
+  bundle?: GraphicsBundle
+): void {
+  if (!isOpaqueWall(tile)) return;
+  const face = ((state.party.facing + (side === 'LEFT' ? 1 : 3)) & 3) as Direction;
+  const source = createSpriteSource(bundle);
+  let shelf = false;
+  for (const feature of tile.wallFeatures) {
+    if (feature.face !== face) continue;
+    const key = feature.kind === 'ALCOVE' ? 'wall.alcove'
+      : feature.kind === 'FOUNTAIN' ? 'wall.fountain'
+        : feature.kind === 'KEYHOLE' ? 'wall.keyhole'
+          : feature.kind === 'VI_ALTAR' ? 'wall.altar' : null;
+    if (!key) continue;
+    blitSideWallSprite(fb, source.getSprite(key), palette, depth, side,
+      { u0: 0.12, u1: 0.88, v0: 0.28, v1: 0.72 });
+    shelf ||= feature.kind === 'ALCOVE' || feature.kind === 'VI_ALTAR';
+  }
+  if (!shelf) return;
+  (tile.wallItems?.[face] ?? []).forEach((id, index) => {
+    const item = state.items[id];
+    if (!item) return;
+    const offset = (index % 3) * 0.04;
+    blitSideWallSprite(fb, source.getSprite(`item.icon.${itemIconIndex(item)}`), palette, depth, side,
+      { u0: 0.26 + offset, u1: 0.74 + offset, v0: 0.46 - Math.floor(index / 3) * 0.015, v1: 0.65 });
+  });
+}
+
 export function paintDungeonViewport(
   fb: Framebuffer,
   state: GameState,
@@ -687,7 +816,7 @@ export function paintDungeonViewport(
     return;
   }
 
-  const effectiveLight = Math.max(0, Math.min(5, level.ambientLight + state.party.torchLight));
+  const effectiveLight = Math.max(0, Math.min(5, level.ambientLight + partyLightBonus(state)));
   if (effectiveLight <= 0) {
     // Pitch-black dungeon when unlit (Story 1.1 AC)
     fb.fillRect(vp.x, vp.y, vp.w, vp.h, [0, 0, 0]);
@@ -857,6 +986,9 @@ export function paintDungeonViewport(
       }
     }
 
+    paintSideWallFeatures(fb, state, leftTile, depth, 'LEFT', palette, bundle);
+    paintSideWallFeatures(fb, state, rightTile, depth, 'RIGHT', palette, bundle);
+
     // Center wall (D3C=88, D2C=87, D1C=86) or open tile contents (pits, stairs, doors, teleporters)
     if ((depth === 1 || depth === 2 || depth === 3) && isOpaqueWall(centerTile)) {
       const centerSpec = depth === 1
@@ -899,5 +1031,6 @@ export function paintDungeonViewport(
     } else {
       drawCenterTileContents(fb, centerTile, depth, state.party.facing, vp.x, vp.y, palette, bundle);
     }
+    paintTileItems(fb, state, centerTile, depth, centerCoords.wx, centerCoords.wy, palette, bundle);
   }
 }

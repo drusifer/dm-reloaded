@@ -1,58 +1,55 @@
-Sprint 1 user stories and testable acceptance criteria for the Dungeon Master engine foundation and playable starter slice.
+User stories and testable acceptance criteria for Dungeon Master (Delivered: Sprint 2 — Champions, Physical Inventory & Survival).
 
 TLDR:
-    Goal: Establish the TypeScript/Canvas/WebAudio foundation, Makefile automation, deterministic dungeon grid simulation, 320x200 Amiga viewport/HUD, and playable Level 0/1 vertical slice.
-    Status: Drafted by Cypher; awaiting Smith Gate 1 review (*user review).
-    Action: Smith evaluates stories for classic Amiga UX fidelity and testability before Morpheus designs docs/ARCH.md.
+    Goal: Deliver authentic 1988 Amiga paperdoll inventory (item[17] + items 42..48 icons), DB5..DB10 world items on floor sub-tiles & alcoves, cursor-hand drag/throw physics, survival vitals (Food/Water/Stamina/Sleep/Torches), and Vi Altar bones revival.
+    Status: Approved by Smith at Gate 1 (*user approve) with HCI trackpad/contextmenu, persistent handItem, and slot-feedback safeguards.
+    Action: Sprint 2 accepted stories verified by final QA/architecture/live browser review; see task.md and agents/chat_archive/CHAT_sprint-2-acceptance.md.
 
-# Sprint 1 User Stories: Engine Foundation & Amiga Vertical Slice
+# Sprint 2 User Stories: Champions, Physical Inventory & Survival
 
-**Sprint Goal**: Stand up the repeatable build/test pipeline (`Makefile` + TypeScript + Vite + Vitest) and deliver a playable, pixel-accurate **320×200 Amiga Dungeon Master vertical slice** featuring deterministic grid navigation, pseudo-3D dungeon rendering with torchlight attenuation, interactive doors/buttons/pits/teleporters, Paula-style stereo SFX, Dual-Mode campaign data schema, and toggleable classic mouse vs. keyboard QoL navigation.
-
----
-
-## Story 1.1: Repeatable Project Toolchain & Headless Engine Harness
-**As a** developer and QA engineer on the team,
-**I want** a zero-friction TypeScript + Vite + Vitest project wired into standard `Makefile` targets (`help`, `setup`, `dev`, `build`, `test`, `lint`, `tldr`),
-**So that** all game simulation logic can be verified deterministically via `bobp make test` and built cleanly via `bobp make build`.
-
-### Acceptance Criteria
-- **AC 1.1.1**: Running `bobp make help` lists all available project targets (`setup`, `dev`, `build`, `test`, `lint`, `typecheck`, `tldr`).
-- **AC 1.1.2**: Pure dungeon simulation state and tick advancement run headlessly in Vitest with deterministic seeds (zero DOM dependency in `src/engine/`).
-- **AC 1.1.3**: `bobp make test` and `bobp make lint` pass with zero errors.
+**Sprint Goal**: Bring *Dungeon Master*'s physical object world and party survival mechanics to life using genuine 1988 Amiga `Dungeon.dat` (`DB5..DB10` item records, keyholes, fountains, alcoves, Vi Altars) and `graphics.dat` (`item[17]` paperdoll panel, `items 42..48` item icon sheets, 3D floor/alcove object sprites, cursor-hand icon) with full `CleanRoomProvider` fallback, deterministic 6 Hz throw/encumbrance/survival simulation, and mandatory live PNG UX verification.
 
 ---
 
-## Story 1.2: Authentic 320×200 Amiga Viewport & Classic HUD Layout
-**As a** player who loved the 1988 Amiga *Dungeon Master*,
-**I want** the game screen rendered on a crisp, integer-scaled 320×200 logical canvas using the iconic Amiga color palette and layout (top champion bar, 224×136 dungeon viewport on the left, movement arrows / spell & weapon panel on the right, message scroll bar at the bottom),
-**So that** it immediately looks and feels like playing *Dungeon Master* on an Amiga monitor.
+## Story 2.1: Authentic Paperdoll Inventory, Chests, Scrolls & Encumbrance
+**As a** *Dungeon Master* player managing a 4-hero party,
+**I want** to open any living champion's inventory sheet (`item[17]`) to equip armor/weapons onto body slots, store gear in the 17-slot backpack, pouch, quiver, or nested chests, read open scrolls, and monitor carry weight (`kg`) and encumbrance,
+**So that** outfitting champions and managing party gear feels tactile, strategic, and faithful to the 1988 Amiga classic.
 
 ### Acceptance Criteria
-- **AC 1.2.1**: Logical framebuffer is `320×200` upscaled to fit the browser window with crisp nearest-neighbor (`image-rendering: pixelated`) aspect-ratio preservation.
-- **AC 1.2.2**: Top bar displays up to 4 champion slots (name, Health/Stamina/Mana vertical bars, hand slots); right panel renders the 6-button movement/turn pad (Turn Left, Forward, Turn Right, Strafe Left, Backward, Strafe Right); bottom bar displays real-time scrolling dungeon text messages.
-- **AC 1.2.3**:Pseudo-3D dungeon viewport renders perspective walls, alternating floor/ceiling textures (creating the unmistakable visual sense of step motion), stairs, pits, doors, wall switches, champion mirrors, and floor alcoves up to 3 tiles deep with 6-level torchlight shading (from bright torchlight down to pitch-black darkness).
+- **AC 2.1.1**: Right-clicking a living champion's top-bar portrait/status box with browser `contextmenu` suppressed (`preventDefault()`), left-clicking the champion's portrait/name header (trackpad-friendly affordance), or pressing `1–4` in QoL Mode (`ESC` / close-box exit — HCI #3 User Control & Freedom & #7 Flexibility) opens, switches, or closes that champion's Inventory Sheet inside the `224×136` viewport area using `graphics.dat` `item[17]` (with `CleanRoomProvider` fallback), while **preserving any held `handItem` seamlessly across viewport and inventory transitions**. Displays Str/Dex/Wis/Vit/AntiMagic/AntiFire stats, Health/Stamina/Mana numeric `cur / max`, Food & Water gauges, and all authentic slots: Head, Neck, Torso, Legs, Feet, Action Left Hand, Action Right Hand, Pouch (`2`), Quiver (`4`), and Backpack (`17`).
+- **AC 2.1.2**: All item icons render from decoded Amiga `graphics.dat` icon sheets (`items 42..48`, with deterministic `CleanRoomProvider` icons when `.dat` files are absent) and are verified via live PNG frame capture (`@Smith *user test`). Equipping validates slot compatibility (e.g., helms on Head, mail/tunics on Torso, leg armor on Legs, footwear on Feet, necklaces/amulets on Neck, weapons/arrows/rocks in Quiver, Chests disallowed inside Chests — HCI #5 Error Prevention), keeping rejected items safely in `handItem` with a clear status message (e.g., `"CANNOT EQUIP THERE"` — HCI #9 Error Recovery), and updates champion Armor Rating, Stat bonuses, and top-bar hand icons immediately.
+- **AC 2.1.3**: Placing or inspecting a **Chest** in the inspection/hand slot (or right-panel container view) exposes its 8 internal sub-slots so items can be packed/unpacked cleanly; inspecting a **Scroll** displays its decoded multi-line runic/English scroll text from `Dungeon.dat` `DB2`; total carried weight (`LOAD X.X / MAX Y.Y KG`, including chest contents) updates live, highlights in yellow/red whenencumbered/overloaded (HCI #1 Visibility of System Status), and applies authentic movement cooldown & stamina penalties.
 
 ---
 
-## Story 1.3: Real-Time Dungeon Grid Navigation & Interactive Mechanics
-**As a** dungeon explorer,
-**I want** to navigate a multi-level grid dungeon in real time (~6 Hz tick clock), open/close portcullis and wooden doors via wall buttons, trigger pressure plates, traverse stairs, fall down open pits to the level below, and step through blue-haze teleporters,
-**So that** the core spatial puzzle and movement feel of *Dungeon Master* works authentically.
+## Story 2.2: `DB5..DB10` World Items, Alcoves, Keyholes & 3D Throw Physics
+**As a** dungeon explorer solving physical spatial puzzles,
+**I want** to see weapons, armor, food, potions, keys, chests, and scrolls lying on specific floor sub-tile quadrants or resting inside wall alcoves, pick them up onto my mouse cursor hand, insert keys/coins into wall locks, and throw items down 3D corridors to trigger distant pressure plates or fly through open grates,
+**So that** objects behave as real physical entities in the 3D dungeon rather than abstract menu entries.
 
 ### Acceptance Criteria
-- **AC 1.3.1**: Clicking the on-screen Amiga movement/turn arrows moves or rotates the party by 1 tile / 90° with authentic movement cooldowns; bumping into a solid wall or closed door halts movement, flashes a subtle impact feedback, logs `"OOF!"` (or plays the classic wall-bump thud), and respects fake/illusionary walls (walk-through walls).
-- **AC 1.3.2**: Clicking wall buttons/levers on the immediately facing wall toggles target doors, pits, or teleporters via the trigger/actuator system; doors animate smoothly across multiple ticks (open -> 1/4 -> 1/2 -> 3/4 -> closed) and block passage when > 1/4 closed.
-- **AC 1.3.3**: Stepping onto an open pit drops the party to the corresponding `(x, y)` coordinates on `level + 1` with fall feedback; stepping into an active teleporter relocates and optionally rotates the party cleanly; clicking or stepping into stairs transitions between dungeon levels.
+- **AC 2.2.1**: `DungeonDatParser` decodes all `DB5` (Weapons), `DB6` (Clothes/Armor), `DB7` (Scrolls), `DB8` (Potions/Flasks), `DB9` (Chests + linked child item lists), and `DB10` (Misc, Food, Waterskins, Keys, Coins, Gems, Torches, Bones) across all 14 Amiga levels, preserving exact 2-bit tile quadrant/face (`0=NW/N, 1=NE/E, 2=SE/S, 3=SW/W`), linked item chains, charges, and cursed/poisoned flags (mirrored in `CleanRoomProvider` starter level).
+- **AC 2.2.2**: `ViewportPainter` renders floor item stacks on their true perspective sub-tile quadrants (`depths 0..3`) and wall-alcove items on facing/side alcoves with 6-level torchlight shading. Clicking a reachable floor pile (`depth 0` front-left/front-right quadrants or `depth 1` facing alcove) when `handItem === null` picks up the top item into `handItem`, displays its name and weight (`X.X KG`) in the top/status area, and renders the held item cursor affordance; clicking the floor quadrant or alcove again drops/stacks `handItem` cleanly (HCI #1 Visibility & #3 Undo/Drop Freedom).
+- **AC 2.2.3**: Clicking the upper-left or upper-right half of the `224×136` 3D viewport while holding `handItem` throws the item forward along the left or right sub-tile lane as a 6 Hz projectile (`kineticEnergy` based on champion Strength vs. item weight), advancing tile-by-tile through open corridors and open grates (if small), colliding with walls or closed doors, dropping onto the floor sub-tile when energy expires, and activating item-sensitive **floor pressure plates**, **wall alcoves**, and **teleporters**; clicking a **Keyhole / Coin Slot** while holding the matching `DB10` key/coin consumes/triggers the lock actuator with Paula click SFX.
 
 ---
 
-## Story 1.4: Hall of Champions Preview, Stereo Audio & QoL Controls
-**As a** modern browser player,
-**I want** to inspect Champion Mirrors in a playable Hall of Champions starter level, hear directional Amiga-style sound effects (footsteps, switches, doors, wall bumps, teleporter hum), and optionally toggle `WASD`/`QWEASD` keyboard controls and an automap overlay without breaking 1988 Purist Mode,
-**So that** Sprint 1 delivers a genuinely playable vertical slice out of the box while validating our Dual-Mode data schema.
+## Story 2.3: Survival Vitals — Food, Water, Stamina, Sleep, Torch Burn & Vi Altars
+**As a** party leader venturing deep underground,
+**I want** champions to consume Food and Water over time, eat rations and drink/refill at dungeon fountains, rest (`Sleep`) to recover Health/Stamina/Mana, watch held Torches burn down, and revive fallen champions by placing their Bones into a *Vi Altar of Rebirth*,
+**So that** resource tension, darkness management, and party survival match the authentic 1988 Amiga experience.
 
 ### Acceptance Criteria
-- **AC 1.4.1**: Built-in clean-room starter dungeon (`Level 0: Hall of Champions` + `Level 1: Entry Puzzles`) loads through the normalized Dual-Mode `DungeonData` schema (designed with an adapter boundary ready for `DUNGEON.DAT` binary import in later sprints), provides a lit starter Torch / ambient Hall lighting so players are never stranded blind on entry (HCI #5 Error Prevention), and includes at least 4 inspectable Champion Mirrors (e.g., *Iaido Ruyito Chiburi*, *Zed Duke of Banville*, *Chani Sayyadina Sihaya*, *Elija Lion of Yaitopya*) with stats preview and explicit **Resurrect**, **Reincarnate**, and **Cancel** actions (HCI #3 User Control & Freedom) up to a 4-champion party limit.
-- **AC 1.4.2**: Synthesized Web Audio engine plays stereo-panned SFX (footsteps, switch click, door clank, wall bump, pit fall, teleporter buzz) attenuated by Manhattan distance and relative party facing, automatically unlocking browser `AudioContext` on first user click/key gesture and surfacing a visible mute/audio status indicator (HCI #1 Visibility of System Status).
-- **AC 1.4.3**: An unobtrusive retro Options toggle switches between **1988 Purist Mode** (mouse-only navigation, no automap) and **QoL Mode** (`W/S` forward/back, `A/D` strafe left/right, `Q/E` turn 90° left/right, Arrow keys, and toggleable `M` parchment automap overlay with visible control legend — HCI #6 Recognition Rather Than Recall & #7 Flexibility).
+- **AC 2.3.1**: On the 6 Hz simulation clock, living champions gradually consume Food, Water, and Stamina (faster when moving while encumbered); positive Food/Water regenerates Stamina & Health, whereas depleted Food/Water (`< 0` threshold) warns via yellow/red bar states and drains Stamina then Health. Dragging edible items (`Apple`, `Corn`, `Bread`, `Cheese`, `Screamer Slice`, `Worm Round`, `Drumstick`, `Dragon Steak`) or potable items (`Waterskin`, `Water Flask`) onto the **Mouth** icon consumes a ration/charge with authentic gulp SFX; clicking a facing **Wall Fountain** with an empty hand drinks directly, or with a `Waterskin` / `Empty Flask` refills it.
+- **AC 2.3.2**: Held lit **Torches** in champion action hands decay across tick intervals through diminishing light charges down to a `Burned Out Torch`, dynamically recalculating party light radius (`0..5`). Clicking the HUD **Sleep (`Zzz`)** icon (or pressing `Z` in QoL Mode) enters Sleep state: darkens the viewport with a clear `"SLEEPING — CLICK OR PRESS ANY KEY TO WAKE"` prompt (HCI #1 & #3), accelerates Health/Stamina/Mana recovery while slowing Food/Water drain, and wakes immediately on any click, movement input, or party damage.
+- **AC 2.3.3**: When a champion's Health drops to `0` (from pit fall damage, crushing doors, or starvation), their HUD slot displays a fallen/skull state, all carried items plus a champion-specific `<NAME> BONES` item drop onto the party's current floor sub-tile, and if all living champions die (`total party wipe`), a clear Game Over / Restart banner is shown. Placing `<NAME> BONES` into a facing **Vi Altar** wall niche triggers the rebirth sequence and restores that champion to life at the party's side.
+
+---
+
+# Archived: Sprint 1 User Stories (Delivered & Launched)
+
+- **Story 1.1**: Repeatable Project Toolchain & Headless Engine Harness (*Delivered — 32/32 Vitest tests green*)
+- **Story 1.2**: Authentic 320×200 Amiga Viewport & Classic HUD Layout (*Delivered — FTL `item[558]` perspective & `108..119` 3D doors verified*)
+- **Story 1.3**: Real-Time Dungeon Grid Navigation & Interactive Mechanics (*Delivered — 14 Amiga levels, doors, plates, pits, stairs, teleporters*)
+- **Story 1.4**: Hall of Champions, Paula Stereo Audio & QoL Controls (*Delivered — 24 Champions, `5500 Hz` `SND2` audio + `SFX BOARD [B]`, Purist/QoL*)

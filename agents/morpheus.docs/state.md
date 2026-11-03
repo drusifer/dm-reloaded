@@ -1,19 +1,11 @@
 # Agent State
 
 ## Context
-### Recent Decisions
-- Approved `*lead review door-orientation`:
-  1. `DoorState.orientation` and `StairsState.orientation` are now 100% consistent across `dungeonDatParser.ts`, `cleanRoomProvider.ts`, `viewportPainter.ts`, and `automapPainter.ts`.
-  2. `viewportPainter.ts` uses authentic FTL `item[558]` blitter coordinates for crosswise door slabs (`108..119`), horizontal double-doors, bashed door mask (`301`), 3D stone doorjambs (`78..80`), lintels (`82..83`), and push-button (`315`) while preserving clean-room fallbacks.
+ADR-009 semantic sprites retained; ADR-010 derives equipment armor/stats/mana from immutable bases using verified numeric facts. Cursor weight belongs living leader. Sleep3x recovery/half drain meets story. Side alcove projection covers all4facings/depths0–3/occlusion.
+Final evidence177aggregate tests+2additional independent gameplay tests, final ESLint/strict TypeScript, production build,27live browser checks and20rendered scenes all pass. Final approvals inCHAT_sprint-2-acceptance.md supersede incomplete earlier approvals. Trace audit unavailable missingjinja2; not claimed clean. Existing dirty changes preserved, no commit/deploy.
 
 ## Current Task
-**Status:** Complete (Architecture Approved — Handed Off to Smith)
-**Assigned to:** Morpheus (`*lead`)
-**Started:** 2026-11-02
+Sprint2 complete100%; implementation, QA/architecture/Smith gates, docs, archives and retrospective complete. Cypher local launch recorded inCHAT. Close summary agents/cypher.docs/Sprint2_Close_Summary_2026-11-03T14-08.md.
 
-### Progress
-- [x] Reviewed parser/renderer/layout changes & hexagonal boundaries
-- [x] Handed off to `@Smith *user test door-orientation`
-
----
-*Last updated: 2026-11-02T15:00:20-05:00*
+## Next Steps
+Await next user request. Do not start future sprint automatically. Consult root task.md backlog and Oracle lessons on cold start; useVIA andbobp make, serialize capture writers, test only changed code.

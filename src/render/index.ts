@@ -1,3 +1,4 @@
+import { itemIconIndex } from '../data/itemCatalog';
 /**
  * Public exports and full-frame composer for the 320x200 Amiga rendering pipeline.
  *
@@ -10,7 +11,6 @@
 import type { GameState } from '../engine/types';
 import type { GraphicsBundle } from '../data/graphicsDatParser';
 import { paintAutomapOverlay } from './automapPainter';
-import { drawBitmapText } from './bitmapFont';
 import {
   FRAMEBUFFER_HEIGHT,
   FRAMEBUFFER_WIDTH,
@@ -22,6 +22,8 @@ import { paintHud, paintMirrorModal } from './hudPainter';
 import { LAYOUT_RECTS, championSlotRect, pointInRect } from './layout';
 import type { AudioUnlockBadge, ScreenRect } from './layout';
 import { PALETTE_INDEX, getUiPalette, getViewportLightPalette } from './palette';
+import { paintInventory } from './inventoryPainter';
+import { drawBitmapText } from './bitmapFont';
 import { paintDungeonViewport } from './viewportPainter';
 
 export {
@@ -42,6 +44,7 @@ export {
   pointInRect
 };
 export type { AudioUnlockBadge, BlitOptions, CanvasPresentationRect, ScreenRect };
+export * from './contactSheet';
 
 export function renderFrame(
   fb: Framebuffer,
@@ -49,6 +52,7 @@ export function renderFrame(
   options: {
     readonly graphics?: GraphicsBundle;
     readonly audioStatus?: AudioUnlockBadge;
+    readonly pointer?: { readonly x: number; readonly y: number } | null;
   } = {}
 ): void {
   fb.clear([0, 0, 0]);
@@ -57,4 +61,21 @@ export function renderFrame(
     paintAutomapOverlay(fb, state, options.graphics);
   }
   paintHud(fb, state, options.audioStatus ?? 'LOCKED', options.graphics);
+  if (!state.activeMirror && !state.party.sleeping) paintInventory(fb, state, options.graphics);
+  if (state.handItem && !state.party.sleeping) {
+    const item=state.items[state.handItem];
+    const pointer=options.pointer;
+    if (item && pointer) fb.blitSprite(createSpriteSource(options.graphics).getSprite(`item.icon.${itemIconIndex(item)}`),
+      pointer.x - 8, pointer.y - 8,getUiPalette(options.graphics),{transparentIndex:0});
+  }
+  if (state.gameOver) {
+    fb.drawBevelBox(28, 67, 264, 58, [0, 0, 0], [220, 40, 40], [96, 0, 0]);
+    drawBitmapText(fb, 'GAME OVER', 133, 79, [255, 80, 80], options.graphics?.systemFont);
+    drawBitmapText(fb, 'CLICK OR ENTER TO RESTART', 85, 101, [255, 255, 255], options.graphics?.systemFont);
+  }
 }
+
+export { paintInventory } from './inventoryPainter';
+import { createSpriteSource } from './spriteSource';
+export { createSpriteSource } from './spriteSource';
+export { EQUIP_SLOT_RECTS, BACKPACK_SLOT_RECTS, CHEST_SLOT_RECTS } from './layout';

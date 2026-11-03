@@ -1,20 +1,11 @@
 # Agent State
 
 ## Context
-### Recent Decisions
-- Completed live visual PNG inspection for `*user test door-orientation` — **APPROVED (`*user approve`)**!
-- Inspected `fix_door_lvl0_7_9_west.png` (`LVL:0 (7,9) DIR:WEST`, matching user's exact screenshot) and `fix_door_d1_wooden_btn.png` (`LVL:0 (1,15) DIR:NORTH`):
-  - At `(7,9) DIR:WEST`, the rusted iron portcullis grate (`sprite 109`) spans cleanly across the corridor inside symmetric left/right 3D stone doorjambs (`sprite 79`) and top lintel (`sprite 83`), with distant flagstones visible through the grate bars.
-  - At `(1,15) DIR:NORTH`, the wooden plank door (`sprite 113`) sits inside `sprite 78` 3D stone doorjambs with FTL's `sprite 315` push-button centered on the right doorjamb stone block.
+Phase2 rendering and Phase3 actual events approved, then final accepted-story omissions reopened and retested. Inspected side shelves, actual Dexhelm bonus/reversion, warning gauges and party-wipe feedback. Final27browser checks and20scenes/errors[]; scenario fixtures explicitly distinct from genuine initial navigation.
+Final evidence177aggregate tests+2additional independent gameplay tests, final ESLint/strict TypeScript, production build,27live browser checks and20rendered scenes all pass. Final approvals inCHAT_sprint-2-acceptance.md supersede incomplete earlier approvals. Trace audit unavailable missingjinja2; not claimed clean. Existing dirty changes preserved, no commit/deploy.
 
 ## Current Task
-**Status:** Complete (UX Approved — Handed Off to Oracle)
-**Assigned to:** Smith (`*user`)
-**Started:** 2026-11-02
+Sprint2 complete100%; implementation, QA/architecture/Smith gates, docs, archives and retrospective complete. Cypher local launch recorded inCHAT. Close summary agents/cypher.docs/Sprint2_Close_Summary_2026-11-03T14-08.md.
 
-### Progress
-- [x] Inspected `fix_door_lvl0_7_9_west.png` and `fix_door_d1_wooden_btn.png`
-- [x] Posted `*user approve` and handed off to `@Oracle`
-
----
-*Last updated: 2026-11-02T15:00:25-05:00*
+## Next Steps
+Await next user request. Do not start future sprint automatically. Consult root task.md backlog and Oracle lessons on cold start; useVIA andbobp make, serialize capture writers, test only changed code.

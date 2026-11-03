@@ -11,3 +11,5 @@ export {
   computeSpatialAcoustics
 } from './paulaAudio';
 export type { PlayedCueRecord, RawSoundPlayOptions, SpatialAcoustics } from './paulaAudio';
+
+export { SYNTH_SOUND_ITEM } from './paulaAudio';

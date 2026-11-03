@@ -4,8 +4,8 @@
  * TLDR:
  *   Decompresses FTL 0x8104 prefix-encoded Dungeon.dat (25,006B -> 33,444B) and parses
  *   all 14 original Dungeon Master levels, 5-bit packed text strings, all 24 Hall of
- *   Champions heroes (stats + 16 hidden skills), doors, teleporters, pits, stairs,
- *   trick walls, sconces, and wall/floor actuators into a normalized CampaignBundle.
+ *   Champions heroes + starting gear chains, DB5..DB10 world items (floor sub-tiles,
+ *   alcoves, Chest child chains, Scroll texts), Vi Altars, Fountains, Keyholes, and actuators.
  */
 
 import {
@@ -18,10 +18,15 @@ import {
   type DoorMaterial,
   type DoorProgress,
   type DungeonLevel,
+  type ItemInstance,
+  type ItemInstanceId,
+  type StartingGearSpec,
+  type SubTileQuadrant,
   type Tile,
   type TileType,
   type WallFeature
 } from '../engine/types';
+import { findItemDef } from './itemCatalog';
 
 const COMPRESSED_MAGIC = 0x8104;
 
@@ -37,7 +42,7 @@ const ESCAPE_30_TABLE: Readonly<Record<number, string>> = {
 const DB_RECORD_SIZES: readonly number[] = [
   4,  // 0: Doors
   6,  // 1: Teleporters
-  4,  // 2: Wall Texts / Champion Texts
+  4,  // 2: Wall Texts / Champion Texts / Scroll Texts
   8,  // 3: Actuators
   16, // 4: Monsters
   4,  // 5: Weapons
@@ -163,7 +168,8 @@ function decodeLetterHex(str: string): number {
 export function parseChampionTextRecord(
   rawText: string,
   portraitIndex: number,
-  startingItems: readonly string[]
+  startingItems: readonly string[],
+  startingGearDefs: readonly StartingGearSpec[] = []
 ): ChampionDefinition | null {
   const lines = rawText.split('\n');
   if (lines.length < 7) {
@@ -218,7 +224,8 @@ export function parseChampionTextRecord(
       antiFire
     },
     skills,
-    startingItems
+    startingItems,
+    startingGearDefs
   };
 }
 
@@ -240,14 +247,6 @@ const RAW_TILE_TYPES: readonly TileType[] = [
   'TRICK_WALL',
   'WALL'
 ];
-
-const WEAPON_NAMES_SAMPLE: Readonly<Record<number, string>> = {
-  2: 'TORCH',
-  8: 'DAGGER',
-  9: 'FALCHION',
-  10: 'SWORD',
-  23: 'CLUB'
-};
 
 /**
  * Parses a compressed or uncompressed Amiga Dungeon.dat buffer into a CampaignBundle.
@@ -271,7 +270,6 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
     dbCounts.push(readU16BE(buf, 12 + i * 2));
   }
 
-  // Parse 16-byte level descriptors starting at byte 44
   interface MapDesc {
     readonly id: number;
     readonly mapOffset: number;
@@ -280,6 +278,8 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
     readonly width: number;
     readonly height: number;
     readonly depth: number;
+    readonly numMonsters: number;
+    readonly numWallOrnaments: number;
   }
 
   const mapDescs: MapDesc[] = [];
@@ -290,11 +290,25 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
     const offsetX = buf[off + 6] ?? 0;
     const offsetY = buf[off + 7] ?? 0;
     const w4 = readU16BE(buf, off + 8);
+    const w5 = readU16BE(buf, off + 10);
+    const w6 = readU16BE(buf, off + 12);
     const width = ((w4 >> 6) & 0x1f) + 1;
     const height = ((w4 >> 11) & 0x1f) + 1;
     const depth = w4 & 0x3f;
+    const numWallOrnaments = w5 & 0x0f;
+    const numMonsters = (w6 >> 4) & 0x0f;
     totalColumns += width;
-    mapDescs.push({ id: i, mapOffset, offsetX, offsetY, width, height, depth });
+    mapDescs.push({
+      id: i,
+      mapOffset,
+      offsetX,
+      offsetY,
+      width,
+      height,
+      depth,
+      numMonsters,
+      numWallOrnaments
+    });
   }
 
   const colObjIndexOffset = 44 + numMaps * 16;
@@ -346,12 +360,146 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
     return entries;
   };
 
+  const initialItems: Record<ItemInstanceId, ItemInstance> = {};
+
+  const parseItemFromChainEntry = (entry: RawChainEntry, depthGuard = 0): ItemInstance | null => {
+    const { category, index } = entry;
+    if (category < 5 || category > 10 || depthGuard > 2) {
+      return null;
+    }
+    const instanceId = `db${category}_${index}`;
+    const existing = initialItems[instanceId];
+    if (existing) {
+      return existing;
+    }
+
+    const recOff = (dbOffsets[category] ?? 0) + index * (DB_RECORD_SIZES[category] ?? 4);
+    const w1 = readU16BE(buf, recOff + 2);
+
+    if (category === 5) {
+      const subtype = w1 & 0x7f;
+      const def = findItemDef('WEAPON', subtype);
+      const rawCharges = (w1 >> 10) & 0x0f;
+      const charges = subtype === 2 && rawCharges === 0 ? 15 : rawCharges;
+      const inst: ItemInstance = {
+        instanceId,
+        defId: def.defId,
+        iconIndex: def.iconIndex,
+        name: def.name,
+        charges,
+        cursed: (w1 & 0x100) !== 0,
+        poisoned: (w1 & 0x200) !== 0,
+        broken: (w1 & 0x4000) !== 0
+      };
+      initialItems[instanceId] = inst;
+      return inst;
+    }
+
+    if (category === 6) {
+      const subtype = w1 & 0x7f;
+      const def = findItemDef('CLOTHES', subtype);
+      const inst: ItemInstance = {
+        instanceId,
+        defId: def.defId,
+        iconIndex: def.iconIndex,
+        name: def.name,
+        charges: 0,
+        cursed: (w1 & 0x100) !== 0,
+        broken: (w1 & 0x2000) !== 0
+      };
+      initialItems[instanceId] = inst;
+      return inst;
+    }
+
+    if (category === 7) {
+      const def = findItemDef('SCROLL', 0);
+      const db2Idx = w1 & 0x03ff;
+      let scrollLines: string[] = ['ANCIENT RUNES'];
+      if (db2Idx < (dbCounts[2] ?? 0)) {
+        const txtW1 = readU16BE(buf, (dbOffsets[2] ?? 0) + db2Idx * 4 + 2);
+        const decoded = decodeDmText(textWords, txtW1 >> 3).trim();
+        if (decoded) {
+          scrollLines = decoded.split('\n').map((s) => s.trim()).filter(Boolean);
+        }
+      }
+      const inst: ItemInstance = {
+        instanceId,
+        defId: def.defId,
+        iconIndex: 31, // Closed scroll icon in inventory; opens to 30 when inspected
+        name: 'SCROLL',
+        charges: 0,
+        scrollText: scrollLines
+      };
+      initialItems[instanceId] = inst;
+      return inst;
+    }
+
+    if (category === 8) {
+      const subtype = Math.min(20, (w1 >> 8) & 0x7f);
+      const def = findItemDef('POTION', subtype);
+      const inst: ItemInstance = {
+        instanceId,
+        defId: def.defId,
+        iconIndex: def.iconIndex,
+        name: def.name,
+        charges: w1 & 0xff
+      };
+      initialItems[instanceId] = inst;
+      return inst;
+    }
+
+    if (category === 9) {
+      const def = findItemDef('CHEST', 0);
+      const childChain = followObjectChain(w1);
+      const contents: ItemInstanceId[] = [];
+      for (const child of childChain) {
+        const childInst = parseItemFromChainEntry(child, depthGuard + 1);
+        if (childInst && contents.length < 8) {
+          contents.push(childInst.instanceId);
+        }
+      }
+      const inst: ItemInstance = {
+        instanceId,
+        defId: def.defId,
+        iconIndex: def.iconIndex,
+        name: def.name,
+        charges: 0,
+        contents
+      };
+      initialItems[instanceId] = inst;
+      return inst;
+    }
+
+    // Category 10: Misc / Food / Waterskin / Keys / Coins / Gems / Bones
+    const subtype = w1 & 0x7f;
+    const def = findItemDef('MISC', subtype);
+    const subVal = (w1 >> 14) & 0x03;
+    const isWaterskin = def.iconIndex === 8;
+    const charges = isWaterskin ? subVal : 0;
+    const iconIndex = isWaterskin && charges === 0 ? 9 : def.iconIndex;
+    const inst: ItemInstance = {
+      instanceId,
+      defId: def.defId,
+      iconIndex,
+      name: def.name,
+      charges
+    };
+    initialItems[instanceId] = inst;
+    return inst;
+  };
+
   let objListCursor = 0;
   const champions: Record<string, ChampionDefinition> = {};
   const levels: DungeonLevel[] = [];
 
   for (const desc of mapDescs) {
-    // Store raw chains per (x, y) first so Champion Mirrors can look up adjacent corridor Champion texts
+    const trailStart = mapDataBase + desc.mapOffset + desc.width * desc.height;
+    const wallOrnamentsStart = trailStart + desc.numMonsters;
+    const wallOrnaments = buf.subarray(
+      wallOrnamentsStart,
+      Math.min(buf.length, wallOrnamentsStart + desc.numWallOrnaments)
+    );
+
     const rawTileBytes: number[][] = Array.from({ length: desc.height }, () =>
       new Array<number>(desc.width).fill(0)
     );
@@ -385,6 +533,19 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
         const wallFeatures: WallFeature[] = [];
         const actuators: Actuator[] = [];
         const itemNames: string[] = [];
+        const floorBuckets: Record<SubTileQuadrant, ItemInstanceId[]> = {
+          0: [],
+          1: [],
+          2: [],
+          3: []
+        };
+        const wallBuckets: Record<Direction, ItemInstanceId[]> = {
+          0: [],
+          1: [],
+          2: [],
+          3: []
+        };
+        const mirrorFaces = new Set<Direction>();
 
         let doorState: Tile['door'];
         if (tileType === 'DOOR') {
@@ -406,8 +567,6 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
                   ? 'METAL'
                   : 'RA_MAGIC';
           doorState = {
-            // In FTL Dungeon.dat, bit 3 (0x08)=1 means North-South passage (West/East walls -> WEST_EAST door slab);
-            // bit 3 (0x08)=0 means West-East passage (North/South walls -> NORTH_SOUTH door slab).
             orientation: (lowFlags & 0x08) !== 0 ? 'WEST_EAST' : 'NORTH_SOUTH',
             material,
             progress,
@@ -469,6 +628,7 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
           };
         }
 
+        // First pass over chain: texts & actuators (including Champion Mirrors)
         for (const entry of chain) {
           if (entry.category === 2 && tileType === 'WALL') {
             const txtOff = (dbOffsets[2] ?? 0) + entry.index * 4;
@@ -517,7 +677,7 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
             });
 
             if (tileType === 'WALL' && rawType === 127) {
-              // Champion Mirror! Look up Champion db2 text on adjacent corridor tile in direction entry.pos
+              mirrorFaces.add(entry.pos);
               const delta = DIRECTION_DELTAS[entry.pos];
               const adjX = x + delta.dx;
               const adjY = y + delta.dy;
@@ -528,21 +688,57 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
               const champTextEntry = adjChain.find((e) => e.category === 2);
 
               const startingGear: string[] = [];
+              const startingGearDefs: StartingGearSpec[] = [];
               for (const gearEntry of chain) {
-                if (gearEntry.pos === entry.pos && gearEntry.category === 5) {
-                  const wpnWord = readU16BE(buf, (dbOffsets[5] ?? 0) + gearEntry.index * 4 + 2);
-                  const wpnType = wpnWord & 0x7f;
-                  startingGear.push(WEAPON_NAMES_SAMPLE[wpnType] ?? `WEAPON_${wpnType}`);
-                } else if (gearEntry.pos === entry.pos && gearEntry.category === 6) {
-                  const armWord = readU16BE(buf, (dbOffsets[6] ?? 0) + gearEntry.index * 4 + 2);
-                  startingGear.push(`ARMOR_${armWord & 0x7f}`);
+                if (gearEntry.pos !== entry.pos || gearEntry.category < 5 || gearEntry.category > 10) {
+                  continue;
+                }
+                const gw1 = readU16BE(
+                  buf,
+                  (dbOffsets[gearEntry.category] ?? 0) +
+                    gearEntry.index * (DB_RECORD_SIZES[gearEntry.category] ?? 4) +
+                    2
+                );
+                if (gearEntry.category === 5) {
+                  const sub = gw1 & 0x7f;
+                  const def = findItemDef('WEAPON', sub);
+                  startingGear.push(def.name);
+                  startingGearDefs.push({
+                    category: 'WEAPON',
+                    subtype: sub,
+                    charges: (gw1 >> 10) & 0x0f
+                  });
+                } else if (gearEntry.category === 6) {
+                  const sub = gw1 & 0x7f;
+                  const def = findItemDef('CLOTHES', sub);
+                  startingGear.push(def.name);
+                  startingGearDefs.push({ category: 'CLOTHES', subtype: sub });
+                } else if (gearEntry.category === 8) {
+                  const sub = Math.min(20, (gw1 >> 8) & 0x7f);
+                  const def = findItemDef('POTION', sub);
+                  startingGear.push(def.name);
+                  startingGearDefs.push({ category: 'POTION', subtype: sub, charges: gw1 & 0xff });
+                } else if (gearEntry.category === 10) {
+                  const sub = gw1 & 0x7f;
+                  const def = findItemDef('MISC', sub);
+                  startingGear.push(def.name);
+                  startingGearDefs.push({
+                    category: 'MISC',
+                    subtype: sub,
+                    charges: (gw1 >> 14) & 0x03
+                  });
                 }
               }
 
               if (champTextEntry) {
                 const txtW1 = readU16BE(buf, (dbOffsets[2] ?? 0) + champTextEntry.index * 4 + 2);
                 const rawChampStr = decodeDmText(textWords, txtW1 >> 3);
-                const parsedChamp = parseChampionTextRecord(rawChampStr, value, startingGear);
+                const parsedChamp = parseChampionTextRecord(
+                  rawChampStr,
+                  value,
+                  startingGear,
+                  startingGearDefs
+                );
                 if (parsedChamp) {
                   champions[parsedChamp.id] = parsedChamp;
                   wallFeatures.push({
@@ -550,12 +746,17 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
                     kind: 'CHAMPION_MIRROR',
                     championId: parsedChamp.id,
                     portraitIndex: value,
-                    actuatorId: entry.index
+                    actuatorId: entry.index,
+                    ornamentId: 43
                   });
                 }
               }
             } else if (tileType === 'WALL' && graphicIndex > 0) {
-              // Check if wall holds a torch weapon on this same face -> Torch Sconce!
+              const ornamentId =
+                graphicIndex >= 1 && graphicIndex <= wallOrnaments.length
+                  ? (wallOrnaments[graphicIndex - 1] ?? 0)
+                  : 0;
+
               const hasTorchItem = chain.some((e) => {
                 if (e.pos !== entry.pos || e.category !== 5) {
                   return false;
@@ -564,35 +765,108 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
                 return (wpnWord & 0x7f) === 2;
               });
 
-              if (hasTorchItem) {
-                wallFeatures.push({
-                  face: entry.pos,
-                  kind: 'SCONCE',
-                  hasTorch: true,
-                  actuatorId: entry.index,
-                  graphicIndex
-                });
-              } else {
+              const alreadyHasKind = (k: WallFeature['kind']): boolean =>
+                wallFeatures.some((wf) => wf.face === entry.pos && wf.kind === k);
+
+              if (ornamentId === 3) {
+                if (!alreadyHasKind('VI_ALTAR')) {
+                  wallFeatures.push({
+                    face: entry.pos,
+                    kind: 'VI_ALTAR',
+                    actuatorId: entry.index,
+                    graphicIndex,
+                    ornamentId
+                  });
+                }
+              } else if (ornamentId === 59 || (ornamentId === 35 && rawType === 0)) {
+                if (!alreadyHasKind('FOUNTAIN')) {
+                  wallFeatures.push({
+                    face: entry.pos,
+                    kind: 'FOUNTAIN',
+                    actuatorId: entry.index,
+                    graphicIndex,
+                    ornamentId
+                  });
+                }
+              } else if (rawType === 3 || rawType === 4) {
+                if (!alreadyHasKind('KEYHOLE')) {
+                  wallFeatures.push({
+                    face: entry.pos,
+                    kind: 'KEYHOLE',
+                    actuatorId: entry.index,
+                    graphicIndex,
+                    ornamentId,
+                    requiredItemIcon: value,
+                    consumesKey: rawType === 4,
+                    unlocked: false
+                  });
+                }
+              } else if (ornamentId === 1 || ornamentId === 2) {
+                if (!alreadyHasKind('ALCOVE')) {
+                  wallFeatures.push({
+                    face: entry.pos,
+                    kind: 'ALCOVE',
+                    actuatorId: entry.index,
+                    graphicIndex,
+                    ornamentId
+                  });
+                }
+              } else if (hasTorchItem || ornamentId === 38 || ornamentId === 46) {
+                if (!alreadyHasKind('SCONCE')) {
+                  wallFeatures.push({
+                    face: entry.pos,
+                    kind: 'SCONCE',
+                    hasTorch: hasTorchItem,
+                    actuatorId: entry.index,
+                    graphicIndex,
+                    ornamentId
+                  });
+                }
+              } else if (!alreadyHasKind('BUTTON')) {
                 wallFeatures.push({
                   face: entry.pos,
                   kind: 'BUTTON',
                   actuatorId: entry.index,
-                  graphicIndex
+                  graphicIndex,
+                  ornamentId
                 });
               }
             }
-          } else if (entry.category === 5) {
-            const wpnWord = readU16BE(buf, (dbOffsets[5] ?? 0) + entry.index * 4 + 2);
-            const wpnType = wpnWord & 0x7f;
-            itemNames.push(WEAPON_NAMES_SAMPLE[wpnType] ?? `WEAPON_${wpnType}`);
-          } else if (entry.category === 7) {
-            itemNames.push('SCROLL');
-          } else if (entry.category === 8) {
-            itemNames.push('POTION');
-          } else if (entry.category === 9) {
-            itemNames.push('CHEST');
           }
         }
+
+        // Second pass over chain: world items (DB5..DB10)
+        for (const entry of chain) {
+          if (entry.category < 5 || entry.category > 10) {
+            continue;
+          }
+          if (tileType === 'WALL' && mirrorFaces.has(entry.pos)) {
+            continue; // Champion starting gear already attached to ChampionDefinition
+          }
+          const inst = parseItemFromChainEntry(entry);
+          if (!inst) {
+            continue;
+          }
+          itemNames.push(inst.name);
+          if (tileType === 'WALL') {
+            wallBuckets[entry.pos].push(inst.instanceId);
+          } else {
+            floorBuckets[entry.pos as SubTileQuadrant].push(inst.instanceId);
+          }
+        }
+
+        const hasFloorItems =
+          floorBuckets[0].length +
+            floorBuckets[1].length +
+            floorBuckets[2].length +
+            floorBuckets[3].length >
+          0;
+        const hasWallItems =
+          wallBuckets[0].length +
+            wallBuckets[1].length +
+            wallBuckets[2].length +
+            wallBuckets[3].length >
+          0;
 
         tiles[y]![x] = {
           type: tileType,
@@ -604,7 +878,9 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
           trickWall: trickWallState,
           wallFeatures,
           actuators,
-          itemNames
+          itemNames,
+          floorItems: hasFloorItems ? floorBuckets : undefined,
+          wallItems: hasWallItems ? wallBuckets : undefined
         };
       }
     }
@@ -633,7 +909,8 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
       startY,
       startFacing,
       levels,
-      champions
+      champions,
+      initialItems
     }
   };
 }

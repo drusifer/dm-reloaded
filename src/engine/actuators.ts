@@ -8,10 +8,13 @@
  */
 
 import type {
+  Actuator,
   ActuatorAction,
   DoorProgress,
   DungeonLevel,
   EngineEvent,
+  GameState,
+  PendingActuatorOp,
   Tile
 } from './types';
 
@@ -166,4 +169,94 @@ export function stepDoorsOnLevels(
     });
     return levelChanged ? { ...lvl, tiles: nextTiles } : lvl;
   });
+}
+
+/**
+ * Maps tile coordinates between two levels using their world offsets (pits, stairs, falls).
+ */
+export function mapCoordsBetweenLevels(
+  levels: readonly DungeonLevel[],
+  fromLevelId: number,
+  toLevelId: number,
+  x: number,
+  y: number
+): { readonly x: number; readonly y: number } {
+  const fromLvl = levels.find((l) => l.id === fromLevelId);
+  const toLvl = levels.find((l) => l.id === toLevelId);
+  if (!fromLvl || !toLvl) {
+    return { x, y };
+  }
+  const worldX = fromLvl.offsetX + x;
+  const worldY = fromLvl.offsetY + y;
+  const mappedX = Math.max(0, Math.min(toLvl.width - 1, worldX - toLvl.offsetX));
+  const mappedY = Math.max(0, Math.min(toLvl.height - 1, worldY - toLvl.offsetY));
+  return { x: mappedX, y: mappedY };
+}
+
+/**
+ * Fires a list of actuators located on a tile (buttons, plates, keyholes), honouring once-only
+ * latches, sound cues, and delayed ops. Local actuators and Champion Mirrors are skipped.
+ */
+export function triggerActuatorList(
+  state: GameState,
+  levelId: number,
+  tileX: number,
+  tileY: number,
+  actuators: readonly Actuator[],
+  events: EngineEvent[]
+): GameState {
+  let nextLevels = state.levels;
+  const nextPending: PendingActuatorOp[] = [...state.pendingActuators];
+
+  for (const act of actuators) {
+    if (act.onceOnly && act.triggered) {
+      continue;
+    }
+    if (act.isLocal || act.rawType === 127) {
+      continue;
+    }
+
+    if (act.onceOnly) {
+      nextLevels = updateTileInLevels(nextLevels, levelId, tileX, tileY, (t) => ({
+        ...t,
+        actuators: t.actuators.map((a) => (a.id === act.id ? { ...a, triggered: true } : a))
+      }));
+    }
+
+    if (act.playSound) {
+      events.push({
+        type: 'SOUND_CUE',
+        cue: 'SWITCH_CLICK',
+        sourceLevel: levelId,
+        sourceX: tileX,
+        sourceY: tileY
+      });
+    }
+
+    if (act.delayTicks > 0) {
+      nextPending.push({
+        dueTick: state.tick + act.delayTicks,
+        action: act.action,
+        targetLevel: act.targetLevel,
+        targetX: act.targetX,
+        targetY: act.targetY,
+        playSound: act.playSound
+      });
+    } else {
+      nextLevels = applyActuatorSignal(
+        nextLevels,
+        act.targetLevel,
+        act.targetX,
+        act.targetY,
+        act.action,
+        events
+      );
+    }
+  }
+
+  return {
+    ...state,
+    levels: nextLevels,
+    pendingActuators: nextPending
+  };
 }

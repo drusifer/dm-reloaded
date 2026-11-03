@@ -84,3 +84,5 @@ When acting as a specific persona, **load their specific instructions** from the
 
 
 
+
+- **Portable filenames**: Never use `:` in filenames. Use timestamp format `YYYY-MM-DDTHH-MM` for reports and summaries.
