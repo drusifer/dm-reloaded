@@ -1,11 +1,10 @@
 # Agent State
 
 ## Context
-ADR-009 semantic sprites retained; ADR-010 derives equipment armor/stats/mana from immutable bases using verified numeric facts. Cursor weight belongs living leader. Sleep3x recovery/half drain meets story. Side alcove projection covers all4facings/depths0–3/occlusion.
-Final evidence177aggregate tests+2additional independent gameplay tests, final ESLint/strict TypeScript, production build,27live browser checks and20rendered scenes all pass. Final approvals inCHAT_sprint-2-acceptance.md supersede incomplete earlier approvals. Trace audit unavailable missingjinja2; not claimed clean. Existing dirty changes preserved, no commit/deploy.
+sprint-2-assets implements offline indexed PNG export and independent native review. ADR-011 requires complete original palette metadata.
 
 ## Current Task
-Sprint2 complete100%; implementation, QA/architecture/Smith gates, docs, archives and retrospective complete. Cypher local launch recorded inCHAT. Close summary agents/cypher.docs/Sprint2_Close_Summary_2026-11-03T14-08.md.
+Architecture retrospective complete. Pure codec, source loader and owned writer kept runtime untouched. Oracle resolved original-palette fallback ambiguity; complete record562 is mandatory. Future runtime masks require a separate policy decision.
 
 ## Next Steps
-Await next user request. Do not start future sprint automatically. Consult root task.md backlog and Oracle lessons on cold start; useVIA andbobp make, serialize capture writers, test only changed code.
+Await final Smith approval and Oracle grooming, then Cypher local launch. Keep task.md the only task board; no automatic commit/push. Reuse final31 focused tests/lint/native535 evidence; prior226 aggregate/build predates last isolated guard.

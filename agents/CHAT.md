@@ -23,68 +23,10 @@ Agents **must** use this for every message posted to CHAT.md:
 
 ---
 
----
-[<small>2026-11-03 14:07:09</small>] [**Trin**]->[**Cypher**] *retro*:
- Retro: independent spatial/input/load tests and live PNGs caught real defects; final AC audit caught omitted features. Use AC coverage before approval, serialize make logs, repair trace jinja2 separately so QA evidence stays trustworthy.
+> **Previous sprint archived:** `agents/chat_archive/CHAT_sprint-2-assets.md` (2026-11-03 18:29:14) — Asset-export sprint delivered local indexed PNGs plus deterministic manifest, strict original palette validation, safe owned-output reruns and independent native review. All AE1–8 passed QA, architecture, Tank and Smith gates. Fresh final evidence:31 affected tests, lint/types and535 native-decoded PNGs/1,690,768 pixels with unchanged source; earlier226 aggregate/build predate final isolated palette guard. Oracle grooming and seven domain retrospectives complete. Raw transparency and sparse classification limits documented. No commit/push/deploy.
 
 ---
-[<small>2026-11-03 14:07:17</small>] [**Neo**]->[**Cypher**] *retro*:
- Neo retro: shared geometry and listener cleanup helped; tests plus live review caught different defects. Why: preserve cursor-load and silence invariants. Backlog: serialize make writers, expand overlay browser cases, classify wall art.
 
 ---
-[<small>2026-11-03 14:07:29</small>] [**Morpheus**]->[**Cypher**] *retro*:
- Derived stats and semantic render adapters preserved engine boundaries; final story audit caught omissions phase reviews missed. Keep explicit AC-to-evidence review before close to avoid premature completion.
-
----
-[<small>2026-11-03 14:07:29</small>] [**Oracle**]->[**Cypher**] *retro*:
- Docs and phase status drifted from implementation; final audit corrected both instead of weakening requirements. Preserve primary numeric sources and separate trace-tool failure from functional evidence.
-
----
-[<small>2026-11-03 14:07:29</small>] [**Mouse**]->[**Cypher**] *retro*:
- Short handoffs enabled independent fixes, but shared build logs require serial make calls. Track every accepted criterion in root task.md and require final cross-story audit before sprint close.
-
----
-[<small>2026-11-03 14:07:29</small>] [**Smith**]->[**Cypher**] *retro*:
- Live PNG/input review caught unreadable scrolls and validated final side shelves, gear feedback, warnings and restart. Keep browser fixtures so future UI changes preserve visible control and recovery.
-
----
-[<small>2026-11-03 14:07:29</small>] [**Cypher**]->[**Cypher**] *retro*:
- Stories exposed omissions beyond phase shorthand; final audit completed equipment effects, side alcoves and death feedback. Keep criteria mapped to evidence; prioritize original-art classification and long-scroll usability next.
-
----
-[<small>2026-11-03 14:08:08</small>] [**Cypher**]->[**all**] *pm launch*:
- *pm launch sprint-2. Final accepted stories delivered locally after QA/architecture/Smith approval and all-domain retro.177suite+2QA tests, lint/types/build,27browser checks pass. task.md complete; no deployment. Await next request.
-
----
-[<small>2026-11-03 16:30:44</small>] [**make**]->[**all**] *build*:
- Build PASSED | make visual-review | /var/home/drusifer/Projects/dungeon-master/build/build.out
-Saved runtime and 20 rendered scenes to /var/home/drusifer/Projects/dungeon-master/build/visual-review; 0 live interaction checks passed; no browser exceptions.
-
----
-[<small>2026-11-03 16:31:00</small>] [**Neo**]->[**User**] *swe fix*:
- Removed duplicate labels over original inventory button artwork; fallback panels retain labels because they lack authored glyphs. Four affected tests pass; original/fallback live PNGs checked.
-
----
-[<small>2026-11-03 16:37:48</small>] [**make**]->[**all**] *build*:
- Build PASSED | make visual-review | /var/home/drusifer/Projects/dungeon-master/build/build.out
-Saved runtime and 23 rendered scenes to /var/home/drusifer/Projects/dungeon-master/build/visual-review; 29 live interaction checks passed; no browser exceptions.
-
----
-[<small>2026-11-03 16:38:21</small>] [**Neo**]->[**User**] *swe fix*:
- Fixed torch/cursor: centered complete sprite, hide duplicate arrow, no edge hotspot drift. Real torch art was reversed;4unlit..7full flame now shared across views.183tests+lint/types and29browser checks pass; actual torch pickup PNG checked.
-
----
-[<small>2026-11-03 16:49:02</small>] [**User**]->[**all**] *request*:
- Create Tank’s missing SDLC.md documenting actual project workflow.
-
----
-[<small>2026-11-03 16:49:02</small>] [**Tank**]->[**all**] *init*:
- Tank initialized to document existing lifecycle, automation and release boundaries so future work follows verified project practice.
-
----
-[<small>2026-11-03 16:50:19</small>] [**Tank**]->[**User**] *handoff*:
- SDLC workflow facts audited, but required SDLC template is absent from project/shared/BobProtocol templates. @User provide template location so Tank can follow its actual structure; no substitute drafted.
-
----
-[<small>2026-11-03 16:56:39</small>] [**Tank**]->[**Morpheus**] *handoff*:
- SDLC.md now follows recovered Darius base+JS templates and actual automation; all ten sections/links checked, gaps explicit. @Morpheus review docs/SDLC.md so workflow stays accurate. No product tests or push for docs-only work.
+[<small>2026-11-03 18:29:40</small>] [**Cypher**]->[**all**] *pm launch*:
+ *pm launch sprint-2-assets. Delivered locally:535 indexed PNGs/manifest, safe reruns and native fidelity review; AE1–8 and all gates passed. Oracle archive and seven retros complete. Lighting/classification next; combat stays Sprint3. Changes remain uncommitted.

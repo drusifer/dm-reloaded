@@ -1,0 +1,11 @@
+# Asset Export Phase 2
+
+Implemented offline CLI scripts/export-sprites.mjs and shared no-listen Vite SSR loader scripts/sprite-export-runtime.mjs. Existing TypeScript parser and Phase1encoder reused. Vite config disables HMR/watch and always closes; help does not readinput or constructserver. Export target supports quoted SPRITE_INPUT/SPRITE_OUTPUT and ARGShelp, no newpackages. Parent/Tank separately own README/SDLC updates.
+
+src/tools/spriteExportWriter.ts validates complete normalizedDAT header/recordbounds/trailingdata and expected knownDM1sprite presence beforetrusting existingparser, so partialdecode cannotpublishsuccess. Canonicaloutput must be a dedicated subtree insideprojectbuild; buildroot symlinks, rootaliases tobuilditself, categorysymlinks, filelinks, unownedcollisions, modifiedownedPNG and unsafe/duplicate priorindices rejected. Stages allbytes beforepublication, manifestlast; only validated unchanged priorownedstale files may be unlinked. No recursivecleanup; preservesinput/unrelatedsentinels.
+
+TDD missingwriter module confirmed before implementation. Focusedwriter/actualCLI12cases passed17:59:39; added real535doubleexporthash/sentinel regression before aggregate. Full210tests+ESLint/strictTypeScript passed18:00:28, including originalasset case (not skipped). Real bobp make export-sprites exported535PNGs17:57:47. Tank-authored native reviewtarget passed17:58:53:535PNGs,1,690,768pixels exactnativeChromiumRGBA, sourceunchanged; captures/report underbuild/sprite-export-review. Rawalpha0RGB normalized during independentdecode; separatePhase1tests prove originalindices/PLTE. Outputignore checked. No runtime/game migration or dependencychange; productionbundle not changed. No commit/push.
+
+Knownpublication semantics: plannedcollisions validatedbefore anypublication, stagedbytes andmanifestlast; does not promise whole-directory atomic rollback on arbitrary filesystem I/O failure. Failure exitsnonzero. Input/corrupt/pathcollision failures are prepublication and retain prior successful export. Canonicaloutput internalbuild aliases mayresolve to another dedicatedignoredsubtree, but category/filelinks are rejected.
+
+Ready for Trin independentQA, Morpheusreview, Tank mechanism/SDLC parity, mandatorySmithrealCLI/PNG review and finalAE1..8audit. Make slot released afterhandoff. Tests/source preserveportable filenames.

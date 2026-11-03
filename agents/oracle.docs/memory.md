@@ -2,7 +2,7 @@ Consolidated index of project-wide decisions, historical context, and key milest
 
 TLDR:
     Goal: Provide rapid project context and decision history for all BobProtocol personas on entry.
-    Status: Sprint 2 implementation, grooming and final QA/architecture/live browser gates complete; retrospective recorded; delivered locally. Sprint 1 history retained below.
+    Status: Sprint 2 gameplay delivered; bounded sprite-export follow-up implemented and QA/architecture/Tank approved. Final artifact/close status is in task.md; historical milestones retained below.
     Action: Consult task.md and current persona state for gate status; review the lessons before changes.
 
 # Project Memory
@@ -41,13 +41,22 @@ This file serves as a consolidated index of project-wide decisions, historical c
 - `task.md`: Single source of truth for the current sprint task board and Sprints 2–8 backlog (maintained by Mouse).
 - `scripts/extract_assets.py`: Amiga OFS `.adf` + `0x8104` + DM2 split `.LZX` asset extractor.
 - `src/`: TypeScript application split into `engine/`, `data/`, `render/`, `audio/`, `input/`, `ui/` (`soundboard.ts`), and `main.ts`.
-- `tests/`: Headless Vitest unit, UAT, and vertical-slice integration suites (`32/32` passing across 8 suites).
+- `tests/`: Headless Vitest unit, UAT, and vertical-slice integration suites (Sprint 1 baseline: `32/32` across 8 suites; current checks are recorded per sprint).
 
 
 ## Sprint 2 Delivery Preparation — 2026-11-03
 
 Implemented physical inventory and nested chest weight, world items/throws, survival/torches/bones/Vi Altars, semantic new-painter sprites, measured paperdoll/chest coordinates, input/cursor lifecycle, five synthesized cue defaults, contact sheet and browser visual/interaction automation. Phase 2 passed independent QA, architecture and live PNG review after one combined fix cycle. Final Phase 3/load QA, architecture and Smith end-to-end gates passed: 177 aggregate tests + 2 additional independent QA tests, lint/strict TypeScript, production build and 27 live Chromium checks with zero browser exceptions. Final accepted-story corrections and retrospective complete; delivered locally, with no deployment claim.
 
-README now documents actual input controls and limits. See `docs/ARCH.md` section 7 and `docs/DECISIONS.md` ADR-009 clarification for partial adapter migration, art limitations and future exporter/filter/loader work. The separate trace audit could not run because its Python environment lacks jinja2; product test passes do not replace audit evidence.
+README now documents actual input controls and limits. See `docs/ARCH.md` section 7 and `docs/DECISIONS.md` ADR-009 clarification for partial adapter migration and art limitations; ARCH section8 now records the offline exporter, while filter/loader work remains future scope. The separate trace audit could not run because its Python environment lacks jinja2; product test passes do not replace audit evidence.
 
 Final accepted-story completion and local launch: see [Sprint2 close summary](../cypher.docs/Sprint2_Close_Summary_2026-11-03T14-08.md) and [corrective acceptance archive](../chat_archive/CHAT_sprint-2-acceptance.md). No deployment.
+
+
+## Asset Export Follow-Up — `sprint-2-assets` (2026-11-03)
+
+Implemented ADR-009's local one-PNG-per-raw-sprite tool through `bobp make export-sprites` and independent `export-sprites-review`. Raw sprites preserve4-bit indices, brightest original16-color palette, index0alpha0 and deterministic manifest metadata. Sparse labels remain explicit; no runtime asset/mask/lighting migration. Generated original art stays ignored under build; writer owns validated paths only, preserves sentinels/source and avoids recursive arbitrary cleanup.
+
+ADR-011 records the source-fidelity lesson: existing runtime parser partial/default behavior cannot be exporter success. Every real CLI source must contain complete palette562; arbitrary-count pure fixtures carry explicit palettes. Independent review checks unusedPLTE/tRNS entries as well as every native-decoded pixel, and invalidates failed-run success evidence with bounded evidence-path writes.
+
+Final post-guard evidence:31affected tests18:17:20, lint/types18:17:39, native535sprites/1,690,768pixels/sourceunchanged/errors[]18:18:07. Earlier226aggregate/build predate the last guard and are not claimed fresh. Trin/Morpheus/Tank approved implementation; Oracle grooming hands off Smith final artifact approval, then retro/local close. No commit/push/deployment inferred. See docs/SPRINT_ASSET_EXPORT.md, docs/ARCH.md section8 and ADR-011; root task.md remains the sole task board.

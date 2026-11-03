@@ -1,8 +1,8 @@
-System architecture for the web-based Amiga Dungeon Master trilogy implementation (Updated for Sprint 2: Physical Inventory, World Items, Throw Physics & Survival).
+System architecture for the web-based Amiga Dungeon Master trilogy implementation, including Sprint 2 gameplay and the offline indexed sprite-export follow-up.
 
 TLDR:
     Impact: Extends the hexagonal 6 Hz TypeScript core and 320x200 Amiga Canvas renderer with FTL's 180-entry ObjectDescriptor catalog (graphics.dat items 556 & 559 + icon sheets 42..48), DB5..DB10 sub-tile/alcove world items, Champion Paperdoll Inventory (item[17] + sub-panels 23/25), 6 Hz corridor projectile physics, and Food/Water/Stamina/Sleep/Vi Altar survival systems.
-    Next Steps: Sprint 2 final accepted-story gates passed; retain task.md as the release-status authority.
+    Next Steps: Offline export implementation and QA/architecture/mechanism review passed; retain task.md as the final gate and release-status authority. Runtime lighting and campaign-pack loading remain future work.
 
 # Project Architecture (`docs/ARCH.md`)
 
@@ -133,7 +133,7 @@ Inspection of the extracted Amiga binaries confirms an exact 1:1 data pipeline:
 | **3D Viewport Hitbox Precedence** | 1. Modal/Sleep/Automap $\rightarrow$ 2. Facing Wall Feature `(72, 64, 80, 52)` $\rightarrow$ 3. Floor Drop/Pickup $\rightarrow$ 4. Throw Lanes | Prevents throwing a Key/Bones into a wall when clicking a facing Keyhole, Vi Altar, Fountain, or Alcove (HCI #5) |
 | **3D Viewport Throw Zones** | Left `(0, 33, 112, 98)`, Right `(112, 33, 112, 98)` | Evaluated *after* facing wall feature hitboxes when `handItem !== null` and inventory is closed; launches Left/Right sub-tile projectile |
 | **3D Viewport Floor Pickup Zones** | Front-Left `(8, 132, 96, 36)`, Front-Right `(120, 132, 96, 36)` | Picks up top item from `depth 0` `FRONT_LEFT` / `FRONT_RIGHT` quadrant when `handItem === null`, or drops `handItem` onto that quadrant |
-| **Held-Item Cursor & Status** | `16×16` icon at logical `(mx, my)` + `HELD: <NAME> (<X.X> KG)` banner | Guarantees continuous visibility of held item identity & weight for both mouse and trackpad/QoL users (HCI #1) |
+| **Held-Item Cursor & Status** | `16×16` icon centered on logical `(mx, my)` + `HELD: <NAME> (<X.X> KG)` banner | Guarantees continuous visibility of held item identity & weight for both mouse and trackpad/QoL users (HCI #1) |
 | **Paperdoll Inventory (`item[17]`)** | `(0, 33, 224, 136)` | Replaces 3D viewport when `openInventoryChampionIndex !== null`: Mouth `(56, 46, 16, 16)`, Eye `(12, 46, 16, 16)`, Close `[X]` `(209, 34, 14, 12)`, Sleep `Zzz` `(187, 34, 20, 12)`, Paperdoll body slots (`Head`, `Neck`, `Torso`, `Legs`, `Feet`, `L/R Hand`, `Pouch 1..2`, `Quiver 1..4`), `17`-slot Backpack (8 icons at screen `y=49`, 9 at `y=66`; 17px spacing), and Right Sub-Panel `(80, 85, 144, 73)` (`Stats/Load` vs `Open Chest` vs `Scroll`) |
 
 > **Implementation Invariant**: Before hardcoding exact pixel offsets of individual `16×16` slot boxes inside `item[17]` (`224×136`) and `item[25]` (`144×73`), Neo MUST verify the exact slot box outlines against the decoded `item[17]` & `item[25]` pixel buffers in Phase 2 so icons sit 100% centered inside FTL's drawn slot frames!
@@ -174,7 +174,7 @@ src/
 
 ## 7. Sprint 2 Implementation Evidence and Limits (2026-11-03)
 
-- `SpriteSource` owns semantic panel/icon lookup and deterministic fallback sprites. New painters use semantic keys; existing viewport walls still use original raw-index paths. Runtime retains the six original light palettes; the single parametric lighting filter and campaign-pack exporter/loader in ADR-009 remain future work.
+- `SpriteSource` owns semantic panel/icon lookup and deterministic fallback sprites. New painters use semantic keys; existing viewport walls still use original raw-index paths. Runtime retains the six original light palettes; the single parametric lighting filter and campaign-pack loader in ADR-009 remain future work. The separate offline sprite exporter is implemented in section 8.
 - Original equipment/backpack and irregular chest coordinates were measured from decoded panel border pixels, with regression checks in `tests/render/inventoryRender.test.ts`. Black scroll ink stays within parchment `(117,94,90,49)`, wraps 15 columns and shows at most six rows; overflow receives an ellipsis and inspection messages retain the transcript.
 - Depth 0 floor quadrants rotate with facing; approaching projectile lanes mirror the travel-relative lane; shut solid crosswise doors occlude far-half floor items. Sleep suppresses inventory so its dark overlay remains visible.
 - Cursor position is logical 320×200 pointer state supplied only to presentation. Context-menu suppression and listener teardown remain in the browser shell, not the pure engine.
@@ -184,3 +184,29 @@ src/
 
 ### Final accepted-story completion
 Side wall alcoves and contents render on inward-facing surfaces at depths0–3 with perspective projection and nearer-wall occlusion. Equipment attributes and mana capacity derive from base stats plus verified equipped effects; inventory displays effective stats and armor, and strength/regen consumers use those values. Food/water under512 warn yellow and under0 warn red. Total party wipe overlays other panels with click/Enter restart from the original runtime campaign bundle. See ADR-010 and the final acceptance report for reopened criteria and independent regressions.
+
+
+## 8. Offline Indexed Sprite Export (`sprint-2-assets`)
+
+This is an offline contributor tool, not a runtime asset migration. [The accepted scope and evidence](SPRINT_ASSET_EXPORT.md) cover AE-1–AE-8; [ADR-011](DECISIONS.md#adr-011-offline-indexed-sprite-export-and-original-palette-requirement-2026-11-03) requires complete original palette metadata. The browser game continues to decode DAT assets and use its existing masks/palettes.
+
+### Components and boundary
+
+- [`src/tools/spriteExport.ts`](../src/tools/spriteExport.ts): pure deterministic 4-bit indexed PNG encoding and schema1 manifest construction, native `Buffer`/zlib, sparse verified categories/semantic labels.
+- [`src/tools/spriteExportWriter.ts`](../src/tools/spriteExportWriter.ts): exporter-side complete-container/palette validation and owned local file publication; existing runtime parser remains unchanged.
+- [`scripts/sprite-export-runtime.mjs`](../scripts/sprite-export-runtime.mjs): existing Vite SSR loader with HMR/watch disabled and no listening server; no assumption of native Node TypeScript import resolution.
+- [`scripts/export-sprites.mjs`](../scripts/export-sprites.mjs): thin CLI publisher with actionable help/failures. [`scripts/review-sprite-export.mjs`](../scripts/review-sprite-export.mjs) independently checks actual files through native Chromium; it never republishes or repairs them.
+
+### Artifacts and input rules
+
+`bobp make export-sprites` reads local `public/assets/extracted/dm1/graphics.dat` and emits `build/sprites/<category>/<index>_<width>x<height>.png` plus `manifest.json`. `SPRITE_INPUT`/`SPRITE_OUTPUT` override quoted paths; `ARGS=--help` explains the interface. A real CLI source must include complete record562 (at least1470bytes); absent/short records cannot silently select default palette ramps. Pure arbitrary-count fixtures inject explicit palettes instead.
+
+One PNG corresponds to each raw decoded sprite; atlases remain atlases, and sounds/font/metadata are not extra sprites. The manifest records sorted indices, dimensions, relative paths, sparse semantic keys, full source/PNG hashes and original brightest16-color palette. There are no timestamps, absolute host paths or light-ramp copies. Palette index0 exports at alpha0, others at alpha255. **This raw transparency policy is not a claim of drop-in replacement for runtime masks such as index10.**
+
+Publication preflights ownership/hashes/collisions in a dedicated resolved ignored-build subtree, stages files, then publishes the manifest after its PNGs. It preserves unrelated sentinels and source bytes; it neither recursively removes arbitrary directories nor promises a whole-tree I/O rollback.
+
+### Independent evidence and limits
+
+`bobp make export-sprites-review` reads the actual exported files, verifies all16PLTE colors and normalizedtRNS entries (including unused colors), and compares every native Chromium-decoded RGBA pixel with parser-derived source indices/brightest colors. Transparent pixels normalize toRGBA0. Separate ignored `build/sprite-export-review/` holds the report, panel17/atlas42/wall87 samples and overview. Reports start incomplete and record failure rather than retaining stale success; all evidence destinations reject unsafe aliases.
+
+The supplied archive exported535sprites; final native review checked1,690,768pixels with unchanged source and no browser errors at18:18:07 on2026-11-03. Earlier226aggregate tests/build preceded the focused strict-palette correction. Final four affected suites31/31 passed18:17:20, followed by lint/strict TypeScript18:17:39. This is not a claim of a fresh226-suite run after the last guard. Trin, Morpheus and Tank approved implementation; final Smith/artifact and close status are recorded in root `task.md` and chat. No new dependency/runtime pin/CI/deployment is implied. Full classification, parametric lighting and campaign-pack loading remain separate work.

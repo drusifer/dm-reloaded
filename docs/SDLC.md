@@ -16,7 +16,7 @@ Adapted from the canonical [SDLC template](../agents/templates/_template_SDLC.md
 
 Other required tools: Python 3 for local asset extraction; `bobp` for captured Makefile execution and team chat; VIA for symbol navigation/indexing; Git and Make. These tools and Node/npm must already be on `PATH`; the project does not install them. Python `3.14.8` was observed locally, but no Python version is pinned.
 
-Browser review uses temporary `@playwright/test@1.64.1` through npm exec and downloaded Chromium. It is not a production dependency or an entry in this project's lockfile.
+Browser and sprite-export review use temporary `@playwright/test@1.64.1` through npm exec and downloaded Chromium. It is not a production dependency or an entry in this project's lockfile.
 
 ## 2. Setup
 
@@ -39,6 +39,16 @@ bobp make visual-review ARGS=--interactions
 
 The first review command captures renderer scenes; `ARGS=--interactions` additionally exercises actual browser input. Setup is **not a frozen install**: npm's matching frozen-install command is `npm ci`, but no current Makefile target invokes it. A from-clean/frozen-install conformance run was not performed for this documentation task.
 
+Original sprite export is an offline contributor tool, separate from the game renderer:
+
+```sh
+bobp make export-sprites ARGS=--help
+bobp make export-sprites
+bobp make export-sprites-review
+```
+
+Defaults are `SPRITE_INPUT=public/assets/extracted/dm1/graphics.dat` and `SPRITE_OUTPUT=build/sprites`; path variables are quoted in the recipes. Overrides use the same variables for export and review. Original data is required, including a complete palette record 562: missing, truncated or reduced containers without that record fail rather than substituting clean-room art or default colors. Arbitrary-count pure-module tests supply an explicit palette; they do not relax the real CLI source requirement (ADR-011). Review reads existing exported PNGs, checks hashes/dimensions/source data, and independently compares every decoded RGBA pixel through native Chromium. It never republishes or repairs exports. Evidence belongs in separate `build/sprite-export-review/`, not the sprite tree. The writer requires a dedicated resolved subtree under ignored `build/`, rejects unsafe aliases/unowned or modified collisions, stages files, and publishes the manifest after its PNGs. It never recursively deletes arbitrary output directories. Review validates all sixteen PNG palette entries and normalized alpha metadata, even when a sprite does not use a color. It initializes the owned report as incomplete and records failure; symlinked/non-file evidence destinations are rejected before writes. The export policy makes index0 transparent; it does not migrate current runtime masking rules.
+
 ## 3. Make targets
 
 The [Makefile](../Makefile) is the contributor entry point; recipes call native tools. Run project automation through `bobp make <target>` and discover current targets with `bobp make help`.
@@ -47,6 +57,8 @@ The [Makefile](../Makefile) is the contributor entry point; recipes call native 
 |---|---|---|
 | `setup` / `install` | npm install, Python asset extractor, VIA index | May use the network and update dependency resolution; `install` aliases `setup`. |
 | `extract-assets` | `python3 scripts/extract_assets.py` | Extracts user-provided local original archives. |
+| `export-sprites` | Node `.mjs` runner plus existing Vite SSR parser/export module | Local original archive → indexed PNGs/manifest; `SPRITE_INPUT`, `SPRITE_OUTPUT` and optional `ARGS`; no listening server or new dependency. |
+| `export-sprites-review` | Pinned temporary Playwright runner plus native Chromium PNG decoding | Reviews actual export files against source; separate ignored report/artifacts; use matching input/output variables. npm exec may use the network. |
 | `test` | ESLint, `tsc --noEmit`, verbose Vitest | Full local regression gate; does **not** pass `ARGS` to Vitest. |
 | `test-q` | Quiet Vitest | Targeted iteration: `bobp make test-q ARGS=tests/render/heldCursor.test.ts`. |
 | `lint` | ESLint and strict TypeScript checks | No separate secret scan. |
@@ -69,7 +81,7 @@ Standard targets absent: `format` (no formatter target configured), `run` (`dev`
 
 - **Add:** Neo edits the appropriate `package.json` dependency section, then runs `bobp make setup` to resolve/install and update `package-lock.json`. Current declared packages are in `devDependencies`; add runtime dependencies only when the feature needs them.
 - **Upgrade / remove:** Neo updates/removes the manifest entry, runs `bobp make setup`, and reviews the resulting manifest/lockfile changes. Do not hand-edit the lockfile or mix npm with another manager.
-- **Dev-only tools:** Declare project development tools in `devDependencies`. Browser review is the explicit exception: its pinned temporary npm-exec tool and cache are described in sections 1 and 3.
+- **Dev-only tools:** Declare project development tools in `devDependencies`. Browser/export review is the explicit exception: its pinned temporary npm-exec tool and cache are described in sections 1 and 3.
 - **Commit afterwards:** `package.json` and `package-lock.json`, together with the dependent code/tests. Review unexpected lockfile churn.
 - **Who:** Neo owns ordinary dependency changes. A new package manager, language, runtime pin, frozen-install mechanism or dependency automation target is Tank's mechanism change.
 
@@ -82,6 +94,7 @@ Standard targets absent: `format` (no formatter target configured), `run` (`dev`
 | Static checks | `bobp make lint` or `typecheck` | Changed code/tests needing those checks when not already covered by `test`. |
 | Production bundle | `bobp make build` | Build-affecting changes and release readiness. |
 | Observable UX | `bobp make visual-review ARGS=--interactions`, inspected PNGs and browser report | Smith approval for changed UI/input; use original and fallback art where applicable. |
+| Export artifacts | `bobp make export-sprites-review`, focused exporter tests and inspected representative PNGs | Sprite exporter handoff/close after relevant changes; require actual source/PNG evidence, not a production encoder as decoder oracle. |
 | Final accepted stories | Explicit criterion-to-evidence review by Trin/Morpheus/Smith | Sprint close, including criteria omitted from phase shorthand. |
 | Agent trace | `bobp make judge-trace DATE=YYYY-MM-DD` and underlying log inspection | QA process review where available; currently unavailable, not a passing audit. |
 | Patch/staged content | `git diff --check`, `git diff --cached --check`, staged-path/content review | Commit; exclude new colon filenames, secrets, original assets and generated outputs. |
@@ -135,7 +148,7 @@ Checks run locally. Any future CI must invoke the same Makefile gates as section
 
 - Runtime and npm are unpinned, `engines.node`/`packageManager` are absent, and setup uses mutable `npm install` instead of the JavaScript profile's frozen `npm ci`. A committed lockfile alone does not establish frozen-install conformance.
 - No `distclean`, formatter, dependency-operation, hook-install, secret-scan or deployment target exists. Do not run invented targets or silently add mechanisms during documentation work.
-- Browser setup/review may use the network outside `install`; temporary Playwright tooling is pinned in the Makefile but outside the project lockfile. This deliberately documents the existing mechanism rather than claiming all tools are environment-local/frozen.
+- Browser setup/review and `export-sprites-review` may use the network outside `install`; temporary Playwright tooling is pinned in the Makefile but outside the project lockfile. This deliberately documents the existing mechanism rather than claiming all tools are environment-local/frozen.
 - `judge-trace` masks failure with `|| true`; the observed underlying failure is missing Python `jinja2`. A successful Make exit is not successful trace evidence. `tldr` also masks its wrapper failure.
 - `bobp make` shares one log file across runs. Concurrent runs have previously mixed evidence; serial execution is required until the capture mechanism changes.
 - No automated CI, secret scan or mandatory staged hook is installed. `.gitignore` currently also lacks an explicit `.env` rule; inspect staged content and never commit credentials.
@@ -151,7 +164,7 @@ Run by Tank at sprint close (`*devops sdlc-check`), without repeating unchanged 
 4. **Entry points:** inspect docs/scripts for advice to bypass `bobp make` or install project tools globally. Any exception must be explicit here, not silently introduced.
 5. **Pins/lock/ignores:** inspect the runtime files and manifest fields, `git ls-files package-lock.json`, other tracked lockfiles, and `.gitignore`. Exactly one npm lockfile must be tracked. Pins are currently absent, so agreement and frozen-install lockfile stability cannot be reported as verified.
 6. **Change evidence:** verify the class, named approvals and records in section 6, including every accepted story criterion. Inspect `git diff --cached --check`, staged paths and contents before committing; no new colon filenames, secrets, original assets or generated outputs may be staged.
-7. **Project-specific evidence:** for changed UI/input, inspect the browser report and PNGs, distinguish scene-only from interaction runs, and record original/fallback coverage. Inspect underlying trace output rather than trusting the masked Make exit. Save Tank state/summary and report deviations instead of declaring unconditional conformance.
+7. **Project-specific evidence:** for sprite export, check AE-1–AE-8 in [the asset-export plan](SPRINT_ASSET_EXPORT.md): deterministic indexed artifacts/manifest, exact source hash, native-decoded pixels, source preservation, ignored output, safe ownership/reruns and actual help/error behavior. Check export/review input and output options match. For changed UI/input, inspect the browser report and PNGs, distinguish scene-only from interaction runs, and record original/fallback coverage. Inspect underlying trace output rather than trusting the masked Make exit. Save Tank state/summary and report deviations instead of declaring unconditional conformance.
 
 ---
-*Last verified: 2026-11-03 against commit `17cadcc` and the local Makefile/documentation audit by Tank. Product checks were not rerun for this docs-only change; full toolchain conformance remains subject to the deviations above.*
+*Last verified: 2026-11-03 against the `sprint-2-assets` working-tree recipes/loader and final strict-palette mechanism evidence by Tank. See [final mechanism review](../agents/tank.docs/Asset_Export_Mechanism_Final_Summary_2026-11-03T18-20.md): 31 affected tests, lint/types and native decoding of 535 PNGs passed after the focused source guard. No from-clean rebuild was performed for documentation alone; full toolchain conformance remains subject to the deviations above.*

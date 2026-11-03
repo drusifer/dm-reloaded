@@ -1,9 +1,19 @@
-User stories and testable acceptance criteria for Dungeon Master (Delivered: Sprint 2 — Champions, Physical Inventory & Survival).
+User stories and testable acceptance criteria for Dungeon Master: delivered Sprint 2 gameplay and the bounded asset-export follow-up.
 
 TLDR:
     Goal: Deliver authentic 1988 Amiga paperdoll inventory (item[17] + items 42..48 icons), DB5..DB10 world items on floor sub-tiles & alcoves, cursor-hand drag/throw physics, survival vitals (Food/Water/Stamina/Sleep/Torches), and Vi Altar bones revival.
-    Status: Approved by Smith at Gate 1 (*user approve) with HCI trackpad/contextmenu, persistent handItem, and slot-feedback safeguards.
-    Action: Sprint 2 accepted stories verified by final QA/architecture/live browser review; see task.md and agents/chat_archive/CHAT_sprint-2-acceptance.md.
+    Status: Sprint 2 gameplay delivered; asset-export follow-up implemented with QA/architecture/mechanism approval. Final artifact/close status lives in task.md.
+    Action: See docs/SPRINT_ASSET_EXPORT.md for AE-1–AE-8 and actual evidence; keep task.md as the sole task board. Prior gameplay evidence remains in agents/chat_archive/CHAT_sprint-2-acceptance.md.
+
+## Asset Export Follow-Up — `sprint-2-assets`
+
+The current bounded follow-up delivers inspectable original sprites and a repeatable local export/review workflow before later lighting/campaign-pack work. [Combined product/architecture scope](SPRINT_ASSET_EXPORT.md) contains Story A (individual PNGs/manifest for artwork maintenance), Story B (actionable, safe, repeatable contributor automation), and accepted criteria AE-1–AE-8.
+
+Implementation exports one indexed PNG per raw sprite with original palette data, index0 transparency, deterministic portable manifest metadata and sparse verified labels. Real CLI inputs without full source palette562 fail rather than substitute fallback colors. Independent native PNG review and safe ignored output cover the tool/artifact UX boundary; unchanged game-input scenarios do not need to be replayed for this offline tool. Combat/progression retains roadmap **Sprint 3** and is not included in this follow-up.
+
+Final post-guard evidence is31affected tests, lint/types and native535sprite/1,690,768pixel verification. Earlier226aggregate/build evidence is separate. Required final approvals/local close remain in shared chat and root `task.md`; no remote publication or runtime pack migration is implied.
+
+---
 
 # Sprint 2 User Stories: Champions, Physical Inventory & Survival
 

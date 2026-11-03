@@ -1,0 +1,3 @@
+# Asset Export Architecture Plan
+
+Combined Tier2 plan docs/SPRINT_ASSET_EXPORT.md follows the project architecture-template headings and SDLC. Existing parser/Vite SSR reused, indexedPNG nativeencoder with independentChromiumdecode, deterministicmanifest and sparseverifiedsemanticlabels. Raw export transparency policy explicitly differs from some current runtime masks. Exporter validates complete container bounds before parse because parser can return partialmaps on overrun. Filesystemwriter must preserve input/unrelatedoutput and never recursivelyclean arbitrarydirectories. Two bounded phase boundaries; Mouse alone writes root taskboard. Smithbothgates andTankmechanismreview pending. No implementation/tests/commit/push.

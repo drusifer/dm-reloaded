@@ -1,0 +1,7 @@
+# Strict Original Palette Correction — ADR-011
+
+After the short-record fix, a second independent source variant omitted record562 entirely by using a complete count562container. Existingruntimeparser defaultedcolors. Oracle/Morpheus bindingdecision18:14:23 requires a complete explicit original palette for every realCLIinput, with no test-only escape. ExportervalidateGraphicsContainer now rejects count<=562 and declared562size<1470 before parse/publication. Runtimeparser unchanged; purecodec/manifest fixtures may still use arbitrary counts with explicitlyprovidedpalettes.
+
+New shared tests/tools/graphicsExportFixture.ts creates a complete563record container with535tinyvalid2x1RLEsprites, emptyothermetadata and explicit1470bytepalette562. It also provides intentionalrecordsize corruption. Producer/writer and QA-ownedCLI/reviewfixtures migrated to thisvalidformat instead of weakening fidelity. IndependentQA actualsource omitted562 +declaredshort562 regressions verify previousmanifest/PNGs/input/sourcehash unchanged. No newproductionflag or parserfallback changes.
+
+Allfour affected writer/producerCLI/safety/reviewmetadata suites31/31PASS18:17:20. Lint+strictTypeScriptPASS18:17:39. FreshnativeChromiumreview afterstrictguard535PNGs/1690768pixels/sourceunchangedPASS18:18:07. Prior226aggregate and productionbuild predate this focused correction; reusedunchanged evidence ratherthanreplayingbaseline. No unresolvedtestfailures in the correctedapproach. Make slotreleased and finalQA/close remainsparent-owned. No commit/push.

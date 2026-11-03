@@ -62,8 +62,27 @@ bobp make visual-review    # Capture live Chromium rendering scenes
 bobp make visual-review ARGS=--interactions  # Also exercise actual browser input
 ```
 
+## Export original sprites
+
+With the original local `public/assets/extracted/dm1/graphics.dat` available:
+
+```sh
+bobp make export-sprites ARGS=--help
+bobp make export-sprites
+bobp make export-sprites-review
+```
+
+The exporter writes one indexed PNG per decoded source sprite under `build/sprites/<category>/<index>_<width>x<height>.png` and a deterministic `manifest.json`. The supplied DM1 archive contains 535 decoded sprites. Atlases remain single images; sounds, fonts and metadata are not exported as sprites. Verified semantic names are included where known; other entries remain unclassified.
+
+Set `SPRITE_INPUT` and `SPRITE_OUTPUT` consistently for both commands to use another source or a dedicated directory inside ignored `build/`. Existing unrelated files are preserved; edited or unowned collisions cause a clear error. The source archive is never modified, and missing or corrupt input does not substitute fallback artwork.
+
+`export-sprites-review` reads the actual exported files and compares every decoded RGBA pixel with the original data through Chromium. Install its browser once with `bobp make visual-review-setup` if needed. The review report and representative images are separate, under `build/sprite-export-review/`.
+
+These are raw indexed exports: index 0 is transparent and other palette entries are opaque. Current runtime sprites sometimes use other masks, so these PNGs are not universally ready for runtime replacement. Lighting filters and campaign-pack loading remain later work. Original assets, exported PNGs and review evidence stay local and gitignored.
+
 ## Documentation Index
 
+- **[SPRINT_ASSET_EXPORT.md](docs/SPRINT_ASSET_EXPORT.md)** — Exporter scope and acceptance evidence
 - **[SDLC.md](docs/SDLC.md)** — Tank-owned toolchain, quality gates, change management and release workflow
 - **[PRD.md](docs/PRD.md)** — Product Vision, Dual-Mode Asset Strategy, Mechanics, and Trilogy Roadmap
 - **[USER_STORIES.md](docs/USER_STORIES.md)** — Sprint 2 Stories and archived Sprint 1 Acceptance Criteria

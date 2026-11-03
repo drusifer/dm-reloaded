@@ -1,4 +1,4 @@
-.PHONY: help setup install extract-assets dev build test test-q lint typecheck tldr via-index judge-trace clean visual-review visual-review-setup
+.PHONY: help setup install extract-assets dev build test test-q lint typecheck tldr via-index judge-trace clean visual-review visual-review-setup export-sprites export-sprites-review
 
 DATE ?= $(shell date +%F)
 
@@ -55,3 +55,12 @@ visual-review: ## Capture live Chromium sprint scenes and original inventory pan
 
 visual-review-setup: ## Download temporary Chromium for the live visual review runner
 	npm exec --yes --package=@playwright/test@1.64.1 -- playwright install chromium
+
+SPRITE_INPUT ?= public/assets/extracted/dm1/graphics.dat
+SPRITE_OUTPUT ?= build/sprites
+
+export-sprites: ## Export local original sprites as indexed PNGs plus deterministic manifest
+	node scripts/export-sprites.mjs --input "$(SPRITE_INPUT)" --output "$(SPRITE_OUTPUT)" $(ARGS)
+
+export-sprites-review: ## Independently decode exported PNGs in pinned Chromium and capture review art
+	npm exec --yes --package=@playwright/test@1.64.1 -- node scripts/review-sprite-export.mjs --input "$(SPRITE_INPUT)" --output "$(SPRITE_OUTPUT)" $(ARGS)

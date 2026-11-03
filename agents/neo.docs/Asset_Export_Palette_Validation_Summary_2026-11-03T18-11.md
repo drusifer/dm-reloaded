@@ -1,0 +1,5 @@
+# Original Palette Completeness Correction
+
+Independent final QA found runtime parseGraphicsDat silently uses defaults when a declared record562 is shorter than1470bytes. Narrow exporter-only guard now rejects that source with actionable incomplete-original-palette diagnostic before parse/publication. Runtimeparser/defaultfallback unchanged. Reduced syntheticarchives not declaring562 remain supported.
+
+Verified actual extractor minimum1470 throughVIA. Directguardfixture plus reducedarchive control pass. IndependentQA rewrites the actualoriginalarchive by removingrecord562payload andadjustingsizetables whilekeepingvalidcontainerbounds/535parser-sprites; CLI now rejects and retains previousmanifest/PNGs/sourcehash. Focusedwriter10pass18:09:01; independentnewCLIcase1pass18:09:19 (other8notselected), lint/types18:09:41. Finalaggregate226/226tests+ESLint+TypeScriptPASS18:10:06. FreshnativeChromiumreview afterguard verified535PNGs/1690768pixels/sourceunchangedPASS18:10:28. No additionalfullsuite needed for unchangedcode. Make slotreleased forfinalparentbuild/help/Smithclose; no commit/push.

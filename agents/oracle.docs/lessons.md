@@ -57,3 +57,10 @@ Earlier bounded phase approvals missed side alcoves, equipment stat effects, dep
 
 ## Lesson 009 — Verify Torch Art and Cursor Hotspots (2026-11-03)
 Original sheet42 icons4..7 progress from unlit to full flame, not fresh to burned-out. Compare real decoded artwork before defining a charge mapping. Resolve charge-sensitive icons centrally so hand slots, inventory, world and cursor show the same complete sprite. Center carried sprites on pointer and clip naturally at edges; hide duplicate native arrow. Final183tests and29live browser checks passed. Evidence build/visual-review/torch-stages.png and live-torch-cursor.png.
+
+
+## Lesson 010 — Original Export Evidence Requires Complete Source and Metadata Checks (2026-11-03)
+- Runtime parsers may intentionally return partial maps or default palettes. Offline fidelity tools must separately require complete source records and original palette562; test fixtures must honor that contract instead of weakening it. ADR-011 preserves permissive runtime behavior while making CLI exports strict.
+- Native image pixels alone cannot verify unused palette/alpha entries. Compare every PLTE color and normalizedtRNS entry as well as every decoded pixel; independent valid-CRC, updated-hash tampering regressions prove the distinction.
+- Review output is evidence: initialize it incomplete and invalidate failed runs, guard every representative/report/overview destination against aliases, and keep it outside the export tree.
+- Preserve check chronology. Earlier226aggregate/build passed before final strictguard; final31affected suites, lint/types and fresh535PNG/1,690,768pixel/source-unchanged review passed afterward. Do not label earlier full checks as post-fix. No unchanged-code baseline rerun or unavailable trace-audit pass is implied.
