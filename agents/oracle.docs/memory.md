@@ -2,7 +2,7 @@ Consolidated index of project-wide decisions, historical context, and key milest
 
 TLDR:
     Goal: Provide rapid project context and decision history for all BobProtocol personas on entry.
-    Status: Sprint 2 gameplay delivered; bounded sprite-export follow-up implemented and QA/architecture/Tank approved. Final artifact/close status is in task.md; historical milestones retained below.
+    Status: Sprint 2 gameplay and sprite export delivered; parametric lighting implemented and QA/architecture/Tank approved. Final artifact/close status is in task.md; historical milestones retained below.
     Action: Consult task.md and current persona state for gate status; review the lessons before changes.
 
 # Project Memory
@@ -48,7 +48,7 @@ This file serves as a consolidated index of project-wide decisions, historical c
 
 Implemented physical inventory and nested chest weight, world items/throws, survival/torches/bones/Vi Altars, semantic new-painter sprites, measured paperdoll/chest coordinates, input/cursor lifecycle, five synthesized cue defaults, contact sheet and browser visual/interaction automation. Phase 2 passed independent QA, architecture and live PNG review after one combined fix cycle. Final Phase 3/load QA, architecture and Smith end-to-end gates passed: 177 aggregate tests + 2 additional independent QA tests, lint/strict TypeScript, production build and 27 live Chromium checks with zero browser exceptions. Final accepted-story corrections and retrospective complete; delivered locally, with no deployment claim.
 
-README now documents actual input controls and limits. See `docs/ARCH.md` section 7 and `docs/DECISIONS.md` ADR-009 clarification for partial adapter migration and art limitations; ARCH section8 now records the offline exporter, while filter/loader work remains future scope. The separate trace audit could not run because its Python environment lacks jinja2; product test passes do not replace audit evidence.
+README now documents actual input controls and limits. See `docs/ARCH.md` section 7 and `docs/DECISIONS.md` ADR-009 clarification for partial adapter migration and art limitations; ARCH section8 now records the offline exporter, while the runtime truecolor loader remains future scope. The separate trace audit could not run because its Python environment lacks jinja2; product test passes do not replace audit evidence.
 
 Final accepted-story completion and local launch: see [Sprint2 close summary](../cypher.docs/Sprint2_Close_Summary_2026-11-03T14-08.md) and [corrective acceptance archive](../chat_archive/CHAT_sprint-2-acceptance.md). No deployment.
 
@@ -60,3 +60,10 @@ Implemented ADR-009's local one-PNG-per-raw-sprite tool through `bobp make expor
 ADR-011 records the source-fidelity lesson: existing runtime parser partial/default behavior cannot be exporter success. Every real CLI source must contain complete palette562; arbitrary-count pure fixtures carry explicit palettes. Independent review checks unusedPLTE/tRNS entries as well as every native-decoded pixel, and invalidates failed-run success evidence with bounded evidence-path writes.
 
 Final post-guard evidence:31affected tests18:17:20, lint/types18:17:39, native535sprites/1,690,768pixels/sourceunchanged/errors[]18:18:07. Earlier226aggregate/build predate the last guard and are not claimed fresh. Trin/Morpheus/Tank approved implementation; Oracle grooming hands off Smith final artifact approval, then retro/local close. No commit/push/deployment inferred. See docs/SPRINT_ASSET_EXPORT.md, docs/ARCH.md section8 and ADR-011; root task.md remains the sole task board.
+
+
+## Parametric Lighting Follow-Up — `sprint-2-lighting` (2026-11-03)
+
+ADR-012 implements ADR-009's bounded lighting step: one immutable validated RGB transform, shared indexed and pure RGBA adapters, brightest-source derived depth palettes and explicit procedural palette use. Exactly16dense source colors are required at the adapter boundary. Source masks/alpha, geometry, fullbright UI/cursor and gameplay effective-light/torch rules remain unchanged. Raw exports and their original palette policy remain independent; no runtime truecolor loader, new emissive classification or dependency ships.
+
+Final stable evidence:250tests/37files plus lint/types19:18:17, build19:18:59; actual original/fallback Chromium26cases/98checks/errors[]19:17:04 under ignored build/lighting-review. Added independent side-projector markers distinguish absent/unlit/double-lit output. Old29interaction evidence was not rerun. QA/Morpheus/Tank approvals complete; Smith actual PNG final gate and local close remain root-owned. See docs/SPRINT_LIGHTING.md LT1–5 evidence, ARCH lighting section and ADR-012. Combat remains Sprint3; no remote publication/deployment implied. Trace audit unavailable remains explicit.

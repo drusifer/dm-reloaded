@@ -174,7 +174,7 @@ src/
 
 ## 7. Sprint 2 Implementation Evidence and Limits (2026-11-03)
 
-- `SpriteSource` owns semantic panel/icon lookup and deterministic fallback sprites. New painters use semantic keys; existing viewport walls still use original raw-index paths. Runtime retains the six original light palettes; the single parametric lighting filter and campaign-pack loader in ADR-009 remain future work. The separate offline sprite exporter is implemented in section 8.
+- `SpriteSource` owns semantic panel/icon lookup and deterministic fallback sprites. New painters use semantic keys; existing viewport walls still use original raw-index paths. The six original palettes remain decoded; section 9 describes their parametric runtime lighting replacement. The campaign-pack loader remains future work. The separate offline sprite exporter is implemented in section 8.
 - Original equipment/backpack and irregular chest coordinates were measured from decoded panel border pixels, with regression checks in `tests/render/inventoryRender.test.ts`. Black scroll ink stays within parchment `(117,94,90,49)`, wraps 15 columns and shows at most six rows; overflow receives an ellipsis and inspection messages retain the transcript.
 - Depth 0 floor quadrants rotate with facing; approaching projectile lanes mirror the travel-relative lane; shut solid crosswise doors occlude far-half floor items. Sleep suppresses inventory so its dark overlay remains visible.
 - Cursor position is logical 320×200 pointer state supplied only to presentation. Context-menu suppression and listener teardown remain in the browser shell, not the pure engine.
@@ -210,3 +210,23 @@ Publication preflights ownership/hashes/collisions in a dedicated resolved ignor
 `bobp make export-sprites-review` reads the actual exported files, verifies all16PLTE colors and normalizedtRNS entries (including unused colors), and compares every native Chromium-decoded RGBA pixel with parser-derived source indices/brightest colors. Transparent pixels normalize toRGBA0. Separate ignored `build/sprite-export-review/` holds the report, panel17/atlas42/wall87 samples and overview. Reports start incomplete and record failure rather than retaining stale success; all evidence destinations reject unsafe aliases.
 
 The supplied archive exported535sprites; final native review checked1,690,768pixels with unchanged source and no browser errors at18:18:07 on2026-11-03. Earlier226aggregate tests/build preceded the focused strict-palette correction. Final four affected suites31/31 passed18:17:20, followed by lint/strict TypeScript18:17:39. This is not a claim of a fresh226-suite run after the last guard. Trin, Morpheus and Tank approved implementation; final Smith/artifact and close status are recorded in root `task.md` and chat. No new dependency/runtime pin/CI/deployment is implied. Full classification, parametric lighting and campaign-pack loading remain separate work.
+
+
+## 9. Parametric Dungeon Lighting (2026-11-03)
+
+`src/render/lighting.ts` validates and freezes a copied `lighting.json` profile at import. `createLightingContext` precomputes light/depth brightness and tint; `lightRgb`, `lightPalette` and `lightRgba` share one color formula. RGB arrays and source buffers remain unchanged; RGBA alpha is copied exactly. These pure helpers do not load images or blend sprites.
+
+`getViewportLightPalette` requires sixteen source colors and derives them from `getUiPalette`, never from a historical dark ramp. The viewport uses four depth palettes for world sprites, side projection, procedural geometry and text. Source masks and cropping/flipping/scaling remain framebuffer responsibilities. UI composition still occurs afterward with the full-bright palette; no framebuffer-wide dark overlay or new emissive rule is introduced.
+
+Gameplay light, torch charge, simulation ticks and source decoding/export are unchanged. See [ADR-012](DECISIONS.md) and [lighting scope/evidence](SPRINT_LIGHTING.md) for the configuration formula and current acceptance status. Runtime PNG/truecolor loading, semantic classification and campaign packs remain separate work.
+
+
+## 10. Source-Aware Sprite Catalog (2026-11-03)
+
+`src/data/spriteCatalog.ts` owns the existing four panel aliases, export categories and item-icon addresses. The parser extraction helper and `SpriteSource` share the address policy while retaining their existing bounds/clamp/fallback behavior. `buildSpriteCatalog` joins actual decoded indices and dimensions with sparse verified facts only for original DM1 provenance; generated records remain unclassified even when numeric IDs match. Legacy export category and verified identity status are separate concepts.
+
+Each usage carries a raw source index, optional crop, evidence and an opaque/index0/index10 or auxiliary-mask policy. Door records additionally name sprite301 as a conditional bashed-door mask. Derived icon numbers and portrait IDs do not become raw source IDs. Alias-only records have no invented active painter policy. The raw exporter still emits the same schema1 manifest and PNG bytes; metadata is a separate inspection overlay.
+
+The G inspector provides search, combined filters, persistent selection/details and explicit raw-versus-usage previews. Unknowns allow raw interpretations without inferred runtime policies. Source palette ramps remain reference choices, separate from parametric world lighting. Runtime dependency direction remains one-way: catalog data/policy → pure inspection rendering → DOM composition; the review script stays outside runtime source.
+
+Delivered evidence on 2026-11-06 covers `535` measured records (`39` verified roles, `496` unclassified), a generated-source guard, `570` actual-browser checks and `9` inspected captures with zero exceptions, `3` independent inspection tests, the final `268`-test aggregate and production build. Source/manifest hashes and all raw PNG bytes remained compatible. See [ADR-013](DECISIONS.md) and [catalog acceptance status](SPRINT_SPRITE_CATALOG.md). Full semantic identification of all 535 sprites, painter migration and runtime image/campaign-pack loading remain future work.

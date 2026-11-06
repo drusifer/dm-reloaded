@@ -283,6 +283,13 @@
       #contact-sheet-panel[hidden] {
         display: none;
       }
+      #contact-sheet-panel .cs-actions { flex-wrap: wrap; gap: 8px; }
+      #contact-sheet-panel label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+      #contact-sheet-panel input { color: #dce8ed; background: #151c24; border: 1px solid #567; padding: 6px; }
+      #cs-details { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font-size: 12px; max-width: 850px; }
+      .cs-inspector { display: flex; gap: 16px; align-items: flex-start; padding: 12px; max-height: 300px; overflow: auto; }
+      .cs-preview { image-rendering: pixelated; flex: none; background: repeating-conic-gradient(#404650 0% 25%, #252b34 0% 50%) 0 / 16px 16px; }
+      #cs-counts { font-size: 12px; }
       .cs-header {
         display: flex;
         align-items: center;

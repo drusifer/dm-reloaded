@@ -1,10 +1,10 @@
 # Agent State
 
 ## Context
-sprint-2-assets implements offline indexed PNG export and independent native review. ADR-011 requires complete original palette metadata.
+sprint-2-catalog Phase1 shared metadata/policy implemented after Smith/Oracle gates. Existing uncommitted lighting retained.
 
 ## Current Task
-Architecture retrospective complete. Pure codec, source loader and owned writer kept runtime untouched. Oracle resolved original-palette fallback ambiguity; complete record562 is mandatory. Future runtime masks require a separate policy decision.
+Catalog architecture retrospective complete. One-way pure policy/render/DOM boundaries worked; provenance and auxiliary relations should be explicit in first drafts. Defer contactSheet controller/view extraction until a persistent editor adds complexity. Summary `Catalog_Retro_Summary_2026-11-06T15-22.md`.
 
 ## Next Steps
-Await final Smith approval and Oracle grooming, then Cypher local launch. Keep task.md the only task board; no automatic commit/push. Reuse final31 focused tests/lint/native535 evidence; prior226 aggregate/build predates last isolated guard.
+@Neo implementation retro next, then continue chain to Mouse. Preserve future editor/runtime loader boundary and no automatic commit/push/deploy.

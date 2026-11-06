@@ -1,0 +1,9 @@
+# Lighting Review Harness — Tank
+
+Implemented only scripts/sprint2-visual-review.mjs plus own working memory. New --lighting branch owns separate ignored build/lighting-review evidence; existing default and --interactions body retained. Existing pinned Playwright and strict fixedloopbackport5197 reused; no new target/dependency or infrastructure.
+
+26named scenes when both sources exist:2modes×3ambient/effectivelevels0/1/5×3front-featuredepths1/2/3, plus2modes×inventory/cursor×ambient0/5. World fixtures clear party torchLight, every equipment slot and cursor hand; actual effectiveLight is checked/reported. World litTorch is placed on floor, not equipped, and world visibility/delta is measured against otherwise identical noTorch frame. UI/cursor checks retain identicalitems/vitals/settings acrossambient changes and record true effective levels if heldtorch contributes. Outsideworld UI exactcomparison excludes only dynamic LIGHT status text; inventory and completeTorch cursor remain visible/fullbright. Checks measure rendered pixels, not production lighting formula as an oracle; repeatframes/stateimmutability checked.
+
+All captures are real Chromium framebuffer PNGs; source availability/count/reason recorded. Missing/invalid original produces partial passed:false/nonzero instead of claiming original evidence. Report starts passed:false/running, errors record failed; guarded direct-child evidence paths reject directory/file aliases. Browser exceptions collected; server/browser cleanedup. No baseline29interaction replay for lighting mode.
+
+Parent statically reviewed and approved branch for execution after Neo sourcehandoff. No Make/product checks or actualrun performed by Tank; final lighting acceptance remains pending integration and live original/fallback results. Parent owns Make serialization, rootboard, globaldocs/ADR012 and finalgates.

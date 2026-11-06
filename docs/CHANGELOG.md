@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-11-03 — Parametric dungeon lighting (`sprint-2-lighting`)
+
+- Replaced historical dark-ramp selection with one validated color filter configured in `src/render/lighting.json`; brightness curve, depth falloff, tint and desaturation share a pure RGB formula.
+- Preserved source masks, alpha, gameplay and full-bright UI; added an equivalent pure RGBA helper for future artwork use.
+- Added focused and independent rendering regressions plus `bobp make visual-review ARGS=--lighting` with separate evidence and original/fallback coverage.
+
+Validation: all250tests, lint/types and production build passed. Actual Chromium review passed26scenes/98measured checks with both art sources and no browser errors. Local delivery; no deployment. Runtime PNG loading, semantic classification and campaign packs remain future work.
+
 ## 2026-11-03 — Asset export (`sprint-2-assets`)
 
 - Added `bobp make export-sprites`: indexed PNG per decoded original sprite, deterministic manifest, original palette and raw index-0 transparency.

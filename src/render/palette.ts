@@ -1,11 +1,12 @@
 /**
- * Authentic 16-color Amiga Dungeon Master palette and 6-level torchlight shading LUT.
+ * Full-bright source palette and parametric dungeon lighting adapter.
  *
  * TLDR:
  *   Maps 4-bit palette indices (0..15) to RGB triplets for UI full-brightness rendering
  *   and depth/torchlight-attenuated 3D viewport rendering (including pitch-black unlit state).
  */
 
+import { createLightingContext, lightPalette } from './lighting';
 import { buildDefaultLightPalettes } from '../data/graphicsDatParser';
 import type { GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
 
@@ -28,8 +29,6 @@ export const PALETTE_INDEX = {
   WHITE: 15
 } as const;
 
-const PITCH_BLACK_PALETTE: readonly RgbColor[] = Array.from({ length: 16 }, (): RgbColor => [0, 0, 0]);
-
 const DEFAULT_RAMPS = buildDefaultLightPalettes();
 
 /**
@@ -51,12 +50,9 @@ export function getViewportLightPalette(
   depth: 0 | 1 | 2 | 3,
   bundle?: GraphicsBundle
 ): readonly RgbColor[] {
-  if (effectiveLight <= 0) {
-    return PITCH_BLACK_PALETTE;
+  const basePalette = getUiPalette(bundle);
+  if (basePalette.length !== 16) {
+    throw new Error('Viewport lighting requires exactly 16 source palette colors');
   }
-  const ramps = bundle?.lightPalettes ?? DEFAULT_RAMPS;
-  // Effective light 1..5 maps to ramp 1..5 at depth 0..1, stepping down with corridor depth.
-  const depthPenalty = depth === 0 ? 0 : depth === 1 ? 0 : depth === 2 ? 1 : 2;
-  const rampIdx = Math.max(0, Math.min(ramps.length - 1, effectiveLight - depthPenalty));
-  return ramps[rampIdx] ?? PITCH_BLACK_PALETTE;
+  return lightPalette(basePalette, createLightingContext(effectiveLight, depth));
 }

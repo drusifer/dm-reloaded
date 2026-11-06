@@ -1,13 +1,19 @@
-User stories and testable acceptance criteria for Dungeon Master: delivered Sprint 2 gameplay and the bounded asset-export follow-up.
+User stories and testable acceptance criteria for Dungeon Master: delivered Sprint 2 gameplay and the bounded asset-export and parametric-lighting follow-ups.
 
 TLDR:
     Goal: Deliver authentic 1988 Amiga paperdoll inventory (item[17] + items 42..48 icons), DB5..DB10 world items on floor sub-tiles & alcoves, cursor-hand drag/throw physics, survival vitals (Food/Water/Stamina/Sleep/Torches), and Vi Altar bones revival.
-    Status: Sprint 2 gameplay delivered; asset-export follow-up implemented with QA/architecture/mechanism approval. Final artifact/close status lives in task.md.
-    Action: See docs/SPRINT_ASSET_EXPORT.md for AE-1–AE-8 and actual evidence; keep task.md as the sole task board. Prior gameplay evidence remains in agents/chat_archive/CHAT_sprint-2-acceptance.md.
+    Status: Sprint 2 gameplay and asset export delivered; parametric lighting implemented with QA/architecture/mechanism approval. Final artifact/close status lives in task.md.
+    Action: See docs/SPRINT_LIGHTING.md for LT-1–LT-5 and docs/SPRINT_ASSET_EXPORT.md for AE-1–AE-8 actual evidence; keep task.md as the sole task board. Prior gameplay evidence remains in agents/chat_archive/CHAT_sprint-2-acceptance.md.
+
+## Parametric Lighting Follow-Up — `sprint-2-lighting`
+
+[Accepted stories LT-1–LT-5 and actual evidence](SPRINT_LIGHTING.md) implement ADR-012: one validated local RGB transform for indexed, pure RGBA and procedural dungeon colors. Source masks/alpha, fullbright UI and carried cursor, immutable assets and gameplay light/torch rules remain intact. Raw export stays independent; no runtime truecolor loader or emissive classification ships.
+
+Final evidence:250tests/37files plus lint/types and build; actual original/fallback Chromium26scenes/98checks with no browser errors. QA, architecture and Tank mechanism approval are recorded; Smith final actual-artifact approval/local close remain in shared chat and root task.md. Combat remains Sprint3.
 
 ## Asset Export Follow-Up — `sprint-2-assets`
 
-The current bounded follow-up delivers inspectable original sprites and a repeatable local export/review workflow before later lighting/campaign-pack work. [Combined product/architecture scope](SPRINT_ASSET_EXPORT.md) contains Story A (individual PNGs/manifest for artwork maintenance), Story B (actionable, safe, repeatable contributor automation), and accepted criteria AE-1–AE-8.
+This delivered bounded follow-up provides inspectable original sprites and a repeatable local export/review workflow before later lighting/campaign-pack work. [Combined product/architecture scope](SPRINT_ASSET_EXPORT.md) contains Story A (individual PNGs/manifest for artwork maintenance), Story B (actionable, safe, repeatable contributor automation), and accepted criteria AE-1–AE-8.
 
 Implementation exports one indexed PNG per raw sprite with original palette data, index0 transparency, deterministic portable manifest metadata and sparse verified labels. Real CLI inputs without full source palette562 fail rather than substitute fallback colors. Independent native PNG review and safe ignored output cover the tool/artifact UX boundary; unchanged game-input scenarios do not need to be replayed for this offline tool. Combat/progression retains roadmap **Sprint 3** and is not included in this follow-up.
 

@@ -1,10 +1,10 @@
 # Agent State
 
 ## Context
-Asset exporter sprint-2-assets delivered locally. ADR-011 requires complete original palette562; raw index0 transparency is an export policy, not a runtime mask migration. All AE1–8 and QA/architecture/Tank/Smith gates passed.
+Lighting delivered locally with250tests/lint/types/build and26browser scenes/98checks, archived and launched; changes remain uncommitted. User authorized next bounded catalog/runtime-mask policy sprint. ADR009 full semantic classification remains backlog; ADR011 raw export and ADR012 lighting remain independent.
 
 ## Current Task
-Complete100%: both phases, documentation grooming, seven domain retrospectives and evidence archive. Cypher local launch recorded. Final31affected tests/lint/types and fresh535native PNGs/1,690,768pixels passed; earlier226 aggregate/build precede final isolated guard. Summary: ../cypher.docs/Asset_Export_Close_Summary_2026-11-03T18-29.md.
+Catalog chat archive complete. Full chat/diagram stored under `agents/chat_archive/CHAT_sprint-2-catalog*` and live CHAT reset to pointer. All docs/gates/retrospectives complete. Summary `Catalog_Archive_Summary_2026-11-06T15-25.md`.
 
 ## Next Steps
-No active implementation. User can inspect build/sprites/manifest.json and build/sprite-export-review/overview.png. Lighting and semantic classification precede campaign packs; combat remains Sprint3. Retain serial Make and bounded testing. No automatic commit/push/deploy; trace-tooling repair remains backlog.
+@Cypher announce local sprint completion, then @Mouse mark P2.3 complete. No reruns/commit/push/deploy.

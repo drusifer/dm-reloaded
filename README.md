@@ -26,7 +26,7 @@ A browser recreation of FTL Games' Commodore Amiga first-person real-time dungeo
 - Paperdoll inventory has equipment slots, 17 backpack slots, chest contents, scroll inspection, numeric HP/ST/MP, food/water and load indicators.
 - Items persist across inventory, cursor hand, floor quadrants, alcoves and flying projectiles. Fountains, matching keys, torches, food, sleep, champion bones and Vi Altars interact with the pure 6 Hz simulation.
 - New pickup, throw, drink, lock and death cues default to synthesized sounds. The soundboard can assign original samples, synthesis or explicit silence.
-- The glyph contact sheet (`G`) shows decoded sprites for inspection and later classification.
+- The sprite catalog (`G`) searches decoded sprites by raw index or verified key, combines category/knowledge filters, and persistently shows source dimensions, evidence, usage-specific crop/mask policy and raw-versus-runtime previews. The supplied original archive currently reports **535 records: 39 verified roles and 496 explicitly unclassified**; generated fallback art never inherits DM1 identities.
 
 ## Controls
 
@@ -45,6 +45,8 @@ A browser recreation of FTL Games' Commodore Amiga first-person real-time dungeo
 
 Validation on 2026-11-03: **177 aggregate tests + 2 additional independent QA tests**, ESLint, strict TypeScript and production build passed; **27 live Chromium interaction checks** passed with no browser exceptions. QA, architecture and Smith end-to-end approval are recorded in the [final Sprint 2 acceptance archive](agents/chat_archive/CHAT_sprint-2-acceptance.md).
 
+Catalog validation on 2026-11-06: **268 aggregate tests**, ESLint, strict TypeScript and production build passed after **3 independent catalog-inspection tests**; the actual `G` browser review passed **570 checks with 9 inspected captures and zero browser exceptions**. Raw manifest/source hashes and all 535 PNG bytes remained compatible. See the [catalog sprint evidence](docs/SPRINT_SPRITE_CATALOG.md).
+
 ## Current Limits
 
 Special wall ornaments and skulls use recognizable procedural art until original sprite classification is verified; world items use perspective-scaled inventory icons. Scroll parchment wraps and truncates long text with an ellipsis; inspection retains the transcript in game messages. Combat, spells, monsters, persistent saves and campaign-pack loading remain later work. The separate BobProtocol trace audit currently lacks its Python `jinja2` dependency; this does not represent a passing audit.
@@ -60,6 +62,7 @@ bobp make dev              # Launch Vite dev server on http://127.0.0.1:5173
 bobp make build            # Build production bundle into dist/
 bobp make visual-review    # Capture live Chromium rendering scenes
 bobp make visual-review ARGS=--interactions  # Also exercise actual browser input
+bobp make visual-review ARGS=--catalog       # Review the actual searchable sprite catalog
 ```
 
 ## Export original sprites
@@ -80,9 +83,16 @@ Set `SPRITE_INPUT` and `SPRITE_OUTPUT` consistently for both commands to use ano
 
 These are raw indexed exports: index 0 is transparent and other palette entries are opaque. Current runtime sprites sometimes use other masks, so these PNGs are not universally ready for runtime replacement. Lighting filters and campaign-pack loading remain later work. Original assets, exported PNGs and review evidence stay local and gitignored.
 
+## Inspect the verified sprite catalog
+
+Press `G` in the running game or use **SPRITES [G]**. Search by numeric source index or verified semantic key, combine category and knowledge filters, choose a sprite with labelled keyboard controls, and compare raw index-0, raw opaque and verified-usage interpretations. Usage previews keep raw source IDs distinct from crops: for example item icon 7 is a `16×16` crop from atlas 42. Door slabs disclose sprite 301 as a conditional bashed-door stencil without pretending it is composited into the ordinary preview.
+
+“Verified role” means an evidence-backed role or adapter—not complete identification of every part of an image. Unknown and generated entries retain raw inspection views but advertise no invented runtime policy. `Escape` closes from the search field and restores focus; copy failures provide a manual-copy fallback. Review evidence is written under ignored `build/catalog-review/` by `bobp make visual-review ARGS=--catalog`.
+
 ## Documentation Index
 
 - **[SPRINT_ASSET_EXPORT.md](docs/SPRINT_ASSET_EXPORT.md)** — Exporter scope and acceptance evidence
+- **[SPRINT_SPRITE_CATALOG.md](docs/SPRINT_SPRITE_CATALOG.md)** — Source-aware catalog, usage masks and actual inspector evidence
 - **[SDLC.md](docs/SDLC.md)** — Tank-owned toolchain, quality gates, change management and release workflow
 - **[PRD.md](docs/PRD.md)** — Product Vision, Dual-Mode Asset Strategy, Mechanics, and Trilogy Roadmap
 - **[USER_STORIES.md](docs/USER_STORIES.md)** — Sprint 2 Stories and archived Sprint 1 Acceptance Criteria
@@ -90,3 +100,16 @@ These are raw indexed exports: index 0 is transparent and other palette entries 
 - **[DECISIONS.md](docs/DECISIONS.md)** — Product & Architectural Decision Records (`PDR-001`, `ADR-001..009`)
 - **[task.md](task.md)** — Sprint Task Board (Single Source of Truth)
 - **[agents/DOCUMENTATION_INDEX.md](agents/DOCUMENTATION_INDEX.md)** — BobProtocol Persona & Skill Reference
+
+## Tune dungeon lighting
+
+Edit [src/render/lighting.json](src/render/lighting.json) to tune the shared world-color filter. The profile is imported locally and validated before rendering; it needs no extra service or sprite variants.
+
+| Setting | Range / meaning |
+|---|---|
+| `brightnessExponent` | Finite number greater than 0; curves effective light from 0–5. Default 1. |
+| `depthMultipliers` | Four nonincreasing values from 0–1 for depths 0–3. Default `[1,1,0.8,0.6]`. |
+| `tint` / `tintStrength` | Three normalized RGB multipliers and a blend strength from 0–1. Default white, strength 0. |
+| `desaturation` | Blend toward luminance from 0–1. Default 0. |
+
+The filter desaturates base RGB, multiplies by the tint blend and light/depth brightness, then rounds once to bytes. Zero light stays black. HUD, inventory, automap and carried cursor use the original full-bright palette. Source-index masks remain unchanged. The RGBA helper applies the same color formula while preserving alpha; runtime PNG/campaign-pack loading remains future work. See [lighting sprint scope](docs/SPRINT_LIGHTING.md) for the formula and acceptance evidence.

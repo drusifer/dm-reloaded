@@ -1,13 +1,10 @@
 /** Deterministic raw indexed PNG/manifest construction, without filesystem or browser effects. */
+import { dm1ExportMetadata } from '../data/spriteCatalog';
 import { createHash } from 'node:crypto';
 import { deflateSync } from 'node:zlib';
 import type { DecodedSprite, GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
 
 const PNG_SIGNATURE = Buffer.from([137,80,78,71,13,10,26,10]);
-const SEMANTIC_KEYS: Readonly<Record<number,readonly string[]>> = {
-  17:['inventory.panel'],23:['inventory.scroll'],25:['inventory.chest'],27:['inventory.stats']
-};
-const UI_SPRITES = new Set([1,13,14,17,23,25,26,27,40]);
 const CRC_TABLE = Uint32Array.from({length:256},(_,value)=>{
   let crc=value;
   for(let bit=0;bit<8;bit++) crc=(crc&1)!==0?0xedb88320^(crc>>>1):crc>>>1;
@@ -77,12 +74,7 @@ export function encodeIndexedPng(sprite:DecodedSprite,palette:readonly RgbColor[
     chunk('tRNS',transparency),chunk('IDAT',deflateSync(rows)),chunk('IEND',new Uint8Array())]);
 }
 
-function category(index:number):SpriteManifestEntry['category'] {
-  if(UI_SPRITES.has(index)) return 'ui';
-  if(index>=42&&index<=48) return 'items';
-  if((index>=75&&index<=89)||(index>=108&&index<=119)||index===301||index===315) return 'dungeon';
-  return 'unclassified';
-}
+
 
 /** Build sorted portable artifacts; raw export transparency is not a runtime masking migration. */
 export function createSpriteExport(graphics:GraphicsBundle,source:{readonly fileName:string;readonly bytes:Uint8Array}):SpriteExport {
@@ -96,10 +88,11 @@ export function createSpriteExport(graphics:GraphicsBundle,source:{readonly file
   const pngFiles=new Map<string,Uint8Array>(),sprites:SpriteManifestEntry[]=[];
   for(const [index,sprite] of [...graphics.sprites].sort(([a],[b])=>a-b)) {
     if(!Number.isSafeInteger(index)||index<0||index!==sprite.index) throw new Error('Decoded sprite map keys must match unique non-negative source indices.');
-    const group=category(index),path=`${group}/${index}_${sprite.width}x${sprite.height}.png`;
+    const metadata=dm1ExportMetadata(index);
+    const group=metadata.category,path=`${group}/${index}_${sprite.width}x${sprite.height}.png`;
     const png=encodeIndexedPng(sprite,palette);
     pngFiles.set(path,png);
-    sprites.push({index,width:sprite.width,height:sprite.height,category:group,path,semanticKeys:[...(SEMANTIC_KEYS[index]??[])],sha256:hash(png)});
+    sprites.push({index,width:sprite.width,height:sprite.height,category:group,path,semanticKeys:[...metadata.semanticKeys],sha256:hash(png)});
   }
   const manifest:SpriteManifest={schemaVersion:1,source:{fileName,sha256:hash(source.bytes)},
     palette:palette.map(color=>[...color] as RgbColor),

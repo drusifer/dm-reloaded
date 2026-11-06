@@ -1,0 +1,7 @@
+# Lighting Final Architecture Review
+
+PASS after Trin independent QA and Tank mechanism approval. RGB/palette/RGBA share one immutable formula and validated copied profile. The adapter now requires16basecolors after QA regression; it derives only the brightest source palette. All42procedural RGB fallbacks were unreachable behind this invariant and were removed, so indexed sprites, side projection, doors and teleporters use one derived depth palette. No geometry, framebuffer masks, gameplay, raw export or dependency changes.
+
+Independent side projection tests establish actual LEFT/RIGHT feature/item participation with distinct literal RGB values at light2/depth2. Source-index0/10, opaque black, clipping/flipping/scaling, alpha0/128/255, profile boundaries and exact golden color vectors passed. Final250tests/37files plus ESLint/strictTS passed19:18:17; productionbuild passed19:18:59. Actual browser26scenes/98checks at19:17:04 cover original/fallback with no browser errors. Root inspected low/full/dark corridors and UI/cursor/inventory captures; no visible blocker.
+
+The lighting runner uses existing pinned Playwright/strict5197 and separate guarded ignored evidence; no claim of newly running old29interaction cases or negative evidence tests. Tank approved mechanism/SDLC. Complete Oracle grooming, mandatory Smith actual-artifact approval, retros and local Cypher close. Runtime PNG/truecolor loading, full classification and emissive artwork remain future scope.

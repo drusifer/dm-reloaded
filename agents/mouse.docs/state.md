@@ -1,10 +1,10 @@
 # Agent State
 
 ## Context
-Asset exporter sprint-2-assets delivered locally. ADR-011 requires complete original palette562; raw index0 transparency is an export policy, not a runtime mask migration. All AE1–8 and QA/architecture/Tank/Smith gates passed.
+`sprint-2-catalog` follows the completed, uncommitted lighting sprint. SC1–SC5, Oracle policy, both Smith planning gates, Phase1 implementation, independent QA and Morpheus review are complete. Raw export schema/bytes and the four legacy aliases must remain fixed; generated `CLEAN_ROOM` indices never inherit DM1 identity. User forbids `:` in filenames. Root `task.md` is the sole board and all project checks run serially through `bobp make`.
 
 ## Current Task
-Complete100%: both phases, documentation grooming, seven domain retrospectives and evidence archive. Cypher local launch recorded. Final31affected tests/lint/types and fresh535native PNGs/1,690,768pixels passed; earlier226 aggregate/build precede final isolated guard. Summary: ../cypher.docs/Asset_Export_Close_Summary_2026-11-03T18-29.md.
+`sprint-2-catalog` board CLOSED100%. All Phase1/Phase2 tasks checked after archive and Cypher local announcement. Evidence:535 measured/39verified/496unknown, browser570/9, independent3/3, aggregate268/268/build and all review/docs/retro gates. No commit/push/release/deploy.
 
 ## Next Steps
-No active implementation. User can inspect build/sprites/manifest.json and build/sprite-export-review/overview.png. Lighting and semantic classification precede campaign packs; combat remains Sprint3. Retain serial Make and bounded testing. No automatic commit/push/deploy; trace-tooling repair remains backlog.
+Sprint complete. Future backlog remains full evidence-backed classification/editor, runtime pack loader, dense usage-list polish and trace/shared-log tooling repair. Await user direction; no automatic commit/push/deploy.

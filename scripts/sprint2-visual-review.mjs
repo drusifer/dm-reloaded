@@ -1,9 +1,15 @@
 /** Live browser renderer evidence for the Sprint 2 Smith gate. Run with bobp make visual-review. */
 import { existsSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { delimiter, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { lstat, mkdir, realpath, writeFile } from 'node:fs/promises';
+import { delimiter, dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
+if (process.argv.includes('--catalog')) {
+  const { runCatalogReview } = await import('./sprite-catalog-review.mjs');
+  await runCatalogReview();
+} else if (process.argv.includes('--lighting')) {
+  await runLightingReview();
+} else {
 const modulePath = process.env.PLAYWRIGHT_MODULE ?? process.env.PATH.split(delimiter)
   .map(bin => resolve(bin, '../playwright/index.mjs')).find(path => existsSync(path));
 if (!modulePath) throw new Error('Run through bobp make visual-review to provide Playwright.');
@@ -232,4 +238,166 @@ try {
 } finally {
   await browser?.close();
   server.kill();
+}
+
+}
+
+/** Lighting-only mode keeps legacy scenes/interactions unchanged and owns separate evidence. */
+async function lightingEvidenceFile(name) {
+  const project = await realpath(fileURLToPath(new URL('../', import.meta.url)));
+  let current = project;
+  for (const part of ['build', 'lighting-review']) {
+    current = resolve(current, part);
+    let info;
+    try { info = await lstat(current); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (info && (info.isSymbolicLink() || !info.isDirectory())) throw new Error('Lighting evidence directories must be real project directories.');
+    if (!info) await mkdir(current);
+  }
+  const destination = resolve(current, name);
+  if (dirname(destination) !== current || name.includes(':')) throw new Error('Lighting evidence filenames must be portable direct children.');
+  let info;
+  try { info = await lstat(destination); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (info && (info.isSymbolicLink() || !info.isFile())) throw new Error('Lighting evidence files must not be symlinks or non-files.');
+  return destination;
+}
+async function lightingReport(value) {
+  await writeFile(await lightingEvidenceFile('report.json'), JSON.stringify(value, null, 2) + '\n');
+}
+async function runLightingReview() {
+  let server, browser;
+  const errors = [];
+  try {
+    await lightingReport({ passed: false, status: 'running', browserErrors: [] });
+    const modulePath = process.env.PLAYWRIGHT_MODULE ?? (process.env.PATH ?? '').split(delimiter)
+      .map(bin => resolve(bin, '../playwright/index.mjs')).find(path => existsSync(path));
+    if (!modulePath) throw new Error('Use bobp make visual-review ARGS=--lighting to provide Playwright.');
+    const { chromium } = await import(pathToFileURL(modulePath).href);
+    const port = 5197;
+    server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { stdio: 'pipe' });
+    let startupLog = '';
+    for (const stream of [server.stdout, server.stderr]) stream.on('data', chunk => { startupLog = (startupLog + chunk.toString()).slice(-2048); });
+    for (let attempt = 0; ; attempt++) {
+      if (server.exitCode !== null) throw new Error(`Lighting Vite server stopped; port ${port} must be free. ${startupLog.trim()}`);
+      try {
+        if ((await fetch(`http://127.0.0.1:${port}`, { signal: AbortSignal.timeout(1000) })).ok) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          if (server.exitCode !== null) throw new Error(`Lighting Vite server could not own port ${port}: ${startupLog.trim()}`);
+          break;
+        }
+      } catch (error) { if (server.exitCode !== null) throw error; }
+      if (attempt > 80) throw new Error('Lighting Vite server did not start.');
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage({ viewport: { width: 960, height: 600 } });
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(`http://127.0.0.1:${port}`);
+    const result = await page.evaluate(async () => {
+      const data = await import('/src/data/index.ts');
+      const render = await import('/src/render/index.ts');
+      const fixture = await import('/tests/engine/testkit.ts');
+      const inventory = await import('/src/engine/inventory.ts');
+      const cases = [], captures = [], checks = [];
+      const check = (condition, message) => { if (!condition) throw new Error(message); checks.push(message); };
+      let original = null, absence = null;
+      try {
+        const response = await fetch('/assets/extracted/dm1/graphics.dat');
+        if (!response.ok || (response.headers.get('content-type') ?? '').includes('text/html')) absence = 'Original graphics.dat is unavailable.';
+        else {
+          original = data.parseGraphicsDat(new Uint8Array(await response.arrayBuffer()));
+          if (!original.sprites.size) { original = null; absence = 'Original source contained no decoded sprites.'; }
+        }
+      } catch (error) { absence = `Original graphics.dat could not be parsed: ${error.message}`; }
+      const modes = [['fallback', data.createCleanRoomGraphicsBundle()], ...(original ? [['original', original]] : [])];
+      const base = fixture.withItem(fixture.withItem(fixture.partyOf('iaido'), 'lighting-world-torch', 'TORCH', { charges: 15 }), 'lighting-cursor-torch', 'TORCH', { charges: 15 });
+      const champion = base.party.champions[0];
+      const cleanHero = { ...champion, inventory: { slots: Object.fromEntries(Object.keys(champion.inventory.slots).map(slot => [slot, null])), backpack: champion.inventory.backpack.map(() => null) } };
+      const makeState = (ambient, depth, kind = 'world') => {
+        const tile = type => ({ type, rawFlags: 0, wallFeatures: [], actuators: [], itemNames: [] });
+        const tiles = Array.from({ length: 9 }, (_, y) => Array.from({ length: 9 }, (_, x) => tile(x === 4 && y >= 1 && y <= 7 ? 'FLOOR' : 'WALL')));
+        tiles[7 - depth][4] = { ...tile('WALL'), wallFeatures: [{ face: 2, kind: 'ALCOVE' }], wallItems: { 0: [], 1: [], 2: ['cr_dagger_1'], 3: [] } };
+        tiles[7][4] = { ...tile('FLOOR'), floorItems: { 0: ['lighting-world-torch'], 1: [], 2: [], 3: [] } };
+        return { ...base, messages: ['LIGHTING REVIEW FIXTURE'], activeMirror: null, gameOver: false,
+          handItem: kind === 'world' ? null : 'lighting-cursor-torch', openInventoryChampionIndex: kind === 'inventory' ? 0 : null,
+          party: { ...base.party, level: 0, x: 4, y: 7, facing: 0, torchLight: 0, sleeping: false, champions: [cleanHero] },
+          levels: [{ ...base.levels[0], id: 0, width: 9, height: 9, ambientLight: ambient, tiles }] };
+      };
+      const frame = (state, graphics, pointer = null) => {
+        const fb = new render.Framebuffer(); render.renderFrame(fb, state, { graphics, pointer }); return fb;
+      };
+      const viewportMetrics = fb => {
+        let intensity = 0, colored = 0;
+        for (let y = 33; y < 169; y++) for (let x = 0; x < 224; x++) {
+          const sum = fb.getPixel(x, y).reduce((a, b) => a + b, 0); intensity += sum; if (sum) colored++;
+        }
+        return { intensity, colored };
+      };
+      const different = (a, b, rect) => {
+        let count = 0;
+        for (let y = rect.y; y < rect.y + rect.h; y++) for (let x = rect.x; x < rect.x + rect.w; x++) if (a.getPixel(x, y).some((value, i) => value !== b.getPixel(x, y)[i])) count++;
+        return count;
+      };
+      const sameUi = (a, b) => {
+        for (let y = 0; y < 200; y++) for (let x = 0; x < 320; x++) {
+          if (x < 224 && y >= 33 && y < 169) continue;
+          if (x >= 224 && y >= 55 && y < 70) continue; // LIGHT status text legitimately changes.
+          if (a.getPixel(x, y).some((value, i) => value !== b.getPixel(x, y)[i])) return false;
+        }
+        return true;
+      };
+      const capture = (name, fb) => {
+        const canvas = document.createElement('canvas'); canvas.width = 320; canvas.height = 200;
+        canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(fb.rgba), 320, 200), 0, 0);
+        captures.push({ name, png: canvas.toDataURL('image/png') });
+      };
+      for (const [mode, graphics] of modes) {
+        for (const depth of [1, 2, 3]) {
+          const frames = [], energies = [];
+          for (const ambient of [0, 1, 5]) {
+            const state = makeState(ambient, depth), snapshot = JSON.stringify(state);
+            const effective = Math.max(0, Math.min(5, ambient + inventory.partyLightBonus(state)));
+            check(effective === ambient, `${mode} world matrix has no equipment/cursor/base torch contribution at light${ambient},depth${depth}`);
+            const fb = frame(state, graphics), metrics = viewportMetrics(fb), repeated = frame(state, graphics);
+            check(fb.rgba.every((value, i) => value === repeated.rgba[i]) && snapshot === JSON.stringify(state), `${mode} light${ambient},depth${depth} frame deterministic/state immutable`);
+            check(ambient === 0 ? metrics.colored === 0 : metrics.colored > 0, `${mode} light${ambient},depth${depth} world darkness/visibility`);
+            const noTorch = { ...state, levels: [{ ...state.levels[0], tiles: state.levels[0].tiles.map((row, y) => row.map((tile, x) => x === 4 && y === 7 ? { ...tile, floorItems: { 0: [], 1: [], 2: [], 3: [] } } : tile)) }] };
+            const torchPixels = different(fb, frame(noTorch, graphics), { x: 0, y: 33, w: 224, h: 136 });
+            check(ambient === 0 ? torchPixels === 0 : torchPixels > 0, `${mode} light${ambient},depth${depth} complete world torch participates in world lighting`);
+            const name = `${mode}-world-light${ambient}-depth${depth}`;
+            cases.push({ name, mode, kind: 'world', ambientLight: ambient, effectiveLight: effective, featureDepth: depth, worldIntensity: metrics.intensity, worldTorchPixels: torchPixels });
+            capture(name, fb); frames.push(fb); energies.push(metrics.intensity);
+          }
+          check(energies[0] === 0 && energies[1] > 0 && energies[2] > energies[1], `${mode} depth${depth} actual rendered light response`);
+          check(sameUi(frames[0], frames[1]) && sameUi(frames[1], frames[2]), `${mode} depth${depth} UI colors stable except dynamic LIGHT text`);
+        }
+        for (const kind of ['inventory', 'cursor']) {
+          const frames = [];
+          for (const ambient of [0, 5]) {
+            const state = makeState(ambient, 1, kind), pointer = { x: 290, y: 95 };
+            const effective = Math.max(0, Math.min(5, ambient + inventory.partyLightBonus(state)));
+            const fb = frame(state, graphics, pointer);
+            check(different(fb, frame(state, graphics), { x: 282, y: 87, w: 16, h: 16 }) > 0, `${mode} ${kind} ambient${ambient} full-bright complete torch cursor visible`);
+            const name = `${mode}-${kind}-ambient${ambient}-effective${effective}`;
+            cases.push({ name, mode, kind, ambientLight: ambient, effectiveLight: effective, featureDepth: 1 });
+            capture(name, fb); frames.push(fb);
+          }
+          check(sameUi(frames[0], frames[1]), `${mode} ${kind} outside-viewport UI unchanged`);
+          if (kind === 'inventory') check(different(frames[0], frames[1], { x: 0, y: 33, w: 224, h: 136 }) === 0, `${mode} inventory stays full-bright independent of dungeon light`);
+        }
+      }
+      return { cases, captures, checks, sourceAvailability: { fallback: true, original: Boolean(original), originalSpriteCount: original?.sprites.size ?? 0, originalUnavailableReason: absence } };
+    });
+    for (const capture of result.captures) await writeFile(await lightingEvidenceFile(`${capture.name}.png`), Buffer.from(capture.png.split(',')[1], 'base64'));
+    if (errors.length) throw new Error(errors.join('; '));
+    const complete = result.sourceAvailability.original;
+    await lightingReport({ passed: complete, status: complete ? 'passed' : 'partial', browserErrors: errors,
+      sourceAvailability: result.sourceAvailability, cases: result.cases, checks: result.checks,
+      captureCount: result.captures.length, note: 'UI comparison excludes only dynamic LIGHT status text; world matrix clears party/equipment/cursor torch contributions. Original absence is not a full LT5 pass.' });
+    console.log(`Lighting review: ${result.cases.length} cases/${result.checks.length} measured checks; original=${complete ? 'available' : 'unavailable'}; evidence build/lighting-review/report.json.`);
+    if (!complete) process.exitCode = 1;
+  } catch (error) {
+    try { await lightingReport({ passed: false, status: 'failed', error: error.message, browserErrors: errors }); }
+    catch (reportError) { console.error(`Lighting failure evidence could not be updated safely: ${reportError.message}`); }
+    console.error(`Lighting review failed: ${error.message}`); process.exitCode = 1;
+  } finally { await browser?.close(); server?.kill(); }
 }

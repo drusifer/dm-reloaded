@@ -1,15 +1,12 @@
 # Agent State
 
 ## Context
-- sprint-2-assets final end-to-end CLI/artifact gate APPROVED after Oracle grooming handoff18:27:24.
-- LoadedSmith instructions/state/chat; inspected actualhelp18:19, finalnative535report18:18:07 and overviewPNG(panel17,torchitematlas42,wall87). Art crisp/plausible and dimensions correct; rawindex0 transparency caveat and unknownclassification honest.
-- Native evidence535PNGs/1,690,768pixels/sourceunchanged/errors[]. ActualCLI corruption/ownership/rerun and reviewfailure/help evidence inspected; noUXblocker.
-- AE1–8 matrix crosschecked with Trin and Tank final approval. Final31affected+lint/types andnative followstrictpalette correction;226aggregatepredatesguard. No redundanttests/Makecalls inSmithgate.
+- sprint-2-catalog SC1–5 reviewed againstactualSpriteSource/contactsheet/export/Oraclepolicy. Raw535coverage≠completeidentity; rawexportschema1/4aliases/PNG+manifestbytes unchanged.
+- Gate1storiesapproved19:36:01. InitialGate2rejectfornumericgeneratedart inheritingDM1facts resolved by explicit originalsourceguard beforeANYDM1category/alias/usage facts; CLEAN_ROOM17/42matchingdims negativefixture required. LegacySpriteSourcebehavior retainedseparately.
+- Usage/crop-specific opaque/0/10/special301 policies, honestunknowns and labelledkeyboard/filter/details/Escape/focus UX acceptable. No remainingplanningblocker.
 
 ## Current Task
-FinalUXgate100%complete; explicitapproval and Smithdomainretro postedCHAT18:28:19. Summary agents/smith.docs/Asset_Final_UX_Review_Summary_2026-11-03T18-28.md. Oracle grooming complete; nexthandoffTrinretro thenparentCypherclose. No source/checkworkpending.
+Catalog UX retrospective complete. Persistent labels and honest raw/usage/provenance language worked; future reviews should include narrow/long-content layout earlier. A future editor may add progressive disclosure but must preserve provenance/empty/error honesty. Summary `Catalog_Retro_Summary_2026-11-06T15-24.md`.
 
 ## Next Steps
-1. Smithapproval/retro/handoffTrin complete18:28:19; parent proceeds after Trinretro.
-2. Parent consolidatesretros/archive and Cypherlocalclose. Do notarchive/editboard/MakefromSmith.
-3. Futuretool UX retains honest transparency/classification, actionableerrors, failedstatusreports and actualartifactinspection.
+@Mouse record coordination retro and close root task.md, then Oracle archive and Cypher local launch. No reruns/commit/push/deploy.

@@ -1,11 +1,11 @@
 /** Semantic campaign sprite adapter; raw DM1 indices remain inside this module. */
+import { itemIconAddress, panelSourceIndex } from '../data/spriteCatalog';
 import type { DecodedSprite, GraphicsBundle } from '../data/graphicsDatParser';
 
 export type SpriteKey = 'inventory.panel' | 'inventory.chest' | 'inventory.scroll' | 'inventory.stats' |
   'inventory.skull' | 'inventory.mouth' | 'inventory.eye' | 'inventory.save' | 'inventory.sleep' |
   'wall.alcove' | 'wall.fountain' | 'wall.keyhole' | 'wall.altar' | `item.icon.${number}`;
 export interface SpriteSource { getSprite(key: SpriteKey): DecodedSprite }
-const PANELS = { 'inventory.panel': 17, 'inventory.chest': 25, 'inventory.scroll': 23, 'inventory.stats': 27 } as const;
 const cache = new WeakMap<GraphicsBundle, SpriteSource>();
 
 /** Provide semantic sprites, cropping DM1 icon sheets and generating missing clean-room art. */
@@ -16,21 +16,23 @@ export function createSpriteSource(graphics?: GraphicsBundle): SpriteSource {
     const previous = resolved.get(key);
     if (previous) return previous;
     let sprite: DecodedSprite | undefined;
-    if (key in PANELS) sprite = graphics?.sprites.get(PANELS[key as keyof typeof PANELS]);
+    const panelIndex = panelSourceIndex(key);
+    if (panelIndex !== undefined) sprite = graphics?.sprites.get(panelIndex);
     if (key.startsWith('item.icon.')) {
       const icon = Number(key.slice(10));
-      if (Number.isInteger(icon) && icon >= 0 && icon < 224) {
-        const sheet = graphics?.sprites.get(42 + Math.floor(icon / 32));
+      const address = itemIconAddress(icon);
+      if (address) {
+        const sheet = graphics?.sprites.get(address.rawSourceIndex);
         if (sheet && sheet.width === 256 && sheet.height === 32) {
           const pixels = new Uint8Array(256);
-          const sx = (icon % 16) * 16, sy = Math.floor((icon % 32) / 16) * 16;
+          const { x: sx, y: sy } = address.crop;
           for (let y = 0; y < 16; y++) pixels.set(sheet.pixels.subarray((sy + y) * 256 + sx, (sy + y) * 256 + sx + 16), y * 16);
           sprite = { index: icon, width: 16, height: 16, pixels };
         }
       }
     }
     if (!sprite) {
-      const panel = key in PANELS;
+      const panel = panelIndex !== undefined;
       const width = key === 'inventory.panel' ? 224 : panel ? 144 : 16;
       const height = key === 'inventory.panel' ? 136 : panel ? 73 : 16;
       const pixels = new Uint8Array(width * height);

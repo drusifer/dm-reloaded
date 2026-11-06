@@ -64,3 +64,20 @@ Original sheet42 icons4..7 progress from unlit to full flame, not fresh to burne
 - Native image pixels alone cannot verify unused palette/alpha entries. Compare every PLTE color and normalizedtRNS entry as well as every decoded pixel; independent valid-CRC, updated-hash tampering regressions prove the distinction.
 - Review output is evidence: initialize it incomplete and invalidate failed runs, guard every representative/report/overview destination against aliases, and keep it outside the export tree.
 - Preserve check chronology. Earlier226aggregate/build passed before final strictguard; final31affected suites, lint/types and fresh535PNG/1,690,768pixel/source-unchanged review passed afterward. Do not label earlier full checks as post-fix. No unchanged-code baseline rerun or unavailable trace-audit pass is implied.
+
+
+## Lesson 011 — Validate Lighting Boundaries and Measure Actual Draw Paths (2026-11-03)
+
+- Derive depth colors once from a complete immutable brightest palette. Require exactly16dense colors at the adapter boundary; remove unreachable literal fallbacks rather than applying a second transform. Preserve source-index masks before color lookup, even when colors collapse to black.
+- A nonblack scene can pass while the target feature never draws. Independent left/right projection markers must prove the actual item/feature appears with a known once-transformed RGB value; sample real frustum geometry.
+- Controlled ambient-light screenshots must remove equipped/carried light bonuses and record actual effective light. Held-torch UI cases need their own effective-level record. Compare stable UI pixels while excluding only legitimate changing LIGHT status text.
+- Keep isolated browser evidence honest:26lighting scenes/98checks with both sources differs from the old29interaction report. Failed/partial lighting runs invalidate success evidence; no general legacy-runner hardening is implied. Final250aggregate/lint/types/build followed all source and QA changes; actual screenshots remain a separate Smith gate.
+
+
+## Lesson 012 — Separate Measured Coverage, Verified Identity and Usage Masks (2026-11-06)
+
+- A decoded record is not an identified sprite. Report measured coverage separately from evidence-backed roles; the original catalog currently has535records but only39verified roles, leaving496explicitly unclassified.
+- Source provenance is a hard identity boundary. Numeric IDs and dimensions in generated/CLEAN_ROOM data must not inherit DM1 categories, aliases or usages; legacy fallback lookup behavior is separate from catalog truth.
+- Transparency is a usage policy, not proof that a particular crop contains a transparent pixel. The actual torch icon7 crop has256colored pixels and zero index0 holes. Independent review must compare every nonzero source pixel, require transparent RGBA when index0 is actually present, and account for the full crop without inventing `holes > 0`.
+- Cross-sprite masks need explicit conditional relationships. Door110 may disclose auxiliary source301 when bashed while stating that the ordinary slab preview does not apply the compound mask; source301 remains a separate white/index0 stencil role.
+- Preserve failure chronology. The first actual catalog run failed the false torch-hole assertion; Oracle diagnosis and one harness-only correction produced a materially different retry that passed570checks/9captures with zero browser errors. Never erase the first failure or imply a third attempt.

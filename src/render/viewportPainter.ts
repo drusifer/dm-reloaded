@@ -133,10 +133,10 @@ function drawStoneWallRect(
   if (w <= 0 || h <= 0) {
     return;
   }
-  const base = palette[PALETTE_INDEX.MEDIUM_GRAY] ?? [100, 100, 100];
-  const dark = palette[PALETTE_INDEX.DARK_GRAY] ?? [60, 60, 60];
-  const mortar = palette[PALETTE_INDEX.DARKEST_GRAY_KEY] ?? [35, 35, 35];
-  const hi = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [150, 150, 150];
+  const base = palette[PALETTE_INDEX.MEDIUM_GRAY]!;
+  const dark = palette[PALETTE_INDEX.DARK_GRAY]!;
+  const mortar = palette[PALETTE_INDEX.DARKEST_GRAY_KEY]!;
+  const hi = palette[PALETTE_INDEX.LIGHT_GRAY]!;
 
   fb.fillRect(x, y, w, h, base);
   fb.strokeRect(x, y, w, h, mortar);
@@ -172,9 +172,9 @@ function drawSideWallTrapezoid(
   const xEnd = side === 'LEFT' ? frustum.leftInnerX : frustum.rightOuterX;
   const span = Math.max(1, xEnd - xStart);
 
-  const stone = palette[PALETTE_INDEX.DARK_GRAY] ?? [70, 70, 70];
-  const mortar = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
-  const hi = palette[PALETTE_INDEX.MEDIUM_GRAY] ?? [110, 110, 110];
+  const stone = palette[PALETTE_INDEX.DARK_GRAY]!;
+  const mortar = palette[PALETTE_INDEX.BLACK]!;
+  const hi = palette[PALETTE_INDEX.MEDIUM_GRAY]!;
 
   for (let dx = 0; dx < span; dx += 1) {
     const t = side === 'LEFT' ? dx / span : (span - 1 - dx) / span;
@@ -222,9 +222,9 @@ function drawWallFeatureOnFrontWall(
     const frameH = depth === 1 ? 40 : depth === 2 ? 24 : 14;
     const fx = cx - Math.floor(frameW / 2);
     const fy = cy - Math.floor(frameH / 2) - (depth === 1 ? 6 : 2);
-    const silver = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [180, 180, 180];
-    const cyan = palette[PALETTE_INDEX.CYAN] ?? [0, 180, 180];
-    const dark = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
+    const silver = palette[PALETTE_INDEX.LIGHT_GRAY]!;
+    const cyan = palette[PALETTE_INDEX.CYAN]!;
+    const dark = palette[PALETTE_INDEX.BLACK]!;
 
     fb.drawBevelBox(fx, fy, frameW, frameH, dark, silver, dark);
     fb.fillRect(fx + 2, fy + 2, frameW - 4, frameH - 4, cyan);
@@ -248,7 +248,7 @@ function drawWallFeatureOnFrontWall(
         label.slice(0, 6),
         fx + 4,
         fy + frameH + 3,
-        palette[PALETTE_INDEX.WHITE] ?? [220, 220, 220],
+        palette[PALETTE_INDEX.WHITE]!,
         bundle?.systemFont
       );
     }
@@ -256,16 +256,16 @@ function drawWallFeatureOnFrontWall(
   }
 
   if (feature.kind === 'SCONCE') {
-    const bracketColor = palette[PALETTE_INDEX.DARK_BROWN] ?? [90, 45, 0];
-    const woodColor = palette[PALETTE_INDEX.LIGHT_BROWN] ?? [140, 75, 0];
+    const bracketColor = palette[PALETTE_INDEX.DARK_BROWN]!;
+    const woodColor = palette[PALETTE_INDEX.LIGHT_BROWN]!;
     const sW = depth === 1 ? 6 : 4;
     const sH = depth === 1 ? 16 : 10;
     fb.fillRect(cx - Math.floor(sW / 2), cy - 2, sW, sH, bracketColor);
     if (feature.hasTorch) {
       fb.fillRect(cx - 1, cy - 6, 3, 8, woodColor);
       const flicker = (tick & 1) === 0;
-      const flameOuter = palette[PALETTE_INDEX.ORANGE] ?? [255, 160, 0];
-      const flameInner = palette[PALETTE_INDEX.YELLOW] ?? [255, 255, 0];
+      const flameOuter = palette[PALETTE_INDEX.ORANGE]!;
+      const flameInner = palette[PALETTE_INDEX.YELLOW]!;
       fb.fillRect(cx - (flicker ? 3 : 2), cy - 12, flicker ? 7 : 5, 6, flameOuter);
       fb.fillRect(cx - 1, cy - 10, 3, 4, flameInner);
     }
@@ -279,17 +279,17 @@ function drawWallFeatureOnFrontWall(
       cy - Math.floor(bSize / 2),
       bSize,
       bSize,
-      palette[PALETTE_INDEX.LIGHT_GRAY] ?? [160, 160, 160],
-      palette[PALETTE_INDEX.WHITE] ?? [230, 230, 230],
-      palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0]
+      palette[PALETTE_INDEX.LIGHT_GRAY]!,
+      palette[PALETTE_INDEX.WHITE]!,
+      palette[PALETTE_INDEX.BLACK]!
     );
     return;
   }
 
   if (feature.kind === 'INSCRIPTION' && feature.text && depth <= 2) {
     const lines = feature.text.split('\n').slice(0, 3);
-    const textColor = palette[PALETTE_INDEX.WHITE] ?? [220, 220, 220];
-    const shadowColor = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
+    const textColor = palette[PALETTE_INDEX.WHITE]!;
+    const shadowColor = palette[PALETTE_INDEX.BLACK]!;
     const plaqueW = Math.min(wallW - 8, Math.max(36, Math.max(...lines.map((l) => l.length)) * 6 + 6));
     const plaqueH = lines.length * 8 + 4;
     const px = cx - Math.floor(plaqueW / 2);
@@ -348,8 +348,8 @@ function drawCenterTileContents(
       const pitH = depth === 1 ? 14 : depth === 2 ? 8 : 5;
       const px = vpX + Math.floor((224 - pitW) / 2);
       const py = vpY + f.bottomInnerY + 2;
-      fb.fillRect(px, py, pitW, pitH, palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0]);
-      fb.strokeRect(px, py, pitW, pitH, palette[PALETTE_INDEX.DARK_GRAY] ?? [60, 60, 60]);
+      fb.fillRect(px, py, pitW, pitH, palette[PALETTE_INDEX.BLACK]!);
+      fb.strokeRect(px, py, pitW, pitH, palette[PALETTE_INDEX.DARK_GRAY]!);
     }
   }
 
@@ -371,9 +371,9 @@ function drawCenterTileContents(
     } else {
       const stepCount = 5;
       const stepH = Math.max(2, Math.floor(openH / (stepCount + 2)));
-      const dark = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
-      const light = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [160, 160, 160];
-      const mid = palette[PALETTE_INDEX.MEDIUM_GRAY] ?? [105, 105, 105];
+      const dark = palette[PALETTE_INDEX.BLACK]!;
+      const light = palette[PALETTE_INDEX.LIGHT_GRAY]!;
+      const mid = palette[PALETTE_INDEX.MEDIUM_GRAY]!;
       fb.fillRect(x0 + 4, y0 + 2, Math.max(8, openW - 8), openH - 2, dark);
       for (let s = 0; s < stepCount; s += 1) {
         const sy = tile.stairs.direction === 'UP'
@@ -526,7 +526,7 @@ function drawCenterTileContents(
                     fb.setPixel(
                       vpX + doorGeom.slabX + col,
                       vpY + doorGeom.slabY + row,
-                      palette[colorIdx] ?? [0, 0, 0]
+                      palette[colorIdx]!
                     );
                   }
                 }
@@ -552,15 +552,15 @@ function drawCenterTileContents(
           const closedFraction = progress === 5 ? 1 : progress / 4;
           const slabH = Math.max(2, Math.round(doorGeom.fullH * closedFraction));
           if (tile.door.material === 'WOODEN') {
-            const wood = palette[PALETTE_INDEX.LIGHT_BROWN] ?? [146, 73, 0];
-            const darkWood = palette[PALETTE_INDEX.DARK_BROWN] ?? [90, 36, 0];
+            const wood = palette[PALETTE_INDEX.LIGHT_BROWN]!;
+            const darkWood = palette[PALETTE_INDEX.DARK_BROWN]!;
             fb.fillRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY, doorGeom.slabW, slabH, wood);
             for (let px = vpX + doorGeom.slabX + 6; px < vpX + doorGeom.slabX + doorGeom.slabW; px += 8) {
               fb.fillRect(px, vpY + doorGeom.slabY, 1, slabH, darkWood);
             }
             fb.fillRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY + slabH - 2, doorGeom.slabW, 2, darkWood);
           } else if (tile.door.material === 'IRON_GRATE' || tile.door.material === 'METAL') {
-            const iron = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [160, 160, 160];
+            const iron = palette[PALETTE_INDEX.LIGHT_GRAY]!;
             const barStep = depth === 1 ? 8 : 5;
             for (let px = vpX + doorGeom.slabX + 3; px < vpX + doorGeom.slabX + doorGeom.slabW - 2; px += barStep) {
               fb.fillRect(px, vpY + doorGeom.slabY, 2, slabH, iron);
@@ -569,16 +569,16 @@ function drawCenterTileContents(
               fb.fillRect(vpX + doorGeom.slabX, py, doorGeom.slabW, 2, iron);
             }
           } else {
-            const magic = palette[PALETTE_INDEX.CYAN] ?? [0, 200, 200];
+            const magic = palette[PALETTE_INDEX.CYAN]!;
             fb.fillDitherRect(vpX + doorGeom.slabX, vpY + doorGeom.slabY, doorGeom.slabW, slabH, magic);
           }
         }
       }
 
       // 3b. Authentic 3D stone doorjambs (sprites 78, 79, 80) and top lintels (sprites 82, 83)
-      const frameDark = palette[PALETTE_INDEX.DARK_GRAY] ?? [72, 72, 72];
-      const frameLight = palette[PALETTE_INDEX.LIGHT_GRAY] ?? [155, 155, 155];
-      const frameBorder = palette[PALETTE_INDEX.BLACK] ?? [0, 0, 0];
+      const frameDark = palette[PALETTE_INDEX.DARK_GRAY]!;
+      const frameLight = palette[PALETTE_INDEX.LIGHT_GRAY]!;
+      const frameBorder = palette[PALETTE_INDEX.BLACK]!;
 
       const jambSprite = bundle?.sprites.get(doorGeom.jambId);
       if (jambSprite) {
@@ -665,8 +665,8 @@ function drawCenterTileContents(
             vpY + doorGeom.slabY + Math.floor(doorGeom.fullH * 0.42),
             btnW,
             btnH,
-            palette[PALETTE_INDEX.LIGHT_BROWN] ?? [150, 90, 20],
-            palette[PALETTE_INDEX.YELLOW] ?? [220, 200, 50],
+            palette[PALETTE_INDEX.LIGHT_BROWN]!,
+            palette[PALETTE_INDEX.YELLOW]!,
             frameBorder
           );
         }
@@ -676,8 +676,8 @@ function drawCenterTileContents(
 
   // 4. Blue Teleporter Haze (visible at depths 0..3 when active & visibleHaze)
   if (tile.type === 'TELEPORTER' && tile.teleporter?.active && tile.teleporter.visibleHaze) {
-    const cyan = palette[PALETTE_INDEX.CYAN] ?? [0, 219, 219];
-    const blue = palette[PALETTE_INDEX.BLUE] ?? [0, 0, 255];
+    const cyan = palette[PALETTE_INDEX.CYAN]!;
+    const blue = palette[PALETTE_INDEX.BLUE]!;
     for (let py = y0; py < y0 + openH; py += 2) {
       for (let px = x0; px < x0 + openW; px += 2) {
         if (((px + py) & 2) === 0) {
@@ -764,7 +764,7 @@ function blitSideWallSprite(
     for (let y = Math.ceil(y0); y < y1; y++) {
       const sy = Math.min(sprite.height - 1, Math.floor((y - y0) / (y1 - y0) * sprite.height));
       const colorIndex = sprite.pixels[sy * sprite.width + sx] ?? 0;
-      if (colorIndex !== 0) fb.setPixel(x, y, palette[colorIndex] ?? [0, 0, 0]);
+      if (colorIndex !== 0) fb.setPixel(x, y, palette[colorIndex]!);
     }
   }
 }
@@ -823,11 +823,14 @@ export function paintDungeonViewport(
     return;
   }
 
+  // The adapter validates a dense 16-color source and lights every color once.
+  // All indexed blits, projected pixels and procedural geometry below consume
+  // these depth palettes; applying another RGB filter here would double-dim them.
   const nearPalette = getViewportLightPalette(effectiveLight, 0, bundle);
   const flipParity = state.party.stepParity === 1;
 
   // 1. Dark horizon backdrop (y=29..65 when corridor is open past depth 3)
-  fb.fillRect(vp.x, vp.y, vp.w, vp.h, nearPalette[PALETTE_INDEX.BLACK] ?? [0, 0, 0]);
+  fb.fillRect(vp.x, vp.y, vp.w, vp.h, nearPalette[PALETTE_INDEX.BLACK]!);
 
   // 2. Authentic FTL Ceiling (item[76], 224x29 at y=0..28) & Flagstone Floor (item[75], 224x70 at y=66..135)
   const ceilingSprite = bundle?.sprites.get(76);
@@ -835,7 +838,7 @@ export function paintDungeonViewport(
   if (ceilingSprite) {
     fb.blitSprite(ceilingSprite, vp.x, vp.y, nearPalette, { flipX: flipParity }, vp);
   } else {
-    fb.fillRect(vp.x, vp.y, vp.w, 29, nearPalette[PALETTE_INDEX.DARKEST_GRAY_KEY] ?? [36, 36, 36]);
+    fb.fillRect(vp.x, vp.y, vp.w, 29, nearPalette[PALETTE_INDEX.DARKEST_GRAY_KEY]!);
   }
 
   if (floorSprite) {
@@ -846,8 +849,8 @@ export function paintDungeonViewport(
       vp.y + 66,
       vp.w,
       70,
-      nearPalette[PALETTE_INDEX.DARK_GRAY] ?? [73, 73, 73],
-      nearPalette[PALETTE_INDEX.DARKEST_GRAY_KEY] ?? [36, 36, 36]
+      nearPalette[PALETTE_INDEX.DARK_GRAY]!,
+      nearPalette[PALETTE_INDEX.DARKEST_GRAY_KEY]!
     );
   }
 
