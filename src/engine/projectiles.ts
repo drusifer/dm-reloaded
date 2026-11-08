@@ -1,18 +1,18 @@
 /**
- * Pure 6 Hz ProjectileEngine: corridor item throws, flight, collisions and landing.
+ * Pure 6 Hz ProjectileEngine: typed physical/magical flight, collisions and impacts.
  *
  * TLDR:
- *   launchProjectile turns the cursor-hand item into a ProjectileState travelling down the LEFT or
- *   RIGHT lane of the party's facing corridor (range from thrower Strength vs. item weight).
- *   stepProjectiles advances every projectile one tile per tick: walls, stairs and closed doors stop
- *   it (items pass through closed IRON_GRATE when slender), active object teleporters redirect it,
- *   open pits drop it a level, and it lands in the tile's floorItems[quadrant] stack, firing any
- *   floor pressure plate on that tile. Zero DOM; deterministic.
+ *   Free item throws, ranged ammunition and spells share one lane-aware tick path. Geometry, doors,
+ *   pits and object teleporters retain their existing behavior; typed impacts resolve once, physical
+ *   payloads remain inventory-owned, and explosions deduplicate targets. Zero DOM; deterministic.
  */
 
 import { effectiveChampionAttributes } from './inventory';
 import { ITEM_CATALOG_180, findItemDef } from '../data/itemCatalog';
+import { COMBAT_ACTIONS } from '../data/combatCatalog';
 import { mapCoordsBetweenLevels, triggerActuatorList, updateTileInLevels } from './actuators';
+import { damageTarget } from './combat';
+import { awardSkillExperience } from './progression';
 import {
   DIRECTION_DELTAS,
   type ChampionState,
@@ -123,13 +123,16 @@ export function launchProjectile(
   const projectile: ProjectileState = {
     id: `proj_${state.tick}_${state.projectiles.length}_${item.instanceId}`,
     itemId: item.instanceId,
+    ownerChampionId: thrower.id,
     level: state.party.level,
     x: state.party.x,
     y: state.party.y,
     direction: state.party.facing,
     lane: side,
+    power: range,
     kineticEnergy: range,
-    stepEnergyCost: 1
+    stepEnergyCost: 1,
+    payload: { kind: 'ITEM', itemId: item.instanceId }
   };
 
   events.push({ type: 'ITEM_THROWN', itemId: item.instanceId, side });
@@ -154,14 +157,73 @@ interface StepResult {
   readonly projectile: ProjectileState | null;
 }
 
+function payloadItemId(projectile: ProjectileState): ItemInstanceId | null {
+  return projectile.payload.kind === 'SPELL' ? null : projectile.payload.itemId;
+}
+
+function resolveImpact(
+  cur: GameState,
+  projectile: ProjectileState,
+  level: number,
+  x: number,
+  y: number,
+  events: EngineEvent[]
+): GameState {
+  events.push({ type: 'PROJECTILE_IMPACT', projectileId: projectile.id, level, x, y });
+  let next: GameState = {
+    ...cur,
+    impactMarkers: [...cur.impactMarkers, { level, x, y, lane: projectile.lane, expiresAtTick: cur.tick + 2 }]
+  };
+  const hitTargets = next.combatTargets.filter(
+    (target) => target.level === level && target.x === x && target.y === y
+      && target.lane === projectile.lane && !target.defeated
+  );
+
+  if (projectile.payload.kind === 'SPELL' && projectile.payload.explosive) {
+    const seenTargetIds = new Set<string>();
+    const unique = next.combatTargets.filter((target) => {
+      if (target.level !== level || target.defeated
+        || Math.abs(target.x - x) + Math.abs(target.y - y) > 1
+        || seenTargetIds.has(target.id)) return false;
+      seenTargetIds.add(target.id);
+      return true;
+    });
+    const affected: string[] = [];
+    for (const target of unique) {
+      const center = target.x === x && target.y === y && target.lane === projectile.lane;
+      const amount = center ? projectile.power : Math.floor(projectile.power / 2);
+      if (amount <= 0) continue;
+      next = damageTarget(next, target.id, amount, projectile.ownerChampionId, events);
+      affected.push(target.id);
+    }
+    events.push({ type: 'EXPLOSION_RESOLVED', projectileId: projectile.id, targetIds: affected });
+  } else if (hitTargets[0] && projectile.power > 0) {
+    next = damageTarget(next, hitTargets[0].id, projectile.power, projectile.ownerChampionId, events);
+  }
+
+  if (hitTargets[0] && projectile.power > 0 && projectile.payload.kind !== 'SPELL') {
+    const action = projectile.payload.kind === 'AMMUNITION'
+      ? COMBAT_ACTIONS[projectile.payload.actionId as keyof typeof COMBAT_ACTIONS]
+      : COMBAT_ACTIONS.SHOOT;
+    const awarded = awardSkillExperience(next, projectile.ownerChampionId, action?.subskill ?? 4, action?.experience ?? 6);
+    next = awarded.state;
+    events.push(...awarded.events);
+  }
+
+  const itemId = payloadItemId(projectile);
+  return itemId
+    ? landItem(next, itemId, level, x, y, laneQuadrant(projectile.direction, projectile.lane), events)
+    : next;
+}
+
 function stepOne(cur: GameState, p: ProjectileState, events: EngineEvent[]): StepResult {
-  const def = defOfItem(cur, p.itemId);
-  if (!def) {
+  const itemId = payloadItemId(p);
+  const def = itemId ? defOfItem(cur, itemId) : undefined;
+  if (itemId && !def) {
     return { state: cur, projectile: null };
   }
-  const quadrant = laneQuadrant(p.direction, p.lane);
   const landHere = (): StepResult => ({
-    state: landItem(cur, p.itemId, p.level, p.x, p.y, quadrant, events),
+    state: resolveImpact(cur, p, p.level, p.x, p.y, events),
     projectile: null
   });
 
@@ -185,7 +247,8 @@ function stepOne(cur: GameState, p: ProjectileState, events: EngineEvent[]): Ste
     case 'DOOR': {
       const door = tile.door;
       if (door && !(door.progress <= 1 || door.progress === 5)) {
-        const slips = door.material === 'IRON_GRATE' && def.passThroughGrate;
+        const slips = door.material === 'IRON_GRATE'
+          && (p.payload.kind === 'SPELL' || Boolean(def?.passThroughGrate));
         if (!slips) {
           return landHere();
         }
@@ -199,9 +262,15 @@ function stepOne(cur: GameState, p: ProjectileState, events: EngineEvent[]): Ste
           return landHere();
         }
         const mapped = mapCoordsBetweenLevels(cur.levels, p.level, below, nx, ny);
+        if (p.payload.kind !== 'SPELL') {
+          return {
+            state: resolveImpact(cur, p, below, mapped.x, mapped.y, events),
+            projectile: null
+          };
+        }
         return {
-          state: landItem(cur, p.itemId, below, mapped.x, mapped.y, quadrant, events),
-          projectile: null
+          state: cur,
+          projectile: { ...p, level: below, x: mapped.x, y: mapped.y }
         };
       }
       break;
@@ -223,7 +292,7 @@ function stepOne(cur: GameState, p: ProjectileState, events: EngineEvent[]): Ste
         };
         if (energy <= 0) {
           return {
-            state: landItem(cur, p.itemId, tp.destLevel, tp.destX, tp.destY, laneQuadrant(nextDir, p.lane), events),
+            state: resolveImpact(cur, moved, tp.destLevel, tp.destX, tp.destY, events),
             projectile: null
           };
         }
@@ -235,10 +304,18 @@ function stepOne(cur: GameState, p: ProjectileState, events: EngineEvent[]): Ste
       break;
   }
 
+  const target = cur.combatTargets.find(
+    (candidate) => candidate.level === p.level && candidate.x === nx && candidate.y === ny
+      && candidate.lane === p.lane && !candidate.defeated
+  );
+  if (target) {
+    return { state: resolveImpact(cur, p, p.level, nx, ny, events), projectile: null };
+  }
+
   const energy = p.kineticEnergy - p.stepEnergyCost;
   if (energy <= 0) {
     return {
-      state: landItem(cur, p.itemId, p.level, nx, ny, quadrant, events),
+      state: resolveImpact(cur, p, p.level, nx, ny, events),
       projectile: null
     };
   }

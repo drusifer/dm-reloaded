@@ -1,18 +1,19 @@
 # Agent State
 
 ## Context
-- Bob Protocol initialization and roster review completed 2026-11-03T13:40-05:00.
-- Shared chat, project capabilities, all nine persona states, and root task.md read.
-- Discovery links resolve; no setup changes needed.
-- task.md checks off Phase 1 and lists Task 2.0 SpriteSource next; introductory board status and several persona states lag. No implementation or QA claims independently verified.
-- Latest chat reports 95 passing tests. No tests rerun for initialization.
+- Bob Protocol refreshed 2026-11-06T18-39-05:00 from the latest shared chat and project capabilities.
+- The live chat records sprint-2-catalog closed at 100%, followed by an explicitly authorized commit/push request; initialization did not independently audit either delivery or Git outcome.
+- `bobp setup-agent-links` confirmed 9 personas and 13 shared skills. Existing discovery links and VIA index were already present; VIA MCP and Codex VIA registration were refreshed successfully.
+- `agents/PROJECT.md` remains unchanged with VIA enabled.
+- No tests were run and no product code was changed during initialization.
 
 ## Current Task
-- Initialization and roll call: 100% complete.
-- Summary: agents/bob.docs/Init_Roll_Call_Summary_2026-11-03T13-40.md
-- No implementation started. Execution sandbox fails on .agents symlink; escalation was needed.
+- Bob Protocol initialization: 100% complete.
+- Summary: `agents/bob.docs/Init_Summary_2026-11-06T18-39.md`.
+- Protocol discovery and shared coordination are ready for the next command.
 
 ## Next Steps
 - Await user's next command.
-- On next sprint-status request, @Mouse *sm status: reconcile root task.md introduction and stale persona state against current evidence before handing implementation to Neo.
+- Route the next request to the appropriate persona or Bloop workflow and load that persona's current state before work.
+- If asked about the earlier commit/push request, verify repository and remote state rather than inferring completion from the chat entry.
 - Preserve task.md as sole task board; use VIA for code navigation and bobp make for project automation.

@@ -41,6 +41,24 @@ export const LAYOUT_RECTS = {
   MIRROR_BTN_CANCEL: { x: 154, y: 138, w: 54, h: 16 }
 } as const;
 
+export const ACTION_PANEL_RECTS = {
+  CLOSE: { x: 306, y: 35, w: 12, h: 10 },
+  SWING: { x: 230, y: 50, w: 38, h: 18 },
+  SHOOT: { x: 274, y: 50, w: 38, h: 18 },
+  RUNES: { x: 230, y: 74, w: 82, h: 18 },
+  PROGRESSION: { x: 230, y: 98, w: 82, h: 18 }
+} as const;
+
+export const RUNE_RECTS: readonly ScreenRect[] = Array.from({ length: 24 }, (_, index) => ({
+  x: 225 + (index % 6) * 16, y: 36 + Math.floor(index / 6) * 15, w: 15, h: 14
+}));
+export const RUNE_PANEL_RECTS = {
+  REMOVE: { x: 225, y: 98, w: 22, h: 12 }, CLEAR: { x: 249, y: 98, w: 22, h: 12 },
+  FLASK: { x: 273, y: 98, w: 22, h: 12 }, CLOSE: { x: 297, y: 98, w: 22, h: 12 },
+  INVOKE: { x: 225, y: 112, w: 94, h: 11 }
+} as const;
+export const PROGRESSION_PANEL_RECTS = { CLOSE: { x: 306, y: 35, w: 12, h: 10 } } as const;
+
 export function championSlotRect(slotIndex: number): ScreenRect {
   return {
     x: slotIndex * 68,

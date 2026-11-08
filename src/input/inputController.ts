@@ -9,7 +9,11 @@
 
 import { DIRECTION_DELTAS, type EquipSlotId } from '../engine/types';
 import type { GameCommand, GameState } from '../engine/types';
-import { BACKPACK_SLOT_RECTS, CHEST_SLOT_RECTS, EQUIP_SLOT_RECTS, championHandRect, championSlotRect } from '../render/layout';
+import { MAGIC_RUNES } from '../data/magicCatalog';
+import {
+  ACTION_PANEL_RECTS, BACKPACK_SLOT_RECTS, CHEST_SLOT_RECTS, EQUIP_SLOT_RECTS,
+  PROGRESSION_PANEL_RECTS, RUNE_PANEL_RECTS, RUNE_RECTS, championHandRect, championSlotRect
+} from '../render/layout';
 import { FRAMEBUFFER_HEIGHT, FRAMEBUFFER_WIDTH, LAYOUT_RECTS, pointInRect } from '../render';
 
 export interface BoundingClientRectLike {
@@ -55,18 +59,7 @@ export function clientPointToAmigaCoords(
 export function resolvePointerHitCommand(px: number, py: number, state: GameState, button = 0): GameCommand | null {
   if (state.gameOver) return null;
   if (state.party.sleeping) return { type: 'SET_SLEEPING', sleeping: false };
-  // 1. Top-right utility pills (x=272..319) are always reachable
-  if (pointInRect(px, py, LAYOUT_RECTS.QOL_PILL)) {
-    return { type: 'TOGGLE_QOL_MODE' };
-  }
-  if (pointInRect(px, py, LAYOUT_RECTS.AUTOMAP_PILL)) {
-    return { type: 'TOGGLE_AUTOMAP' };
-  }
-  if (pointInRect(px, py, LAYOUT_RECTS.AUDIO_PILL)) {
-    return { type: 'SET_AUDIO_MUTED', muted: !state.settings.audioMuted };
-  }
-
-  // 2. Modal dialog captures viewport/movement clicks until resolved or cancelled
+  // Modal dialog captures every click until resolved or cancelled.
   if (state.activeMirror !== null) {
     if (pointInRect(px, py, LAYOUT_RECTS.MIRROR_BTN_CANCEL)) {
       return { type: 'CANCEL_MIRROR' };
@@ -82,6 +75,43 @@ export function resolvePointerHitCommand(px: number, py: number, state: GameStat
     return null;
   }
 
+  if (state.interaction.kind === 'ACTION_MENU') {
+    const interaction = state.interaction;
+    if (pointInRect(px, py, ACTION_PANEL_RECTS.CLOSE)) return { type: 'CLOSE_INTERACTION' };
+    if (pointInRect(px, py, ACTION_PANEL_RECTS.SWING)) return { type: 'EXECUTE_COMBAT_ACTION', championIndex: interaction.championIndex, hand: interaction.hand, actionId: 'SWING' };
+    if (pointInRect(px, py, ACTION_PANEL_RECTS.SHOOT)) return { type: 'EXECUTE_COMBAT_ACTION', championIndex: interaction.championIndex, hand: interaction.hand, actionId: 'SHOOT' };
+    if (pointInRect(px, py, ACTION_PANEL_RECTS.RUNES)) return { type: 'OPEN_RUNE_PANEL', championIndex: interaction.championIndex };
+    if (pointInRect(px, py, ACTION_PANEL_RECTS.PROGRESSION)) return { type: 'OPEN_PROGRESSION_VIEW', championIndex: interaction.championIndex };
+    return null;
+  }
+  if (state.interaction.kind === 'RUNE_PANEL') {
+    const championIndex = state.interaction.championIndex;
+    const runeIndex = RUNE_RECTS.findIndex((rect) => pointInRect(px, py, rect));
+    if (runeIndex >= 0) return { type: 'ADD_RUNE', championIndex, rune: MAGIC_RUNES[runeIndex]!.id };
+    if (pointInRect(px, py, RUNE_PANEL_RECTS.REMOVE)) return { type: 'REMOVE_RUNE', championIndex };
+    if (pointInRect(px, py, RUNE_PANEL_RECTS.CLEAR)) return { type: 'CLEAR_RUNES', championIndex };
+    if (pointInRect(px, py, RUNE_PANEL_RECTS.INVOKE)) return { type: 'INVOKE_RUNES', championIndex };
+    if (pointInRect(px, py, RUNE_PANEL_RECTS.CLOSE)) return { type: 'CLOSE_INTERACTION' };
+    if (pointInRect(px, py, RUNE_PANEL_RECTS.FLASK)) {
+      const champion = state.party.champions[championIndex];
+      const ids = champion ? [champion.inventory.slots.leftHand, champion.inventory.slots.rightHand,
+        champion.inventory.slots.pouch1, champion.inventory.slots.pouch2, ...champion.inventory.backpack] : [];
+      const flaskId = ids.find((id) => id && state.items[id]?.name === 'EMPTY FLASK') ?? null;
+      return { type: 'SELECT_BREW_FLASK', championIndex, flaskId };
+    }
+    return null;
+  }
+  if (state.interaction.kind === 'PROGRESSION_VIEW') {
+    return pointInRect(px, py, PROGRESSION_PANEL_RECTS.CLOSE) ? { type: 'CLOSE_INTERACTION' } : null;
+  }
+
+  // Ordinary utility pills resolve only after mirror and Sprint 3 interaction ownership.
+  if (pointInRect(px, py, LAYOUT_RECTS.QOL_PILL)) return { type: 'TOGGLE_QOL_MODE' };
+  if (pointInRect(px, py, LAYOUT_RECTS.AUTOMAP_PILL)) return { type: 'TOGGLE_AUTOMAP' };
+  if (pointInRect(px, py, LAYOUT_RECTS.AUDIO_PILL)) {
+    return { type: 'SET_AUDIO_MUTED', muted: !state.settings.audioMuted };
+  }
+
   if (state.settings.qolMode && state.settings.automapOpen && pointInRect(px, py, LAYOUT_RECTS.VIEWPORT)) return { type: 'TOGGLE_AUTOMAP' };
   if (pointInRect(px, py, LAYOUT_RECTS.SLEEP_PILL)) return { type: 'SET_SLEEPING', sleeping: true };
   if (button === 2) {
@@ -92,7 +122,13 @@ export function resolvePointerHitCommand(px: number, py: number, state: GameStat
   for (let i = 0; i < state.party.champions.length; i++) {
     if (!pointInRect(px, py, championSlotRect(i))) continue;
     for (const slot of ['leftHand', 'rightHand'] as const) {
-      if (pointInRect(px, py, championHandRect(i, slot))) return { type: 'CLICK_EQUIP_SLOT', championIndex: i, slot };
+      if (pointInRect(px, py, championHandRect(i, slot))) {
+        const occupied = state.party.champions[i]?.inventory.slots[slot];
+        if (occupied && !state.handItem && state.openInventoryChampionIndex === null) {
+          return { type: 'OPEN_ACTION_MENU', championIndex: i, hand: slot };
+        }
+        return { type: 'CLICK_EQUIP_SLOT', championIndex: i, slot };
+      }
     }
     return py < 9 ? { type: 'TOGGLE_INVENTORY', championIndex: i } : { type: 'SELECT_LEADER', championIndex: i };
   }
@@ -162,6 +198,7 @@ export function resolveKeyboardCommand(key: string, state: GameState): GameComma
       return { type: 'CANCEL_MIRROR' };
     }
     if (state.openInventoryChampionIndex !== null) return {type:'TOGGLE_INVENTORY',championIndex:null};
+    if (state.interaction.kind !== 'NONE') return { type: 'CLOSE_INTERACTION' };
     if (state.settings.qolMode && state.settings.automapOpen) {
       return { type: 'TOGGLE_AUTOMAP' };
     }
@@ -172,6 +209,25 @@ export function resolveKeyboardCommand(key: string, state: GameState): GameComma
   if (!state.settings.qolMode || state.activeMirror !== null) {
     return null;
   }
+
+  if (state.interaction.kind === 'ACTION_MENU') {
+    const interaction = state.interaction;
+    if (key === '1') return { type: 'EXECUTE_COMBAT_ACTION', championIndex: interaction.championIndex, hand: interaction.hand, actionId: 'SWING' };
+    if (key === '2') return { type: 'EXECUTE_COMBAT_ACTION', championIndex: interaction.championIndex, hand: interaction.hand, actionId: 'SHOOT' };
+    if (key.toLowerCase() === 'r') return { type: 'OPEN_RUNE_PANEL', championIndex: interaction.championIndex };
+    if (key.toLowerCase() === 'p') return { type: 'OPEN_PROGRESSION_VIEW', championIndex: interaction.championIndex };
+    return null;
+  }
+  if (state.interaction.kind === 'RUNE_PANEL') {
+    const championIndex = state.interaction.championIndex;
+    const shortcut = '123456qwertyasdfghzxcvbn'.indexOf(key.toLowerCase());
+    if (shortcut >= 0 && shortcut < MAGIC_RUNES.length) return { type: 'ADD_RUNE', championIndex, rune: MAGIC_RUNES[shortcut]!.id };
+    if (key === 'Backspace') return { type: 'REMOVE_RUNE', championIndex };
+    if (key === 'Delete') return { type: 'CLEAR_RUNES', championIndex };
+    if (key === 'Enter') return { type: 'INVOKE_RUNES', championIndex };
+    return null;
+  }
+  if (state.interaction.kind === 'PROGRESSION_VIEW') return null;
 
   if (/^[1-4]$/.test(key)) return {type:'TOGGLE_INVENTORY',championIndex:Number(key)-1};
   if (key.toLowerCase()==='z') return {type:'SET_SLEEPING',sleeping:true};

@@ -189,6 +189,21 @@ export interface ItemInstance {
   readonly scrollText?: readonly string[];
   readonly contents?: readonly ItemInstanceId[];
   readonly bonesChampionId?: string;
+  readonly potion?: { readonly recipeId: string; readonly power: 0 | 1 | 2 | 3 | 4 | 5 };
+}
+
+export type RuneId =
+  | 'LO' | 'UM' | 'ON' | 'POWER_EE' | 'PAL' | 'MON'
+  | 'YA' | 'VI' | 'OH' | 'FUL' | 'DES' | 'ZO'
+  | 'VEN' | 'EW' | 'KATH' | 'IR' | 'BRO' | 'GOR'
+  | 'KU' | 'ROS' | 'DAIN' | 'NETA' | 'RA' | 'SAR';
+
+export type TimedEffectKind = 'LIGHT' | 'SHIELD' | 'STRENGTH';
+export interface TimedEffect {
+  readonly kind: TimedEffectKind;
+  readonly magnitude: number;
+  readonly expiresAtTick: number;
+  readonly sourceChampionId: string;
 }
 
 export interface StartingGearSpec {
@@ -254,6 +269,10 @@ export interface ChampionInventory {
   readonly backpack: readonly (ItemInstanceId | null)[]; // 17 slots
 }
 
+export interface ChampionProgression {
+  readonly experience: readonly number[]; // Exactly 16 subskill XP tracks.
+}
+
 export interface ChampionState extends ChampionDefinition {
   readonly alive: boolean;
   readonly health: number;
@@ -262,6 +281,10 @@ export interface ChampionState extends ChampionDefinition {
   readonly food: number;  // -1024 .. 2048 (healthy default 1500)
   readonly water: number; // -1024 .. 2048 (healthy default 1500)
   readonly mode: 'RESURRECTED' | 'REINCARNATED';
+  readonly progression: ChampionProgression;
+  readonly actionCooldowns: Readonly<Record<string, number>>;
+  readonly poisonSeverity: number;
+  readonly effects: readonly TimedEffect[];
   readonly leftHand: string | null;
   readonly rightHand: string | null;
   readonly inventory: ChampionInventory;
@@ -283,16 +306,45 @@ export interface PendingActuatorOp {
   readonly playSound: boolean;
 }
 
+export type ProjectilePayload =
+  | { readonly kind: 'ITEM'; readonly itemId: ItemInstanceId }
+  | { readonly kind: 'AMMUNITION'; readonly itemId: ItemInstanceId; readonly actionId: string }
+  | { readonly kind: 'SPELL'; readonly spellId: string; readonly effectId: string; readonly explosive: boolean };
+
 export interface ProjectileState {
   readonly id: string;
-  readonly itemId: ItemInstanceId;
+  /** Compatibility projection for existing item rendering; null for spells. */
+  readonly itemId: ItemInstanceId | null;
+  readonly ownerChampionId: string;
   readonly level: number;
   readonly x: number;
   readonly y: number;
   readonly direction: Direction;
   readonly lane: 'LEFT' | 'RIGHT';
+  readonly power: number;
   readonly kineticEnergy: number;
   readonly stepEnergyCost: number;
+  readonly payload: ProjectilePayload;
+}
+
+export interface CombatTargetState {
+  readonly id: string;
+  readonly level: number;
+  readonly x: number;
+  readonly y: number;
+  readonly lane: 'LEFT' | 'RIGHT';
+  readonly traits: readonly string[];
+  readonly maxHealth: number;
+  readonly health: number;
+  readonly defeated: boolean;
+}
+
+export interface ImpactMarkerState {
+  readonly level: number;
+  readonly x: number;
+  readonly y: number;
+  readonly lane: 'LEFT' | 'RIGHT';
+  readonly expiresAtTick: number;
 }
 
 export interface PartyState {
@@ -314,6 +366,12 @@ export interface SettingsState {
   readonly automapOpen: boolean;
   readonly audioMuted: boolean;
 }
+
+export type InteractionState =
+  | { readonly kind: 'NONE' }
+  | { readonly kind: 'ACTION_MENU'; readonly championIndex: number; readonly hand: Extract<EquipSlotId, 'leftHand' | 'rightHand'> }
+  | { readonly kind: 'RUNE_PANEL'; readonly championIndex: number }
+  | { readonly kind: 'PROGRESSION_VIEW'; readonly championIndex: number };
 
 export interface DungeonData {
   readonly campaignId: string;
@@ -348,12 +406,17 @@ export interface GameState {
   readonly openInventoryChampionIndex: number | null;
   readonly openContainerId: ItemInstanceId | null;
   readonly projectiles: readonly ProjectileState[];
+  readonly combatTargets: readonly CombatTargetState[];
+  readonly impactMarkers: readonly ImpactMarkerState[];
+  readonly runeFormulas: Readonly<Record<string, readonly RuneId[]>>;
+  readonly selectedBrewFlasks: Readonly<Record<string, ItemInstanceId | null>>;
   readonly gameOver: boolean;
   readonly party: PartyState;
   readonly activeMirror: MirrorModalState | null;
   readonly pendingActuators: readonly PendingActuatorOp[];
   readonly messages: readonly string[];
   readonly settings: SettingsState;
+  readonly interaction: InteractionState;
 }
 
 export type RecruitMode = 'RESURRECT' | 'REINCARNATE';
@@ -377,7 +440,36 @@ export type GameCommand =
   | { readonly type: 'CONSUME_HAND_ITEM'; readonly championIndex: number }
   | { readonly type: 'PICKUP_OR_DROP_FLOOR'; readonly quadrant: SubTileQuadrant }
   | { readonly type: 'THROW_HAND_ITEM'; readonly side: 'LEFT' | 'RIGHT' }
+  | {
+      readonly type: 'EXECUTE_COMBAT_ACTION';
+      readonly championIndex: number;
+      readonly hand: Extract<EquipSlotId, 'leftHand' | 'rightHand'>;
+      readonly actionId: 'SWING' | 'SHOOT';
+    }
+  | { readonly type: 'ADD_RUNE'; readonly championIndex: number; readonly rune: RuneId }
+  | { readonly type: 'REMOVE_RUNE'; readonly championIndex: number }
+  | { readonly type: 'CLEAR_RUNES'; readonly championIndex: number }
+  | { readonly type: 'SELECT_BREW_FLASK'; readonly championIndex: number; readonly flaskId: ItemInstanceId | null }
+  | { readonly type: 'INVOKE_RUNES'; readonly championIndex: number }
+  | { readonly type: 'CONSUME_POTION'; readonly championIndex: number; readonly itemId: ItemInstanceId }
+  | { readonly type: 'OPEN_ACTION_MENU'; readonly championIndex: number; readonly hand: Extract<EquipSlotId, 'leftHand' | 'rightHand'> }
+  | { readonly type: 'OPEN_RUNE_PANEL'; readonly championIndex: number }
+  | { readonly type: 'OPEN_PROGRESSION_VIEW'; readonly championIndex: number }
+  | { readonly type: 'CLOSE_INTERACTION' }
   | { readonly type: 'SET_SLEEPING'; readonly sleeping: boolean };
+
+export type MagicFailureReason =
+  | 'INVALID_ACTOR' | 'INVALID_FORMULA' | 'INSUFFICIENT_MANA' | 'INSUFFICIENT_SKILL'
+  | 'INVALID_FLASK' | 'INVALID_POTION';
+
+export type CombatFailureReason =
+  | 'INVALID_ACTOR'
+  | 'INVALID_ITEM'
+  | 'COOLDOWN'
+  | 'INSUFFICIENT_STAMINA'
+  | 'OUT_OF_REACH'
+  | 'MISSING_AMMUNITION'
+  | 'INVALID_TARGET';
 
 export type SoundCueId =
   | 'FOOTSTEP'
@@ -421,6 +513,35 @@ export type EngineEvent =
   | { readonly type: 'LOCK_UNLOCKED'; readonly x: number; readonly y: number; readonly itemName: string }
   | { readonly type: 'CHAMPION_DIED'; readonly championId: string; readonly name: string }
   | { readonly type: 'CHAMPION_REVIVED_AT_ALTAR'; readonly championId: string; readonly name: string }
+  | { readonly type: 'ACTION_REJECTED'; readonly reason: CombatFailureReason; readonly text: string }
+  | { readonly type: 'ACTION_EXECUTED'; readonly championId: string; readonly actionId: string; readonly hit: boolean }
+  | { readonly type: 'COOLDOWN_STARTED'; readonly championId: string; readonly actionId: string; readonly readyAtTick: number }
+  | { readonly type: 'DAMAGE_APPLIED'; readonly targetId: string; readonly ownerChampionId: string; readonly amount: number }
+  | { readonly type: 'PROJECTILE_LAUNCHED'; readonly projectileId: string; readonly ownerChampionId: string }
+  | { readonly type: 'PROJECTILE_IMPACT'; readonly projectileId: string; readonly level: number; readonly x: number; readonly y: number }
+  | { readonly type: 'EXPLOSION_RESOLVED'; readonly projectileId: string; readonly targetIds: readonly string[] }
+  | { readonly type: 'SPELL_REJECTED'; readonly reason: MagicFailureReason; readonly text: string }
+  | { readonly type: 'SPELL_SUCCEEDED'; readonly spellId: string; readonly championId: string }
+  | { readonly type: 'SPELL_FIZZLED'; readonly championId: string }
+  | { readonly type: 'SPELL_BACKFIRED'; readonly championId: string; readonly damage: number }
+  | { readonly type: 'POTION_BREWED'; readonly championId: string; readonly recipeId: string; readonly itemId: ItemInstanceId }
+  | { readonly type: 'POTION_CONSUMED'; readonly championId: string; readonly recipeId: string; readonly itemId: ItemInstanceId }
+  | { readonly type: 'STATUS_EFFECT_CHANGED'; readonly championId: string; readonly effect: TimedEffectKind; readonly active: boolean }
+  | {
+      readonly type: 'SKILL_XP_AWARDED';
+      readonly championId: string;
+      readonly subskill: number;
+      readonly amount: number;
+      readonly total: number;
+    }
+  | {
+      readonly type: 'SKILL_RANK_GAINED';
+      readonly championId: string;
+      readonly subskill: number;
+      readonly previousRank: number;
+      readonly rank: number;
+      readonly rankName: string;
+    }
   | { readonly type: 'SLEEP_STATE_CHANGED'; readonly sleeping: boolean }
   | { readonly type: 'SOUND_CUE'; readonly cue: SoundCueId; readonly sourceLevel: number; readonly sourceX: number; readonly sourceY: number }
   | { readonly type: 'MESSAGE_LOGGED'; readonly text: string };

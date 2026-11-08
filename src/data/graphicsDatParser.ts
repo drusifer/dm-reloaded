@@ -41,6 +41,8 @@ export interface GraphicsBundle {
   readonly lightPalettes: readonly (readonly RgbColor[])[]; // 6 levels: 0=darkest lit .. 5=brightest
   readonly itemNames: readonly string[];
   readonly itemCatalog: readonly ItemDef[];
+  /** Decoded item[560] action labels when independently verified; never inferred from sprite identity. */
+  readonly actionLabels?: readonly string[];
 }
 
 /**
@@ -236,6 +238,7 @@ export function parseGraphicsDat(rawBytes: Uint8Array): GraphicsBundle {
   let lightPalettes: readonly (readonly RgbColor[])[] = buildDefaultLightPalettes();
   let raw556: Uint8Array | null = null;
   let raw559: Uint8Array | null = null;
+  let raw560: Uint8Array | null = null;
 
   let offset = headerBytes;
   for (let index = 0; index < itemCount; index += 1) {
@@ -256,6 +259,10 @@ export function parseGraphicsDat(rawBytes: Uint8Array): GraphicsBundle {
     }
     if (index === 559) {
       raw559 = slice;
+      continue;
+    }
+    if (index === 560) {
+      raw560 = slice;
       continue;
     }
     if (index === 562) {
@@ -280,6 +287,10 @@ export function parseGraphicsDat(rawBytes: Uint8Array): GraphicsBundle {
 
   const itemNames = raw556 ? parseItemNamesFrom556(raw556) : ITEM_NAMES_199;
   const itemCatalog = raw559 ? parseObjectDescriptorsFrom559(raw559, itemNames) : ITEM_CATALOG_180;
+  const decodedActions = raw560 ? parseItemNamesFrom556(raw560).map((label) => label.trim().toUpperCase()) : [];
+  const actionLabels = ['SWING', 'SHOOT'].map((fallback) =>
+    decodedActions.find((label) => label === fallback) ?? fallback
+  );
 
   return {
     source: 'AMIGA_GRAPHICS_DAT',
@@ -289,7 +300,8 @@ export function parseGraphicsDat(rawBytes: Uint8Array): GraphicsBundle {
     systemFont,
     lightPalettes,
     itemNames,
-    itemCatalog
+    itemCatalog,
+    actionLabels
   };
 }
 
@@ -361,6 +373,7 @@ export function createCleanRoomGraphicsBundle(): GraphicsBundle {
     systemFont: null,
     lightPalettes: buildDefaultLightPalettes(),
     itemNames: ITEM_NAMES_199,
-    itemCatalog: ITEM_CATALOG_180
+    itemCatalog: ITEM_CATALOG_180,
+    actionLabels: ['SWING', 'SHOOT']
   };
 }

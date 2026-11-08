@@ -22,3 +22,5 @@ export {
   parseGraphicsDat
 } from './graphicsDatParser';
 export type { DecodedSound, DecodedSprite, GraphicsBundle, RgbColor } from './graphicsDatParser';
+export * from './combatCatalog';
+export * from './magicCatalog';

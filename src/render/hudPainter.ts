@@ -11,6 +11,7 @@ import { itemIconIndex } from '../data/itemCatalog';
 import { DIRECTION_NAMES } from '../engine/types';
 import { getItemDef } from '../data/itemCatalog';
 import { partyLightBonus } from '../engine/inventory';
+import { partyMagicLightBonus } from '../engine/effects';
 import type { ChampionState, GameState, MirrorModalState } from '../engine/types';
 import { extractChampionPortrait } from '../data/graphicsDatParser';
 import type { GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
@@ -300,6 +301,8 @@ export function paintHud(
         if (item) fb.blitSprite(createSpriteSource(bundle).getSprite(`item.icon.${itemIconIndex(item)}`),
           rect.x, rect.y, uiPalette, { dstWidth: rect.w, dstHeight: rect.h, transparentIndex: 0 });
       }
+      const status = `${champion.effects.some((effect) => effect.kind === 'SHIELD') ? 'S' : ''}${champion.effects.some((effect) => effect.kind === 'STRENGTH') ? 'K' : ''}${champion.effects.some((effect) => effect.kind === 'LIGHT') ? 'L' : ''}${champion.poisonSeverity > 0 ? 'P' : ''}`;
+      if (status) drawBitmapText(fb, status, championSlotRect(i).x + 58, 2, gold, bundle?.systemFont, 2);
     }
   }
 
@@ -352,7 +355,7 @@ export function paintHud(
     bundle?.systemFont
   );
 
-  const lightVal = (state.levels[state.party.level]?.ambientLight ?? 0) + partyLightBonus(state);
+  const lightVal = (state.levels[state.party.level]?.ambientLight ?? 0) + partyLightBonus(state) + partyMagicLightBonus(state);
   drawBitmapText(
     fb,
     lightVal > 0 ? `LIGHT:${Math.min(5, lightVal)}/5` : 'DARK! TORCH?',

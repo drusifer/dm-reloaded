@@ -186,6 +186,15 @@ export function startDungeonMasterApp(
       return;
     }
 
+    // The rune panel owns every key before global B/G overlays. In Purist mode the resolver
+    // intentionally returns null, but the panel still captures the key so it cannot leak.
+    if (state.interaction.kind === 'RUNE_PANEL') {
+      ev.preventDefault();
+      const cmd = resolveKeyboardCommand(ev.key, state);
+      if (cmd) applyCommand(cmd);
+      return;
+    }
+
     if (ev.key === 'b' || ev.key === 'B') {
       ev.preventDefault();
       soundboard?.toggle();

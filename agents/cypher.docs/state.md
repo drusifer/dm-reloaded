@@ -1,10 +1,13 @@
 # Agent State
 
 ## Context
-Userkeepgoing afterlightinglocalclose. Planning bounded sprint-2-catalog via actualSpriteSource/export/contactsheet symbols and ADR009/011/012, Oraclelessons. Fourpanelkeys duplicated, iconatlas addressing separate, contactsheet assumesindex0. Metadata coverageeverydecodedindex is not verifiedidentityall535; masks are usage-specific includingopaque/index0/index10/separatesmashmask.
+Sprint 3 planning started from the accepted roadmap after sprint-2-catalog closure. The product contract preserves deterministic 6 Hz rules, physical inventory ownership, original/clean-room provenance, Purist mouse completeness, and separate headless versus actual-browser evidence. Smith Gate 1 accepted the six-story boundary but rejected three player-facing ambiguities; Cypher has now fixed the rank sequence/threshold, minimum potion set/scaling, and all brewing failure consumption/feedback rules without expanding scope.
 
 ## Current Task
-`sprint-2-catalog` delivered locally and product-close announcement complete. SC1–SC5 accepted with535 measured/39verified/496unknown, actual570/9, independent3/3, aggregate268/268/build and all final gates/archive. No commit/push/release/deploy. Summary `Catalog_Close_Summary_2026-11-06T15-26.md`.
+Sprint 3 Gate 1 revision: 100% complete in `docs/SPRINT3.md`. Canonical 16 ranks and the None→Neophyte `Lo Ful Ir` behavior are explicit. Minimum potions are powered Vi/Ya/Ee/Ku/Bro with visible effects. Invalid/insufficient/fizzle/backfire/success brewing outcomes now fix mana, flask, experience, damage, and feedback consequences. Summary: `agents/cypher.docs/Sprint3_Gate1_Revision_Summary_2026-11-06T18-46.md`.
 
 ## Next Steps
-@Mouse mark final P2.3 checkbox complete and report board closed. Future backlog: evidence-backed classification/editor, then separately runtime campaign-pack loading. No automatic commit/push/deploy.
+1. @Smith re-review only the bounded Gate 1 revisions in `docs/SPRINT3.md` and post explicit approval or rejection.
+2. If Smith rejects, revise only any newly cited user-facing inconsistency and resubmit Gate 1.
+3. If Smith explicitly approves, hand off to Morpheus for Sprint 3 architecture; Cypher must not prescribe further implementation details.
+4. Preserve the exclusions and do not infer commit, push, release, or deployment authority.

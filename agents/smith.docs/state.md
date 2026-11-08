@@ -1,12 +1,18 @@
 # Agent State
 
 ## Context
-- sprint-2-catalog SC1–5 reviewed againstactualSpriteSource/contactsheet/export/Oraclepolicy. Raw535coverage≠completeidentity; rawexportschema1/4aliases/PNG+manifestbytes unchanged.
-- Gate1storiesapproved19:36:01. InitialGate2rejectfornumericgeneratedart inheritingDM1facts resolved by explicit originalsourceguard beforeANYDM1category/alias/usage facts; CLEAN_ROOM17/42matchingdims negativefixture required. LegacySpriteSourcebehavior retainedseparately.
-- Usage/crop-specific opaque/0/10/special301 policies, honestunknowns and labelledkeyboard/filter/details/Escape/focus UX acceptable. No remainingplanningblocker.
+- Sprint 3 planning Gates 1 and 2 are approved; Phase 4 implementation passed Trin and Morpheus after two bounded production fix cycles.
+- Fresh `bobp make sprint3-visual-review` state/geometry evidence passes across `CLEAN_ROOM` and `AMIGA_GRAPHICS_DAT`: 10 named checks, no failures or browser errors.
+- Actual visual inspection found a blocking S3-4.2 failure: `runeFormulas.iaido` contains `LO FUL IR`, but neither rune-panel screenshot renders the current formula.
+- VIA confirmed the `RUNE_PANEL` branch of `paintInteractionPanel` draws rune cells and controls but never renders `state.runeFormulas`.
+- The existing two-cycle anti-loop limit is exhausted; no automatic third Neo fix may start without explicit user authorization.
 
 ## Current Task
-Catalog UX retrospective complete. Persistent labels and honest raw/usage/provenance language worked; future reviews should include narrow/long-content layout earlier. A future editor may add progressive disclosure but must preserve provenance/empty/error honesty. Summary `Catalog_Retro_Summary_2026-11-06T15-24.md`.
+- Phase 4 mandatory actual-browser UX gate: BLOCKED.
+- Blocker report: `agents/smith.docs/Sprint3_Phase4_UX_Blocker_2026-11-08T12-19.md`.
+- P4.3 is not approved and Phase 5 must not begin.
 
 ## Next Steps
-@Mouse record coordination retro and close root task.md, then Oracle archive and Cypher local launch. No reruns/commit/push/deploy.
+- @User decide whether to authorize one exceptional third bounded production fix cycle or explicitly revise/defer S3-4.2.
+- If authorized: @Neo render the current ordered formula in the right deck for both source modes; @Trin independently verify state-to-glyph/text agreement; @Morpheus re-review; then @Smith rerun this actual-browser gate.
+- Preserve all passing state, focus, pointer-priority, provenance, bar/message and spatial-geometry evidence while fixing only the formula preview.

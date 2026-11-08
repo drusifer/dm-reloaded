@@ -43,7 +43,7 @@ describe('independent Phase 2 UAT', () => {
   });
   it('mirrors a left-lane projectile approaching the viewer',()=>{
     const base=corridor();
-    const flying={...base,projectiles:[{id:'approaching',itemId:'cr_dagger_1',level:0,x:3,y:2,direction:2 as const,lane:'LEFT' as const,kineticEnergy:10,stepEnergyCost:1}]};
+    const flying={...base,projectiles:[{id:'approaching',itemId:'cr_dagger_1',ownerChampionId:'zed',level:0,x:3,y:2,direction:2 as const,lane:'LEFT' as const,power:10,kineticEnergy:10,stepEnergyCost:1,payload:{kind:'ITEM' as const,itemId:'cr_dagger_1'}}]};
     const pixels=changed(frame(base),frame(flying)); expect(pixels.length).toBeGreaterThan(0);
     expect(pixels.every(([x])=>x>112)).toBe(true);
   });

@@ -1,21 +1,31 @@
 # Agent State
 
 ## Context
-- Active sprint sprint-2-catalog; bothSmithplanninggates passed after originalsourceguardclarification. Rootboard/planapproved.
-- Phase1 sharedcatalog/provenance/exportcompatibility QA PASS after structuraldoor→301auxmask correction. Sourceoriginal required beforeDM1facts; generated17/42 remainunknown despitelegacylookup.
-- Independent5cases coverraw17-vs-item17crop42, no wholeatlasruntimeopaqueclaim, stats27alias-only, portrait26/source81unknownrole, nestedoutputfreshness and conditional301relation all108–119.
-- Finalbothcatalogfiles12/12PASS19:43:58; lint/types19:44:08. Currentoriginal535set/manifestfixedSHA/allPNGbytecompatibility case passes. No Phase1fullaggregate/rerun afterstable.
-- Auxiliarymaskmetadataonly; ordinarydoorindex10 and301specialmaskindex0 unchanged. No parserdecode/lighting/rawexportschema1/fouraliases/filename/bytechanges.
+- Sprint 3 stories, architecture A1-A12, ADR-014, and five-phase root board are approved.
+- Phases 1 and 2 passed independent QA and Morpheus review; root board records four tasks complete.
+- Phase 3 implements 24 runes, deterministic one-draw spell/brew outcomes, shared spell projectiles, doors/light/shield, five powered potions, atomic flask identity, and timed effects.
+- Phase 2 independent QA owns eight separate cases covering rejection/cost/draw/XP atomicity, formation/lane ownership, passive targets, all facings/lanes, payload semantics, geometry, and explosion uniqueness.
+- Initial Phase 2 UAT caught duplicate damage/events for duplicate records sharing one explosion target ID. Fix cycle 1 established stable first-seen identity and exactly-once mutation; the unchanged QA assertion passed.
+- Phase 3 independent QA adds eight cases, including all 30 recipe/power combinations and QA-owned RNG/rune/rank expectations.
+- Morpheus rejected the first Phase 3 architecture review only because Shield was caster-only and lacked a pure derived mitigation query. Neo fix cycle 1 made it a living-party timed effect with caster provenance and added `effectiveShieldMitigation`.
+- Trin's retry adds an independent ninth Phase 3 case covering two-caster replacement, living/dead membership, provenance, base-state immutability, pure mitigation, absolute expiry, and exactly-once unique inactive events.
+- Phase 3 is architecture-approved after Shield fix cycle 1; Mouse recorded 6/12 tasks complete and released Phase 4 with mandatory Smith approval still pending.
+- Phase 4 implementation adds the single interaction owner, shared panel rectangles, Purist/QoL input, source-aware action/rune/impact presentation, and a repeatable Chromium runner.
+- Independent Phase 4 QA owns five cases covering ownership/cleanup, cursor/inventory precedence, all 24 mouse hitboxes, Purist/QoL capture, focus recovery, bars/messages/runes/disabled reasons, all facings/lanes/depths, and item13/14 provenance.
+- Initial Phase 4 UAT failed at 4/5 and in both browser sources because committed invocation retained `RUNE_PANEL` and app-shell `G` reached the catalog before the rune owner. Neo fix cycle 1 closed only those focus/priority seams.
+- The retry expands focus coverage to success/fizzle/backfire/brew plus invalid/mana/skill preservation and strengthens Chromium with Purist/QoL B/G, rejection recovery, state/draw markers, and 16 facing/lane/depth cases per source.
+- Morpheus rejected Phase 4 retry 1 on two architecture authority gaps: painter duplicated incomplete combat eligibility and ordinary utility pills bypassed mirror/active interaction pointer owners.
+- Neo's final automatic fix cycle 2 establishes pure shared `validateCombatAction` for reducer/painter reasons and restores A10 pointer order. Trin retry 2 independently pins missing-ammunition/invalid-target purity, exact display glyphs, atomic rejection, and utility capture under every higher owner.
+- Required trace audit remains unavailable in this Codex workspace: `judge-trace` reports no Claude project directory and masks the error with `|| true`.
 
 ## Current Task
-Catalog QA retrospective complete. Preserve browser→independent→aggregate/build chronology and bounded runs. Independent checks must validate mask contracts without inventing occurrence requirements; torch holes>0 was false. Trace dependency/exit propagation remains separate tooling debt. Summary `Catalog_Retro_Summary_2026-11-06T15-23.md`.
+- Sprint 3 Phase 4 retry 2 after final automatic production fix cycle 2: 100% PASS; no anti-loop escalation required.
+- Evidence: focused independent 7/7; bounded 11-file compatibility 70/70; two-source Chromium 10 named checks plus 16 geometry cases per source, with failures/errors empty; lint/types, 49-module production build, and diff-check pass.
+- Judge trace remains unavailable and is not claimed as passed.
+- Retry 2 summary: `agents/trin.docs/Sprint3_Phase4_Retry2_UAT_Summary_2026-11-06T22-23.md`.
 
 ## Next Steps
-@Oracle knowledge retro next, then continue chain to Mouse. No reruns or commit/push/deploy. Keep missing-jinja2/masked-exit debt explicit.
-
-## Phase2 Independent Acceptance Focus
-- Unknown/generated entries cannot advertise verifiedusage; rawopaque/raw0 interpretations remainavailable. Staleselection/filter changes mustnotretainanotherrecordusage.
-- Item17crop provenance pointsraw42(16,16,16,16), notraw17panel. Knownpixels distinguishopaque0/raw0/index10 andmask-role semantics; ordinarydoorpreviewlabelsaux301compoundmasknotapplied.
-- Numeric17exact andverifiedkey search; category/statusAND; shown/total+verified/unclassified honest; no-match/reset clearstalecontent. Labelledkeyboardselection/persistentdetails cannotrequirehover.
-- OneEscapeclosesfromsearchandrestoresfocus; typingneverplaysgame. Copyfailure/absence giveshonestfeedbackwithoutunhandledpromise. Rampselectionlabelledsourcepalette reference, notworldlighting.
-- Same-sourcelegacyrawmanifest+PNGbytes/native535 review unchanged; independentknown-table checks supplementsharedcatalog agreement. Rootactualbrowser thenboundednewtests/fullaggregate once stable.
+1. @Morpheus re-review Phase 4 against S3-2.6 and A10-A12 using canonical-validator, pointer-priority, focus, provenance, geometry, and two-source Chromium evidence.
+2. If Morpheus approves, @Smith must perform and explicitly approve the mandatory actual-browser UX gate; this Trin correctness pass does not substitute for Smith.
+3. Only after Morpheus and Smith approve may Mouse checkpoint P4.1-P4.3 and release Phase 5.
+4. Preserve the honest judge-trace-unavailable note; do not report the masked target as a trace pass.

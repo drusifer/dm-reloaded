@@ -1,4 +1,4 @@
-.PHONY: help setup install extract-assets dev build test test-q lint typecheck tldr via-index judge-trace clean visual-review visual-review-setup export-sprites export-sprites-review
+.PHONY: help setup install extract-assets dev build test test-q lint typecheck tldr via-index judge-trace clean visual-review visual-review-setup sprint3-visual-review export-sprites export-sprites-review
 
 DATE ?= $(shell date +%F)
 
@@ -55,6 +55,9 @@ visual-review: ## Capture live Chromium sprint scenes and original inventory pan
 
 visual-review-setup: ## Download temporary Chromium for the live visual review runner
 	npm exec --yes --package=@playwright/test@1.64.1 -- playwright install chromium
+
+sprint3-visual-review: ## Run bounded Sprint 3 panel/input browser smoke for Trin/Smith evidence preparation
+	npm exec --yes --package=@playwright/test@1.64.1 -- node scripts/sprint3-visual-review.mjs $(ARGS)
 
 SPRITE_INPUT ?= public/assets/extracted/dm1/graphics.dat
 SPRITE_OUTPUT ?= build/sprites

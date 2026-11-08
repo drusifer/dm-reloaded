@@ -62,9 +62,10 @@ describe('world item projection and HUD state', () => {
     const loaded = tileAt(wall, 2, 4, { ...wall.levels[0]!.tiles[4]![2]!,
       wallItems: { 0: [], 1: [], 2: ['cr_dagger_1'], 3: [] } });
     expect(changed(frame(wall), frame(loaded)).length).toBeGreaterThan(0);
-    const flying = { ...base, projectiles: [{ id: 'flight', itemId: 'cr_dagger_1',
+    const flying = { ...base, projectiles: [{ id: 'flight', itemId: 'cr_dagger_1', ownerChampionId: 'zed',
       level: 0, x: 2, y: 4, direction: 0 as const, lane: 'LEFT' as const,
-      kineticEnergy: 20, stepEnergyCost: 1 }] };
+      power: 10, kineticEnergy: 20, stepEnergyCost: 1,
+      payload: { kind: 'ITEM' as const, itemId: 'cr_dagger_1' } }] };
     const pixels = changed(frame(base), frame(flying));
     expect(pixels.length).toBeGreaterThan(0);
     expect(Math.max(...pixels.map(([, y]) => y))).toBeLessThan(143);

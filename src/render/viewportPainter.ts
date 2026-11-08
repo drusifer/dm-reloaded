@@ -12,12 +12,13 @@ import { itemIconIndex } from '../data/itemCatalog';
 
 import { DIRECTION_DELTAS } from '../engine/types';
 import { partyLightBonus } from '../engine/inventory';
-import type { Direction, DungeonLevel, GameState, Tile, WallFeature } from '../engine/types';
+import { partyMagicLightBonus } from '../engine/effects';
+import type { Direction, DungeonLevel, GameState, ProjectileState, Tile, WallFeature } from '../engine/types';
 import { extractChampionPortrait } from '../data/graphicsDatParser';
 import type { DecodedSprite, GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
 import { drawBitmapText } from './bitmapFont';
 import type { Framebuffer } from './framebuffer';
-import { LAYOUT_RECTS } from './layout';
+import { LAYOUT_RECTS, type ScreenRect } from './layout';
 import { PALETTE_INDEX, getViewportLightPalette } from './palette';
 import { createSpriteSource } from './spriteSource';
 
@@ -75,6 +76,23 @@ const FRUSTUMS: Readonly<Record<0 | 1 | 2 | 3, DepthFrustum>> = {
     bottomOuterY: 76
   }
 };
+
+/** Pure world-to-viewport marker projection shared by rendering and acceptance tests. */
+export function projectileMarkerRect(state: GameState, projectile: ProjectileState): ScreenRect | null {
+  if (projectile.level !== state.party.level) return null;
+  const dx = projectile.x - state.party.x, dy = projectile.y - state.party.y;
+  const forwardVector = DIRECTION_DELTAS[state.party.facing];
+  const rightVector = DIRECTION_DELTAS[((state.party.facing + 1) & 3) as Direction];
+  const forward = dx * forwardVector.dx + dy * forwardVector.dy;
+  const lateral = dx * rightVector.dx + dy * rightVector.dy;
+  if (forward < 1 || forward > 4 || Math.abs(lateral) > forward + 1) return null;
+  const sizes = [0, 13, 9, 6, 4] as const;
+  const size = sizes[forward] ?? 4;
+  const laneOffset = (projectile.lane === 'LEFT' ? -1 : 1) * Math.max(3, Math.floor(18 / forward));
+  const centerX = LAYOUT_RECTS.VIEWPORT.x + 112 + Math.round((lateral * 42) / forward) + laneOffset;
+  const centerY = LAYOUT_RECTS.VIEWPORT.y + 112 - forward * 18;
+  return { x: centerX - Math.floor(size / 2), y: centerY - Math.floor(size / 2), w: size, h: size };
+}
 
 function isOpaqueWall(tile: Tile): boolean {
   if (tile.type === 'WALL') {
@@ -733,9 +751,12 @@ function paintTileItems(
       // Lane belongs to travel direction; an approaching throw swaps screen sides.
       const relativeDirection = (projectile.direction - state.party.facing + 4) % 4;
       const horizontalProjection = [1, 0, -1, 0][relativeDirection]!;
-      draw(projectile.itemId, 112 + (projectile.lane === 'LEFT' ? -spread : spread) * horizontalProjection, floorY - size, 0);
+      if (projectile.itemId) {
+        draw(projectile.itemId, 112 + (projectile.lane === 'LEFT' ? -spread : spread) * horizontalProjection, floorY - size, 0);
+      }
     }
   }
+
 }
 
 /** Project a sprite into a side-wall plane; vertical edges converge with the corridor. */
@@ -816,7 +837,7 @@ export function paintDungeonViewport(
     return;
   }
 
-  const effectiveLight = Math.max(0, Math.min(5, level.ambientLight + partyLightBonus(state)));
+  const effectiveLight = Math.max(0, Math.min(5, level.ambientLight + partyLightBonus(state) + partyMagicLightBonus(state)));
   if (effectiveLight <= 0) {
     // Pitch-black dungeon when unlit (Story 1.1 AC)
     fb.fillRect(vp.x, vp.y, vp.w, vp.h, [0, 0, 0]);
@@ -1035,5 +1056,47 @@ export function paintDungeonViewport(
       drawCenterTileContents(fb, centerTile, depth, state.party.facing, vp.x, vp.y, palette, bundle);
     }
     paintTileItems(fb, state, centerTile, depth, centerCoords.wx, centerCoords.wy, palette, bundle);
+  }
+
+  for (const projectile of state.projectiles) {
+    const marker = projectileMarkerRect(state, projectile);
+    if (!marker) continue;
+    const color = projectile.payload.kind === 'SPELL'
+      ? nearPalette[PALETTE_INDEX.YELLOW]! : nearPalette[PALETTE_INDEX.WHITE]!;
+    fb.fillRect(marker.x, marker.y, marker.w, marker.h, color);
+    fb.strokeRect(marker.x, marker.y, marker.w, marker.h, nearPalette[PALETTE_INDEX.RED]!);
+  }
+
+  for (const impact of state.impactMarkers) {
+    const marker = projectileMarkerRect(state, {
+      id: 'impact', itemId: null, ownerChampionId: '', level: impact.level, x: impact.x, y: impact.y,
+      direction: state.party.facing, lane: impact.lane, power: 1, kineticEnergy: 1, stepEnergyCost: 1,
+      payload: { kind: 'SPELL', spellId: 'IMPACT', effectId: 'IMPACT', explosive: false }
+    });
+    if (!marker) continue;
+    const impactSprite = bundle?.source === 'AMIGA_GRAPHICS_DAT' ? bundle.sprites.get(14) : undefined;
+    if (impactSprite) fb.blitSprite(impactSprite, marker.x - marker.w, marker.y - marker.h, nearPalette,
+      { dstWidth: marker.w * 3, dstHeight: marker.h * 3, transparentIndex: 0 }, LAYOUT_RECTS.VIEWPORT);
+    else {
+      fb.strokeRect(marker.x - 2, marker.y - 2, marker.w + 4, marker.h + 4, nearPalette[PALETTE_INDEX.YELLOW]!);
+      fb.fillRect(marker.x, marker.y, marker.w, marker.h, nearPalette[PALETTE_INDEX.RED]!);
+    }
+  }
+
+  for (const target of state.combatTargets.filter((value) => value.health < value.maxHealth && !value.defeated)) {
+    const marker = projectileMarkerRect(state, {
+      id: `damage-${target.id}`, itemId: null, ownerChampionId: '', level: target.level,
+      x: target.x, y: target.y, direction: state.party.facing, lane: target.lane,
+      power: 1, kineticEnergy: 1, stepEnergyCost: 1,
+      payload: { kind: 'SPELL', spellId: 'DAMAGE', effectId: 'DAMAGE', explosive: false }
+    });
+    if (!marker) continue;
+    const damageSprite = bundle?.source === 'AMIGA_GRAPHICS_DAT' ? bundle.sprites.get(14) : undefined;
+    if (damageSprite) fb.blitSprite(damageSprite, marker.x, marker.y, nearPalette,
+      { dstWidth: Math.max(6, marker.w), dstHeight: Math.max(6, marker.h), transparentIndex: 0 }, LAYOUT_RECTS.VIEWPORT);
+    else {
+      fb.fillRect(marker.x, marker.y + Math.floor(marker.h / 2), marker.w, 1, nearPalette[PALETTE_INDEX.RED]!);
+      fb.fillRect(marker.x + Math.floor(marker.w / 2), marker.y, 1, marker.h, nearPalette[PALETTE_INDEX.RED]!);
+    }
   }
 }

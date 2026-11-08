@@ -15,7 +15,11 @@ import {
   triggerActuatorList,
   updateTileInLevels
 } from './actuators';
-import { nextRandom } from './clock';
+import { createProgressionFromRanks } from './progression';
+import { nextRandom } from './rng';
+import { executeCombatAction } from './combat';
+import { partyMagicLightBonus, stepEffects } from './effects';
+import { applyMagicCommand } from './magic';
 import {
   applyInventoryCommand,
   encumbranceCooldownPenalty,
@@ -72,7 +76,7 @@ export function getTile(
 export function effectiveLightLevel(state: GameState): number {
   const lvl = state.levels.find((l) => l.id === state.party.level);
   const ambient = lvl ? lvl.ambientLight : 0;
-  return Math.max(0, Math.min(5, ambient + partyLightBonus(state)));
+  return Math.max(0, Math.min(5, ambient + partyLightBonus(state) + partyMagicLightBonus(state)));
 }
 
 /**
@@ -131,6 +135,10 @@ export function createInitialGameState(bundle: CampaignBundle): GameState {
     openInventoryChampionIndex: null,
     openContainerId: null,
     projectiles: [],
+    combatTargets: [],
+    impactMarkers: [],
+    runeFormulas: {},
+    selectedBrewFlasks: {},
     gameOver: false,
     activeMirror: null,
     pendingActuators: [],
@@ -139,7 +147,8 @@ export function createInitialGameState(bundle: CampaignBundle): GameState {
       qolMode: false, // 1988 Purist Mode default (ADR-004)
       automapOpen: false,
       audioMuted: false
-    }
+    },
+    interaction: { kind: 'NONE' }
   };
 }
 
@@ -492,7 +501,7 @@ function handleInteractAhead(state: GameState, events: EngineEvent[]): GameState
 }
 
 /** Default survival/inventory fields for a newly recruited champion. */
-function freshVitals(): Pick<ChampionState, 'alive' | 'food' | 'water' | 'inventory'> {
+function freshVitals(): Pick<ChampionState, 'alive' | 'food' | 'water' | 'inventory' | 'poisonSeverity' | 'effects'> {
   const slots = {} as Record<EquipSlotId, ItemInstanceId | null>;
   for (const slot of ALL_EQUIP_SLOTS) {
     slots[slot] = null;
@@ -501,6 +510,8 @@ function freshVitals(): Pick<ChampionState, 'alive' | 'food' | 'water' | 'invent
     alive: true,
     food: 1500,
     water: 1500,
+    poisonSeverity: 0,
+    effects: [],
     inventory: { slots, backpack: new Array<ItemInstanceId | null>(BACKPACK_SLOT_COUNT).fill(null) }
   };
 }
@@ -519,6 +530,8 @@ function buildRecruitedChampion(
         health: def.maxHealth,
         stamina: def.maxStamina,
         mana: def.maxMana,
+        progression: createProgressionFromRanks(def.skills),
+        actionCooldowns: {},
         mode: 'RESURRECTED',
         leftHand: def.startingItems[0] ?? null,
         rightHand: def.startingItems[1] ?? null
@@ -549,6 +562,8 @@ function buildRecruitedChampion(
         vitality: def.attributes.vitality + bonus
       },
       skills: new Array<number>(16).fill(0),
+      progression: createProgressionFromRanks([]),
+      actionCooldowns: {},
       mode: 'REINCARNATED',
       leftHand: def.startingItems[0] ?? null,
       rightHand: def.startingItems[1] ?? null
@@ -583,6 +598,7 @@ function stepSingleTick(state: GameState, events: EngineEvent[]): GameState {
     tick: nextTick,
     levels: nextLevels,
     pendingActuators: remainingOps,
+    impactMarkers: state.impactMarkers.filter((marker) => marker.expiresAtTick > nextTick),
     party: {
       ...state.party,
       moveCooldownTicks: nextCooldown
@@ -590,7 +606,11 @@ function stepSingleTick(state: GameState, events: EngineEvent[]): GameState {
   };
 
   // 3. Flying projectiles, then survival vitals / torch burn / death
-  return stepSurvival(stepProjectiles(advanced, events), events);
+  const stepped = stepSurvival(stepProjectiles(stepEffects(advanced, events), events), events);
+  const owner = stepped.interaction.kind === 'NONE' ? undefined : stepped.party.champions[stepped.interaction.championIndex];
+  return (stepped.gameOver || stepped.activeMirror || (owner && !owner.alive))
+    ? { ...stepped, interaction: { kind: 'NONE' } }
+    : stepped;
 }
 
 /** Commands that do not wake a sleeping party (time passing and pure settings). */
@@ -611,6 +631,18 @@ export function dispatchCommand(state: GameState, command: GameCommand): Simulat
   // Any click / key while asleep only wakes the party ("CLICK OR PRESS ANY KEY TO WAKE").
   if (state.party.sleeping && !SLEEP_TRANSPARENT_COMMANDS.has(command.type)) {
     return { state: setSleeping(state, false, events), events };
+  }
+
+  if (state.activeMirror && state.interaction.kind !== 'NONE') state = { ...state, interaction: { kind: 'NONE' } };
+
+  if (state.interaction.kind !== 'NONE') {
+    const allowed: ReadonlySet<GameCommand['type']> = new Set([
+      'TICK', 'TOGGLE_QOL_MODE', 'SET_AUDIO_MUTED', 'TOGGLE_INVENTORY', 'SET_SLEEPING',
+      'CLOSE_INTERACTION', 'OPEN_RUNE_PANEL', 'OPEN_PROGRESSION_VIEW',
+      'EXECUTE_COMBAT_ACTION', 'ADD_RUNE', 'REMOVE_RUNE', 'CLEAR_RUNES', 'SELECT_BREW_FLASK',
+      'INVOKE_RUNES', 'CONSUME_POTION'
+    ]);
+    if (!allowed.has(command.type)) return { state, events };
   }
 
   switch (command.type) {
@@ -637,7 +669,7 @@ export function dispatchCommand(state: GameState, command: GameCommand): Simulat
 
     case 'INTERACT_AHEAD': {
       const nextState = handleInteractAhead(state, events);
-      return { state: nextState, events };
+      return { state: nextState.activeMirror ? { ...nextState, interaction: { kind: 'NONE' } } : nextState, events };
     }
 
     case 'CANCEL_MIRROR': {
@@ -793,15 +825,54 @@ export function dispatchCommand(state: GameState, command: GameCommand): Simulat
       if (state.activeMirror) {
         return { state, events };
       }
+      if (command.type === 'CONSUME_HAND_ITEM' && state.handItem && state.items[state.handItem]?.potion) {
+        return { state: applyMagicCommand(state, {
+          type: 'CONSUME_POTION', championIndex: command.championIndex, itemId: state.handItem
+        }, events), events };
+      }
       const inv = applyInventoryCommand(state, command, events);
-      return { state: inv.state, events };
+      return { state: { ...inv.state, interaction: { kind: 'NONE' } }, events };
     }
 
     // Reducers owned by ProjectileEngine / SurvivalEngine.
     case 'THROW_HAND_ITEM':
       return { state: launchProjectile(state, command.side, events), events };
 
+    case 'EXECUTE_COMBAT_ACTION':
+      return { state: { ...executeCombatAction(state, command, events), interaction: { kind: 'NONE' } }, events };
+
+    case 'ADD_RUNE':
+    case 'REMOVE_RUNE':
+    case 'CLEAR_RUNES':
+    case 'SELECT_BREW_FLASK':
+    case 'CONSUME_POTION':
+      return { state: applyMagicCommand(state, command, events), events };
+
+    case 'INVOKE_RUNES': {
+      const next = applyMagicCommand(state, command, events);
+      const committed = events.some((event) => event.type === 'SPELL_SUCCEEDED'
+        || event.type === 'SPELL_FIZZLED' || event.type === 'SPELL_BACKFIRED'
+        || event.type === 'POTION_BREWED');
+      return { state: committed ? { ...next, interaction: { kind: 'NONE' } } : next, events };
+    }
+
+    case 'OPEN_ACTION_MENU': {
+      const champion = state.party.champions[command.championIndex];
+      const itemId = champion?.inventory.slots[command.hand];
+      return { state: champion?.alive && itemId && !state.handItem && state.openInventoryChampionIndex === null
+        ? { ...state, interaction: { kind: 'ACTION_MENU', championIndex: command.championIndex, hand: command.hand } }
+        : state, events };
+    }
+    case 'OPEN_RUNE_PANEL':
+      return { state: state.party.champions[command.championIndex]?.alive
+        ? { ...state, interaction: { kind: 'RUNE_PANEL', championIndex: command.championIndex } } : state, events };
+    case 'OPEN_PROGRESSION_VIEW':
+      return { state: state.party.champions[command.championIndex]
+        ? { ...state, interaction: { kind: 'PROGRESSION_VIEW', championIndex: command.championIndex } } : state, events };
+    case 'CLOSE_INTERACTION':
+      return { state: { ...state, interaction: { kind: 'NONE' } }, events };
+
     case 'SET_SLEEPING':
-      return { state: setSleeping(state, command.sleeping, events), events };
+      return { state: { ...setSleeping(state, command.sleeping, events), interaction: { kind: 'NONE' } }, events };
   }
 }

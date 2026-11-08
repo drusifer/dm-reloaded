@@ -25,6 +25,7 @@ import { PALETTE_INDEX, getUiPalette, getViewportLightPalette } from './palette'
 import { paintInventory } from './inventoryPainter';
 import { drawBitmapText } from './bitmapFont';
 import { paintDungeonViewport } from './viewportPainter';
+import { paintInteractionPanel } from './interactionPainter';
 
 export {
   FRAMEBUFFER_HEIGHT,
@@ -41,10 +42,14 @@ export {
   paintDungeonViewport,
   paintHud,
   paintMirrorModal,
+  paintInteractionPanel,
   pointInRect
 };
 export type { AudioUnlockBadge, BlitOptions, CanvasPresentationRect, ScreenRect };
 export * from './contactSheet';
+export * from './layout';
+export { combatFailureDisplayText } from './interactionPainter';
+export { projectileMarkerRect } from './viewportPainter';
 
 export function renderFrame(
   fb: Framebuffer,
@@ -62,6 +67,9 @@ export function renderFrame(
   }
   paintHud(fb, state, options.audioStatus ?? 'LOCKED', options.graphics);
   if (!state.activeMirror && !state.party.sleeping) paintInventory(fb, state, options.graphics);
+  if (!state.activeMirror && !state.party.sleeping && state.openInventoryChampionIndex === null) {
+    paintInteractionPanel(fb, state, options.graphics);
+  }
   if (state.handItem && !state.party.sleeping) {
     const item=state.items[state.handItem];
     const pointer=options.pointer;
@@ -78,4 +86,3 @@ export function renderFrame(
 export { paintInventory } from './inventoryPainter';
 import { createSpriteSource } from './spriteSource';
 export { createSpriteSource } from './spriteSource';
-export { EQUIP_SLOT_RECTS, BACKPACK_SLOT_RECTS, CHEST_SLOT_RECTS } from './layout';

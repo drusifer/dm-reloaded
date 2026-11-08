@@ -8,5 +8,11 @@
 
 export * from './types';
 export * from './clock';
+export * from './progression';
+export * from './combat';
+export * from './reviewScenario';
 export * from './actuators';
 export * from './simulation';
+export * from './magic';
+export * from './effects';
+export * from '../data/magicCatalog';

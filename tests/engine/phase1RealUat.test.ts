@@ -39,7 +39,7 @@ function allItemRefs(state: GameState): string[] {
     }
   }
   if (state.handItem) refs.push(state.handItem);
-  for (const p of state.projectiles) refs.push(p.itemId);
+  for (const p of state.projectiles) if (p.itemId) refs.push(p.itemId);
   for (const lvl of state.levels) {
     for (const row of lvl.tiles) {
       for (const t of row) {

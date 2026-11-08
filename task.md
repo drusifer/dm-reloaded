@@ -1,45 +1,70 @@
-Sprite catalog sprint task board; sole active task list for sprint-2-catalog.
+Sprint 3 task board; sole active task list for `sprint-3`.
 
 TLDR:
-    Goal: Complete measured sprite coverage, evidenced labels and usage-specific masks in a searchable G inspector.
-    Status: Delivered locally 2026-11-06; SC1–SC5 and all implementation, QA, architecture, mechanism, documentation and actual UX gates passed.
-    Next: Archive sprint chat and announce local completion; no commit, push or deployment was requested.
+    Goal: Deliver deterministic usage progression, player combat, 24-rune magic, potions, and a mouse-complete 320x200 experience on the existing pure engine.
+    Status: Phases 1-3 approved and complete (6/12 tasks, 50%); Phase 3 passed after one recorded party-Shield architecture fix cycle.
+    Next: Phase 4 is ready for Neo, followed by independent browser evidence and the mandatory Smith UX approval gate.
 
-# Sprite Catalog Sprint — sprint-2-catalog
+# Sprint 3 — Combat, Runic Magic, and Progression
 
-- Scope/criteria: [docs/SPRINT_SPRITE_CATALOG.md](docs/SPRINT_SPRITE_CATALOG.md), SC-1…SC-5.
-- Preserve existing uncommitted lighting and prior raw PNG/manifest bytes.535records do not imply535identified sprites. No runtime PNG loader, full semantic identification, gameplay, deployment or automatic commit/push.
-- Use [SDLC](docs/SDLC.md), serial bobp make and bounded checks. Root task.md is the only active board.
+- Product contract: [docs/SPRINT3.md](docs/SPRINT3.md), S3-1 through S3-6.
+- Architecture: [docs/SPRINT3_ARCHITECTURE.md](docs/SPRINT3_ARCHITECTURE.md), A1 through A12.
+- Plan gate: Morpheus approved the five-phase dependency order and evidence gates on 2026-11-06. Phases 1-3 passed Neo, Trin, and Morpheus gates; Phase 4 is ready with mandatory Smith approval before Phase 5.
+- Root `task.md` is the only active task board. Do not create secondary task lists.
+- All implementation phases use tests first and the chain Neo -> Trin independent QA -> Morpheus review. Smith is mandatory where actual user-visible behavior exists.
+- Run project automation serially through `bobp make`; never overlap shared `build/build.out` writers. Do not rerun unchanged suites.
+- Sprint 4 monster AI and Sprint 5 campaign/save work are out of scope. No new runtime dependency, service, environment variable, CI, deployment, automatic commit, or push is authorized; therefore no Tank planning gate applies.
+- Anti-loop: after two failed fix cycles, stop, consult Oracle, preserve logs, and request user guidance before any third attempt.
 
-## Phase1 — Shared pure catalog and existing consumers
-Chain: Neo → Trin independent QA → Morpheus review.
+## Phase 1 — Deterministic progression foundation
 
-- [x] **SC-P1.1** (@Neo): Pure source-aware catalog over every measured decoded map entry; sparse verified facts, explicit unknowns, evidence and usage-specific masks/crops. Centralize existing four panels, categories and224icon addresses. Require original-source provenance for DM1 claims; CLEAN_ROOM17/42 remain unknown/generated (SC-1,SC-2).
-- [x] **SC-P1.2** (@Neo): Consume shared policy in SpriteSource and exporter without changing cache/fallback/runtime masks, manifest schema/fields/categories/fouraliases or any raw PNG/manifest bytes. Independent mappings/crop boundaries, deterministic metadata, original535coverage and strict-source/owned-writer regressions (SC-1…SC-3).
+Chain: Neo -> Trin independent QA -> Morpheus review. Internal engine work; Smith defers until the progression surface exists in Phase 4.
 
-## Phase2 — Observable inspection and final acceptance
-Chain: Neo → Trin → Morpheus → Tank concrete automation approval → mandatory Smith actual browser/artifact gate.
+- [x] **S3-P1.1** (@Neo): TDD the single integer RNG transition and 16-track per-champion progression authority: ordered ranks, monotonic thresholds, depth multiplier, exact-one rank event, no XP for blocked/failed/inspection actions, and fixed draw budgets. Preserve base attributes separately. (S3-1.1..5; A1-A4)
+- [x] **S3-P1.2** (@Neo): Materialize source ranks for Resurrect and reset progression for Reincarnate; integrate progression commands/events through the sole reducer/tick without a second mutable rank truth. Prove deterministic migration and existing Sprint 2 recruitment compatibility. (S3-1.1..6; A1-A5)
 
-- [x] **SC-P2.1** (@Neo): G inspector search/category/status filters, shown/total/status counts, keyboard-reachable persistent selection/details and explicit raw opaque/rawindex0/verifiedusage previews. Combine/reset/no-match, empty source, zoom/reference-ramp, copy/error feedback and one-Escape/focus restoration; do not leak typing into gameplay (SC-4,SC-5).
-- [x] **SC-P2.2** (@Tank/Trin): Existing visual-review --catalog mode with separate truthful report/real input checks and preview PNGs; preserve legacy/lighting modes. Verify original535catalog, fallback empty/generated provenance, raw manifest compatibility and independent native535PNG fidelity. Once source/tests stable, one final aggregate/lint/build (SC-1…SC-5).
-- [x] **SC-P2.3** (@Oracle/Smith/Cypher): Groom README/ARCH/SDLC/decision/evidence, final all-criteria audit and Smith actual usability approval, seven domain retrospectives, archive and local launch. Keep full semantic classification and pack loader explicitly future work.
+## Phase 2 — Combat actions and shared projectiles
+
+Chain: Neo -> Trin independent QA -> Morpheus review. Headless rules and bounded review targets only; user-facing panels remain Phase 4.
+
+- [x] **S3-P2.1** (@Neo): TDD immutable combat definitions and atomic action transactions for valid held equipment: formation/reach/lane, stamina/ammunition/charge, cooldowns, deterministic hit/damage, explicit rejection codes, successful-effect XP, and passive bounded targets with no Sprint 4 AI. (S3-2.1..7; A2-A5,A7-A8)
+- [x] **S3-P2.2** (@Neo): Generalize the existing physical projectile engine to typed item/ammunition/spell payloads while preserving free throws, ownership, landing, pits, teleporters, doors, stable order, exactly-once impacts, unique explosion targets, and later kill-credit attribution. Verify all four facings and both lanes headlessly. (S3-2.4..7,S3-3.1..6; A4,A6-A8)
+
+## Phase 3 — Rune magic, potions, and timed effects
+
+Chain: Neo -> Trin independent QA -> Morpheus review. Pure rules/catalogs first; visual and input presentation remain Phase 4.
+
+- [x] **S3-P3.1** (@Neo): TDD the 24-rune ordered catalog, formula editing commands, mana/skill gates, None-to-Neophyte `Lo Ful Ir` threshold, deterministic success/fizzle/backfire, spell projectiles/doors/light/shield, fixed costs, and correct Priest/Wizard XP. (S3-4.1..7,S3-5.1..2,S3-5.6..7; A2-A5,A8,A10)
+- [x] **S3-P3.2** (@Neo): TDD five required powered potions (Vi, Ya, Ee, Ku, Bro), selected-flask reachability, exact invalid/insufficient/fizzle/backfire/success outcomes, same-ID atomic transformation, single consumption, poison/attribute/effect expiry, and no duplication or stale ownership. (S3-5.1,S3-5.3..7; A4-A5,A8-A9)
+
+## Phase 4 — Playable 320x200 combat and magic UX
+
+Chain: Neo -> Trin independent QA -> Morpheus review -> mandatory Smith actual-browser UX gate. Phase 5 cannot start until Smith explicitly approves.
+
+- [ ] **S3-P4.1** (@Neo): TDD the single interaction-mode owner plus shared layout/input rectangles for action, rune, and progression panels. Provide complete Purist mouse flows, optional QoL shortcuts only when enabled, Escape/recovery behavior, disabled reasons, and lifecycle cleanup on inventory/sleep/mirror/death/restart without input leakage or stale overlays. (S3-1.4,S3-2.1..3,S3-2.6,S3-4.1..7,S3-6.1..4; A10-A11)
+- [ ] **S3-P4.2** (@Neo): Render source-guarded original/fallback action labels, 24 rune glyphs, damage/rank/status feedback, and near/far projectile/impact geometry in all facings/lanes. Preserve champion bars/messages, original item 13/14 distinction, raw export/catalog/lighting behavior, and clean-room provenance. (S3-2.5..6,S3-3.4..5,S3-4.1,S3-5.2,S3-6.1..5; A6,A11-A12)
+- [ ] **S3-P4.3** (@Trin/@Smith): Independently exercise the bounded review scenario in a real browser for original and clean-room sources: mouse-only and QoL paths, every shipped action/spell/potion, success and failure recovery, all four facings/two lanes/near-far cases, focus restoration, known draw markers, state assertions, captures, and zero uncaught errors. Unit screenshots or nonblack pixels alone are insufficient. (S3-2..6; A10-A12)
+
+## Phase 5 — Full acceptance, documentation, and local close
+
+Chain: Trin final audit -> Morpheus architecture review -> Smith end-to-end approval -> Oracle groom -> all-persona retrospective -> Cypher local launch -> Mouse board close. Any defect returns only to its failing phase.
+
+- [ ] **S3-P5.1** (@Trin/@Morpheus): Map every accepted criterion to independent evidence; verify determinism, ownership, exact costs, no duplication, no invalid-action XP, existing Sprint 1/2 compatibility, and honest chronology. Once source is stable, run one final serial affected/aggregate/lint/type/build set through available `bobp make` targets; report the known `jinja2` trace audit unavailable if still unresolved. (S3-1..6; A1-A12)
+- [ ] **S3-P5.2** (@Smith): Perform the final actual 320x200 user journey across progression, combat, projectiles, runes, spells, brewing/drinking, Purist mouse, QoL keyboard, original/fallback sources, visible resource/status feedback, and recovery paths. Explicit approve or route a reproducible defect through Trin. (S3-1..6; A10-A12)
+- [ ] **S3-P5.3** (@Oracle/@all/@Cypher/@Mouse): Groom README/ARCH/DECISIONS/SDLC and evidence without duplicating the board; archive/report sprint chat, run seven domain retrospectives, add accepted follow-ups to backlog, announce local completion, and close this board. No commit, push, release, or deployment is implied. (Definition of Done)
 
 ## Completed Milestones
 
-- **Verified sprite catalog (`sprint-2-catalog` — Delivered locally 2026-11-06)**: Source-aware535-record catalog with39verified roles/496unclassified, usage-specific masks/crops and searchable keyboard G inspector. Actual570-check/9-capture browser gate, independent3/3, aggregate268/268, lint/types/build and final Trin/Morpheus/Tank/Smith gates passed; raw source/manifest/535PNG bytes preserved. No deployment.
+- **Sprint 2 catalog follow-up (`sprint-2-catalog`, 2026-11-06):** 535 measured records, 39 verified roles, 496 honest unknowns, searchable G inspector, usage-specific masks/crops, 268 aggregate tests/build and independent actual-browser/artifact gates passed.
+- **Sprint 2 lighting/export follow-ups (2026-11-03):** deterministic raw sprite export plus parametric indexed/RGBA lighting, strict source/provenance checks, native PNG review, and actual-browser lighting evidence delivered locally.
+- **Sprint 2 (2026-11-03):** champions, physical inventory/chests/scrolls, survival, throws, equipment effects, Vi Altars, pointer/sound feedback, and final corrective acceptance delivered locally.
+- **Sprint 1 (2026-11-02):** pure 6 Hz engine, Amiga data decoders, 320x200 rendering/HUD/automap, Purist/QoL input, and Paula audio launched.
 
-- **Parametric lighting (`sprint-2-lighting` — Delivered locally 2026-11-03)**: Shared validated RGB/palette/RGBA filter, brightest-only world palettes, existing masks/gameplay/full-bright UI retained.250tests/lint/types/build and26browser scenes/98checks passed; all LT1–5/Smith gates accepted. See [scope/evidence](docs/SPRINT_LIGHTING.md) and [archive](agents/chat_archive/CHAT_sprint-2-lighting.md). No deployment.
+## Backlog After Sprint 3
 
-- **Asset export (`sprint-2-assets` — Delivered locally 2026-11-03)**: Offline indexed PNG exporter and deterministic manifest; strict original palette/source validation, safe owned output and independent native review of535sprites/1,690,768pixels. All AE1–8 and final Smith approval passed. See [acceptance](docs/SPRINT_ASSET_EXPORT.md) and [sprint archive](agents/chat_archive/CHAT_sprint-2-assets.md). No deployment.
-
-- **Sprint 2 (`sprint-2` — Delivered locally 2026-11-03)**: Physical inventory/chests/scrolls and derived equipment effects; center/side world items and throws; survival/bones/Vi Altars; pointer and sound cues; warning/restart feedback. Final accepted-story approvals in `agents/chat_archive/CHAT_sprint-2-acceptance.md`; original phase history in `CHAT_sprint-2.md`. No deployment.
-- **Sprint 1 (`sprint-1` — Delivered & Launched 2026-11-02)**: Toolchain, OFS/8104 `Dungeon.dat` (14 levels, 24 Champions) & `graphics.dat` (535 RLE sprites, 33 `5500 Hz` Paula PCM sounds) decoders, `item[558]` perspective walls & `0x08` 3D doors, `320×200` Framebuffer/HUD/Automap, Purist/QoL input, Paula spatial audio + `SFX BOARD [B]` (`32/32` Vitest tests green).
-
-## Backlog (Future Sprints — Reference: `docs/PRD.md`)
-- **Sprint 2 retrospective follow-up**: repair trace-audit `jinja2` dependency and stop masking trace failures; serialize shared `bobp make` log writers; improve long-scroll pagination while retaining full logged text; keep final story-to-evidence review and live browser regressions.
-- **Post-Sprint 2 (ADR-009)**: Exporter delivered in `sprint-2-assets`. Parametric lighting delivered in `sprint-2-lighting`. Next: semantic-key classification of all 535 sprites via the contact sheet (`G`); define per-sprite runtime mask policy before consuming raw exports. Later epic: campaign-pack loader (`campaign.json`, PNG sprites, `maps/`, `items.json`) for community content. Retain independent metadata checks and safe output/report ownership.
-- **Sprint 3**: 4-Class / 16-Subskill Usage Progression, Melee/Ranged Combat Actions (`item[14]` damage starburst + `item[560]` action names), 24-Rune Combinatorial Spell & Potion System (reusing `item[557]` rune glyph slots `97..122`).
-- **Sprint 4**: All 27 DM1 Monster Types, Group AI/Formations, Scent Tracking, Doors Crushing Monsters, Monster Generators.
-- **Sprint 5**: Complete 14-Level DM1 Campaign Polish, Firestaff/Lord Chaos Endings, Multi-Slot IndexedDB Saves, File-Picker `.DAT` Import.
-- **Sprint 6**: *Chaos Strikes Back* (Champion Import Utility, Prison, Corbums & Ful Ya).
-- **Sprint 7–8**: *Dungeon Master II: The Legend of Skullkeep* (LZX unpacking from `DM2_archive.LZX`, Outdoor/Weather, Shops/Coins, Commandable Minions).
+- Sprint 2 tooling follow-up: repair trace-audit `jinja2`, stop masking trace failures, serialize shared log writers, and improve long-scroll pagination.
+- Sprite/campaign follow-up: evidence-backed classification/editor, then separately a runtime campaign-pack loader.
+- **Sprint 4:** 27 DM1 monster types, group AI/formations, scent/pathfinding, crushing doors, and generators.
+- **Sprint 5:** complete 14-level DM1 polish, Firestaff/Lord Chaos endings, saves, and file-picker DAT import.
+- **Sprint 6:** Chaos Strikes Back champion import, Prison, Corbums, and Ful Ya.
+- **Sprints 7-8:** Dungeon Master II outdoor/weather, shops/coins, commandable minions, and campaign.

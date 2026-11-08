@@ -119,6 +119,8 @@ export function championLoadTenths(state: GameState, champion: ChampionState): n
  */
 export function effectiveChampionAttributes(state: GameState, champion: ChampionState): ChampionAttributes {
   const result = { ...champion.attributes };
+  result.strength += champion.effects.filter((effect) => effect.kind === 'STRENGTH')
+    .reduce((sum, effect) => sum + effect.magnitude, 0);
   for (const slot of ALL_EQUIP_SLOTS) {
     const id = champion.inventory.slots[slot], item = id ? state.items[id] : undefined;
     if (!item) continue;
