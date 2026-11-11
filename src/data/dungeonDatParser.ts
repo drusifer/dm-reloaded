@@ -20,12 +20,14 @@ import {
   type DungeonLevel,
   type ItemInstance,
   type ItemInstanceId,
+  type MonsterGroupSpec,
   type StartingGearSpec,
   type SubTileQuadrant,
   type Tile,
   type TileType,
   type WallFeature
 } from '../engine/types';
+import { monsterTypeDef } from './monsterCatalog';
 import { findItemDef } from './itemCatalog';
 
 const COMPRESSED_MAGIC = 0x8104;
@@ -491,6 +493,7 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
   let objListCursor = 0;
   const champions: Record<string, ChampionDefinition> = {};
   const levels: DungeonLevel[] = [];
+  const monsterGroups: MonsterGroupSpec[] = [];
 
   for (const desc of mapDescs) {
     const trailStart = mapDataBase + desc.mapOffset + desc.width * desc.height;
@@ -837,6 +840,25 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
 
         // Second pass over chain: world items (DB5..DB10)
         for (const entry of chain) {
+          if (entry.category === 4 && tileType !== 'WALL') {
+            const recOff = (dbOffsets[4] ?? 0) + entry.index * 16;
+            const typeId = buf[recOff + 4] ?? 0xff;
+            if (monsterTypeDef(typeId)) {
+              const count = Math.min(4, (((buf[recOff + 15] ?? 0) >> 5) & 0x03) + 1);
+              const healths: number[] = [];
+              for (let c = 0; c < count; c++) healths.push(readU16BE(buf, recOff + 6 + c * 2));
+              monsterGroups.push({
+                id: `m${desc.id}_${x}_${y}_${entry.index}`,
+                typeId,
+                level: desc.id,
+                x,
+                y,
+                facing: (((buf[recOff + 15] ?? 0) & 0x03) as Direction),
+                healths
+              });
+            }
+            continue;
+          }
           if (entry.category < 5 || entry.category > 10) {
             continue;
           }
@@ -910,7 +932,8 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
       startFacing,
       levels,
       champions,
-      initialItems
+      initialItems,
+      monsterGroups
     }
   };
 }

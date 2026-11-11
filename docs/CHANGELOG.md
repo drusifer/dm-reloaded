@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-11-11 — Monster ecology (`sprint-4`)
+
+- Added the 27-type monster catalog, Amiga creature parsing, deterministic hunting AI with subcell groups, melee/ranged strikes, kill credit, drops, non-material rules, door crushing and a tested generator engine.
+- Added viewport silhouettes (labelled placeholder art), HP pips, HUD injury flash, visible-only automap markers, new sound cues and `bobp make sprint4-visual-review`.
+- Party movement is now blocked by live monsters; a hit wakes a sleeping party.
+
+Validation: serial `370/370`, lint/types/build and two-source actual-browser gate passed. Local delivery; no commit, push or deployment. Disclosed limits: approximate stats, placeholder art, no shipped generators, only the party level simulates.
+
 ## 2026-11-03 — Parametric dungeon lighting (`sprint-2-lighting`)
 
 - Replaced historical dark-ramp selection with one validated color filter configured in `src/render/lighting.json`; brightness curve, depth falloff, tint and desaturation share a pure RGB formula.

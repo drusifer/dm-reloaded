@@ -73,15 +73,30 @@ function damageTarget(
   targetId: string,
   amount: number,
   ownerChampionId: string,
-  events: EngineEvent[]
+  events: EngineEvent[],
+  magical = false
 ): GameState {
+  const immune = !magical && amount > 0
+    && state.combatTargets.some((t) => t.id === targetId && !t.defeated && t.traits.includes('NON_MATERIAL'));
+  if (immune) {
+    const text = 'THE BLOW PASSES THROUGH THE NON-MATERIAL FOE.';
+    events.push({ type: 'DAMAGE_APPLIED', targetId, ownerChampionId, amount: 0 });
+    events.push({ type: 'MESSAGE_LOGGED', text });
+    const messages = [...state.messages, text];
+    return { ...state, messages: messages.length > MAX_MESSAGE_LOG ? messages.slice(-MAX_MESSAGE_LOG) : messages };
+  }
   let applied = false;
   const targets = state.combatTargets.map((target) => {
     if (applied || target.id !== targetId || target.defeated || amount <= 0) return target;
     applied = true;
     const health = Math.max(0, target.health - amount);
     events.push({ type: 'DAMAGE_APPLIED', targetId, ownerChampionId, amount: target.health - health });
-    return { ...target, health, defeated: health === 0 };
+    return {
+      ...target,
+      health,
+      defeated: health === 0,
+      ...(target.monster ? { monster: { ...target.monster, awake: true, lastHitBy: ownerChampionId } } : {})
+    };
   });
   return { ...state, combatTargets: targets };
 }

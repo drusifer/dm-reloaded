@@ -16,3 +16,5 @@ export * from './simulation';
 export * from './magic';
 export * from './effects';
 export * from '../data/magicCatalog';
+export * from './monsters';
+export * from './monsterSpawn';

@@ -27,7 +27,9 @@ export const ALL_SOUND_CUES: readonly SoundCueId[] = [
   'THROW_SWOOSH',
   'GULP',
   'LOCK_CLICK',
-  'CHAMPION_DEATH'
+  'CHAMPION_DEATH',
+  'MONSTER_ATTACK',
+  'MONSTER_DEATH'
 ];
 
 /**

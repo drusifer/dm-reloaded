@@ -284,6 +284,8 @@ export interface ChampionState extends ChampionDefinition {
   readonly progression: ChampionProgression;
   readonly actionCooldowns: Readonly<Record<string, number>>;
   readonly poisonSeverity: number;
+  /** Tick until which the HUD flashes this champion as recently injured by a monster. */
+  readonly hurtUntilTick?: number;
   readonly effects: readonly TimedEffect[];
   readonly leftHand: string | null;
   readonly rightHand: string | null;
@@ -327,6 +329,44 @@ export interface ProjectileState {
   readonly payload: ProjectilePayload;
 }
 
+export interface MonsterRuntime {
+  readonly typeId: number;
+  readonly groupId: string;
+  /** 0..3; subcell % 2 === 0 is the LEFT lane, 2..3 are the near row. */
+  readonly subcell: 0 | 1 | 2 | 3;
+  readonly facing: Direction;
+  readonly nextMoveTick: number;
+  readonly nextAttackTick: number;
+  readonly awake: boolean;
+  /** Last tile each monster stood on, used as scent fallback. */
+  readonly lastX: number;
+  readonly lastY: number;
+  /** Champion credited with the most recent damage, for kill credit. */
+  readonly lastHitBy?: string;
+}
+
+export interface MonsterGroupSpec {
+  readonly id: string;
+  readonly typeId: number;
+  readonly level: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: Direction;
+  /** Current hit points per creature (1..4 entries). */
+  readonly healths: readonly number[];
+}
+
+export interface MonsterGeneratorState {
+  readonly id: string;
+  readonly typeId: number;
+  readonly level: number;
+  readonly x: number;
+  readonly y: number;
+  readonly intervalTicks: number;
+  readonly nextSpawnTick: number;
+  readonly remaining: number;
+}
+
 export interface CombatTargetState {
   readonly id: string;
   readonly level: number;
@@ -337,6 +377,8 @@ export interface CombatTargetState {
   readonly maxHealth: number;
   readonly health: number;
   readonly defeated: boolean;
+  /** Present only for autonomous Sprint 4 monsters; absent for passive review targets. */
+  readonly monster?: MonsterRuntime;
 }
 
 export interface ImpactMarkerState {
@@ -384,6 +426,8 @@ export interface DungeonData {
   readonly levels: readonly DungeonLevel[];
   readonly champions: Readonly<Record<string, ChampionDefinition>>;
   readonly initialItems?: Readonly<Record<ItemInstanceId, ItemInstance>>;
+  readonly monsterGroups?: readonly MonsterGroupSpec[];
+  readonly monsterGenerators?: readonly MonsterGeneratorState[];
 }
 
 export interface CampaignBundle {
@@ -407,6 +451,7 @@ export interface GameState {
   readonly openContainerId: ItemInstanceId | null;
   readonly projectiles: readonly ProjectileState[];
   readonly combatTargets: readonly CombatTargetState[];
+  readonly monsterGenerators: readonly MonsterGeneratorState[];
   readonly impactMarkers: readonly ImpactMarkerState[];
   readonly runeFormulas: Readonly<Record<string, readonly RuneId[]>>;
   readonly selectedBrewFlasks: Readonly<Record<string, ItemInstanceId | null>>;
@@ -483,7 +528,9 @@ export type SoundCueId =
   | 'THROW_SWOOSH'
   | 'GULP'
   | 'LOCK_CLICK'
-  | 'CHAMPION_DEATH';
+  | 'CHAMPION_DEATH'
+  | 'MONSTER_ATTACK'
+  | 'MONSTER_DEATH';
 
 export type EngineEvent =
   | { readonly type: 'STEP_TAKEN'; readonly level: number; readonly x: number; readonly y: number }
@@ -517,6 +564,10 @@ export type EngineEvent =
   | { readonly type: 'ACTION_EXECUTED'; readonly championId: string; readonly actionId: string; readonly hit: boolean }
   | { readonly type: 'COOLDOWN_STARTED'; readonly championId: string; readonly actionId: string; readonly readyAtTick: number }
   | { readonly type: 'DAMAGE_APPLIED'; readonly targetId: string; readonly ownerChampionId: string; readonly amount: number }
+  | { readonly type: 'MONSTER_ATTACKED'; readonly monsterId: string; readonly typeId: number; readonly championId: string; readonly hit: boolean; readonly amount: number }
+  | { readonly type: 'MONSTER_MOVED'; readonly monsterId: string; readonly level: number; readonly x: number; readonly y: number }
+  | { readonly type: 'MONSTER_KILLED'; readonly monsterId: string; readonly typeId: number; readonly killerChampionId: string | null; readonly cause: 'COMBAT' | 'CRUSHED' }
+  | { readonly type: 'MONSTER_SPAWNED'; readonly monsterId: string; readonly typeId: number; readonly level: number; readonly x: number; readonly y: number }
   | { readonly type: 'PROJECTILE_LAUNCHED'; readonly projectileId: string; readonly ownerChampionId: string }
   | { readonly type: 'PROJECTILE_IMPACT'; readonly projectileId: string; readonly level: number; readonly x: number; readonly y: number }
   | { readonly type: 'EXPLOSION_RESOLVED'; readonly projectileId: string; readonly targetIds: readonly string[] }

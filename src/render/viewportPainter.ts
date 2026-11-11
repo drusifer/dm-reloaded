@@ -1,3 +1,4 @@
+import { paintMonsters } from './monsterPainter';
 import { itemIconIndex } from '../data/itemCatalog';
 /**
  * Depth-3 first-person pseudo-3D dungeon viewport painter (224x136 at y=33).
@@ -1059,6 +1060,8 @@ export function paintDungeonViewport(
     }
     paintTileItems(fb, state, centerTile, depth, centerCoords.wx, centerCoords.wy, palette, bundle);
   }
+
+  paintMonsters(fb, state);
 
   for (const projectile of state.projectiles) {
     const marker = projectileMarkerRect(state, projectile);

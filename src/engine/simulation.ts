@@ -15,6 +15,8 @@ import {
   triggerActuatorList,
   updateTileInLevels
 } from './actuators';
+import { expandMonsterGroups } from './monsterSpawn';
+import { stepMonsters } from './monsters';
 import { createProgressionFromRanks } from './progression';
 import { nextRandom } from './rng';
 import { executeCombatAction } from './combat';
@@ -135,7 +137,8 @@ export function createInitialGameState(bundle: CampaignBundle): GameState {
     openInventoryChampionIndex: null,
     openContainerId: null,
     projectiles: [],
-    combatTargets: [],
+    combatTargets: expandMonsterGroups(dungeon.monsterGroups),
+    monsterGenerators: dungeon.monsterGenerators ?? [],
     impactMarkers: [],
     runeFormulas: {},
     selectedBrewFlasks: {},
@@ -349,6 +352,17 @@ function handleMove(state: GameState, direction: MoveDirection, events: EngineEv
     return {
       ...state,
       messages: nextMessages,
+      party: { ...state.party, moveCooldownTicks: BASE_MOVE_COOLDOWN_TICKS + encumbranceCooldownPenalty(state) }
+    };
+  }
+
+  const blocker = state.combatTargets.find((t) => t.monster && !t.defeated
+    && t.level === state.party.level && t.x === targetX && t.y === targetY);
+  if (blocker) {
+    const text = 'A MONSTER BLOCKS THE WAY.';
+    return {
+      ...state,
+      messages: appendMessage(state.messages, text, events),
       party: { ...state.party, moveCooldownTicks: BASE_MOVE_COOLDOWN_TICKS + encumbranceCooldownPenalty(state) }
     };
   }
@@ -606,7 +620,7 @@ function stepSingleTick(state: GameState, events: EngineEvent[]): GameState {
   };
 
   // 3. Flying projectiles, then survival vitals / torch burn / death
-  const stepped = stepSurvival(stepProjectiles(stepEffects(advanced, events), events), events);
+  const stepped = stepSurvival(stepMonsters(stepProjectiles(stepEffects(advanced, events), events), events), events);
   const owner = stepped.interaction.kind === 'NONE' ? undefined : stepped.party.champions[stepped.interaction.championIndex];
   return (stepped.gameOver || stepped.activeMirror || (owner && !owner.alive))
     ? { ...stepped, interaction: { kind: 'NONE' } }

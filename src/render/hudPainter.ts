@@ -44,7 +44,8 @@ function paintChampionSlot(
   slotIndex: number,
   champion: ChampionState | undefined,
   uiPalette: readonly RgbColor[],
-  bundle?: GraphicsBundle
+  bundle?: GraphicsBundle,
+  hurt = false
 ): void {
   const rect = championSlotRect(slotIndex);
   const dark = uiPalette[PALETTE_INDEX.DARKEST_GRAY_KEY] ?? [36, 36, 36];
@@ -114,6 +115,11 @@ function paintChampionSlot(
     uiPalette[PALETTE_INDEX.CYAN] ?? [0, 219, 219],
     black
   );
+  if (hurt) {
+    const red = uiPalette[PALETTE_INDEX.RED] ?? [255, 0, 0];
+    fb.strokeRect(rect.x, rect.y, rect.w - 1, rect.h, red);
+    fb.strokeRect(rect.x + 1, rect.y + 1, rect.w - 3, rect.h - 2, red);
+  }
 }
 
 function paintPill(
@@ -291,7 +297,7 @@ export function paintHud(
   // 4 Champion Status Boxes strictly inside x=0..271
   for (let i = 0; i < 4; i += 1) {
     const champion = state.party.champions[i];
-    paintChampionSlot(fb, i, champion, uiPalette, bundle);
+    paintChampionSlot(fb, i, champion, uiPalette, bundle, (champion?.hurtUntilTick ?? 0) > state.tick);
     if (champion?.alive) {
       for (const hand of ['leftHand', 'rightHand'] as const) {
         const id = champion.inventory.slots[hand];

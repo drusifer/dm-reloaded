@@ -40,7 +40,9 @@ export const AMIGA_SOUND_ITEM_MAP: Readonly<Record<SoundCueId, number | null>> =
   THROW_SWOOSH: SYNTH_SOUND_ITEM,
   GULP: SYNTH_SOUND_ITEM,
   LOCK_CLICK: SYNTH_SOUND_ITEM,
-  CHAMPION_DEATH: SYNTH_SOUND_ITEM
+  CHAMPION_DEATH: SYNTH_SOUND_ITEM,
+  MONSTER_ATTACK: SYNTH_SOUND_ITEM,
+  MONSTER_DEATH: SYNTH_SOUND_ITEM
 };
 
 /**
@@ -293,7 +295,9 @@ export class PaulaStereoAudio {
         THROW_SWOOSH: { f0: 700, f1: 200, dur: 0.12 },
         GULP: { f0: 220, f1: 110, dur: 0.18 },
         LOCK_CLICK: { f0: 1100, f1: 700, dur: 0.05 },
-        CHAMPION_DEATH: { f0: 330, f1: 55, dur: 0.6 }
+        CHAMPION_DEATH: { f0: 330, f1: 55, dur: 0.6 },
+        MONSTER_ATTACK: { f0: 220, f1: 110, dur: 0.15 },
+        MONSTER_DEATH: { f0: 160, f1: 40, dur: 0.4 }
       };
       const spec = freqMap[cue];
 

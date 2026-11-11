@@ -86,3 +86,4 @@ export function renderFrame(
 export { paintInventory } from './inventoryPainter';
 import { createSpriteSource } from './spriteSource';
 export { createSpriteSource } from './spriteSource';
+export { monsterViewRect, monsterVisibleAt } from './monsterPainter';

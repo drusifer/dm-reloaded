@@ -2,7 +2,7 @@ Project overview, quickstart commands, controls, and documentation index for the
 
 TLDR:
     Goal: Provide a complete browser-based TypeScript/Canvas/WebAudio recreation of the FTL Games Amiga Dungeon Master trilogy.
-    Status: Sprint 3 progression, combat, typed projectiles, 24-rune magic and five potion families implemented; final QA, architecture and live browser gates passed; delivered locally pending retrospective close.
+    Status: Sprint 4 monsters (27 type slots, Amiga group parsing, hunting AI, fighting, door crushing) delivered locally with placeholder art; Sprint 3 combat/magic baseline unchanged.
     Action: Run bobp make setup to install dependencies and unpack local Amiga archives, then bobp make dev to play or bobp make test to verify.
 
 # Dungeon Master — Amiga Trilogy (Web Edition)
@@ -107,6 +107,7 @@ Press `G` in the running game or use **SPRITES [G]**. Search by numeric source i
 - **[USER_STORIES.md](docs/USER_STORIES.md)** — Sprint 2 Stories and archived Sprint 1 Acceptance Criteria
 - **[ARCH.md](docs/ARCH.md)** — Hexagonal Architecture, `320×200` HUD Spec, and Data Flow
 - **[SPRINT3.md](docs/SPRINT3.md)** — Accepted progression, combat, projectile, magic, potion and UX contract
+- **[SPRINT4.md](docs/SPRINT4.md)** — Sprint 4 monster contract, architecture and honest deviations
 - **[SPRINT3_ARCHITECTURE.md](docs/SPRINT3_ARCHITECTURE.md)** — Sprint 3 deterministic architecture and final implementation evidence
 - **[DECISIONS.md](docs/DECISIONS.md)** — Product & Architectural Decision Records (`PDR-001`, `ADR-001..014`)
 - **[task.md](task.md)** — Sprint Task Board (Single Source of Truth)

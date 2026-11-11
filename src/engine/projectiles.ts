@@ -193,12 +193,12 @@ function resolveImpact(
       const center = target.x === x && target.y === y && target.lane === projectile.lane;
       const amount = center ? projectile.power : Math.floor(projectile.power / 2);
       if (amount <= 0) continue;
-      next = damageTarget(next, target.id, amount, projectile.ownerChampionId, events);
+      next = damageTarget(next, target.id, amount, projectile.ownerChampionId, events, true);
       affected.push(target.id);
     }
     events.push({ type: 'EXPLOSION_RESOLVED', projectileId: projectile.id, targetIds: affected });
   } else if (hitTargets[0] && projectile.power > 0) {
-    next = damageTarget(next, hitTargets[0].id, projectile.power, projectile.ownerChampionId, events);
+    next = damageTarget(next, hitTargets[0].id, projectile.power, projectile.ownerChampionId, events, projectile.payload.kind === 'SPELL');
   }
 
   if (hitTargets[0] && projectile.power > 0 && projectile.payload.kind !== 'SPELL') {

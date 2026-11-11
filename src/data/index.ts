@@ -24,3 +24,4 @@ export {
 export type { DecodedSound, DecodedSprite, GraphicsBundle, RgbColor } from './graphicsDatParser';
 export * from './combatCatalog';
 export * from './magicCatalog';
+export * from './monsterCatalog';

@@ -6,6 +6,7 @@
  *   inside the 224x136 viewport when settings.qolMode && settings.automapOpen is active.
  */
 
+import { monsterViewRect } from './monsterPainter';
 import type { GameState } from '../engine/types';
 import type { GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
 import { drawBitmapText } from './bitmapFont';
@@ -99,6 +100,14 @@ export function paintAutomapOverlay(
         }
       }
     }
+  }
+
+  // Monsters appear only while currently in view (same rule as the viewport; no wall-hack).
+  for (const target of state.combatTargets) {
+    if (!monsterViewRect(state, target)) continue;
+    const mx = centerPx + (target.x - state.party.x) * cellSize - 1;
+    const my = centerPy + (target.y - state.party.y) * cellSize - 1;
+    fb.fillRect(mx, my, 3, 3, [200, 20, 20]);
   }
 
   // Draw party directional marker at map center
