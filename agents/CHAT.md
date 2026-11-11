@@ -564,3 +564,248 @@ Sprint 3 browser smoke prepared 10 checks across CLEAN_ROOM, AMIGA_GRAPHICS_DAT.
 ---
 [<small>2026-11-08 12:20:36</small>] [**Smith**]->[**User,Trin,Oracle,Mouse**] *user blocked*:
  *user bug CMD: bobp make sprint3-visual-review | EXPECTED: active ordered formula visibly inspectable (S3-4.2) | ACTUAL: state is LO FUL IR, but clean-room and Amiga rune screenshots render no formula; VIA confirms painter never draws runeFormulas | UX ISSUE: invisible buffer forces recall and makes DEL/CLR/INVOKE unsafe. Why: actual visual gate caught what state assertions missed. Phase4 has used 2 fix cycles; no cycle3. @User authorize exception or revise scope; @Trin/@Oracle hold Phase5.
+
+---
+[<small>2026-11-08 23:27:52</small>] [**User**]->[**all**] *request*:
+ $bob-protocol init
+
+---
+[<small>2026-11-09 10:17:38</small>] [**Bob**]->[**all**] *init*:
+ Bob initialized from shared context and saved state. Why: restore protocol readiness; Sprint3 Phase4 remains blocked at Smith UX gate pending authorized follow-up.
+
+---
+[<small>2026-11-09 10:18:03</small>] [**Bob**]->[**User,Mouse**] *handoff*:
+ Initialization complete; state saved. Why: preserve the Phase4 UX blocker and anti-loop gate. @Mouse *sm status on next sprint-status request; awaiting User direction.
+
+---
+[<small>2026-11-09 15:00:31</small>] [**User**]->[**all**] *request*:
+ $bob-protocol Init
+
+---
+[<small>2026-11-09 15:00:43</small>] [**Bob**]->[**all**] *init*:
+ Bob initialized; shared context and state restored. Why: protocol readiness. Sprint3 Phase4 remains at the recorded Smith UX blocker.
+
+---
+[<small>2026-11-09 15:00:54</small>] [**Bob**]->[**User,Mouse**] *handoff*:
+ Initialization complete; state saved. Why: preserve current context. @Mouse *sm status on the next status request; Phase4 rune-formula UX blocker remains recorded.
+
+---
+[<small>2026-11-09 16:01:10</small>] [**User**]->[**Oracle,Neo**] *approve*:
+ ok fix it
+
+---
+[<small>2026-11-09 16:02:56</small>] [**Oracle**]->[**Neo,Root**] *ora handoff*:
+ Anti-loop consult complete: defect is presentation-only—state has LO FUL IR, but rune painter never reads it and layout lacks a preview. User-authorized exception is limited to one read-only, source-guarded formula preview plus focused two-source evidence; no engine/input/rules changes. Why: satisfy S3-4.2 without reopening Phase 4. @Neo *swe fix formula preview.
+
+---
+[<small>2026-11-09 16:03:29</small>] [**Neo**]->[**Root**] *swe fix*:
+ Neo begins user-authorized exceptional Phase4 fix3 after Oracle consult. Why: add only a read-only source-guarded ordered formula preview and state-correlated two-source evidence; engine/input/rules remain frozen.
+
+---
+[<small>2026-11-09 16:07:09</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make build | /var/home/drusifer/Projects/dungeon-master/build/build.out
+computing gzip size...
+dist/index.html                  9.13 kB │ gzip:  2.22 kB
+dist/assets/index-CDYTJlCT.js  154.37 kB │ gzip: 52.72 kB
+✓ built in 472ms
+
+---
+[<small>2026-11-09 16:08:03</small>] [**Neo**]->[**Trin**] *swe handoff*:
+ Authorized Phase4 fix3 complete: canonical read-only formula preview now renders ordered active-champion state; clean-room labels and source-guarded Amiga glyphs/fallback. TDD green, bounded 30/30, Chromium clean+Amiga 10/10 with state-correlated pixels, lint/types/build/diff-check pass. @Trin *qa uat phase-4 authorized-retry3; no fix4.
+
+---
+[<small>2026-11-09 16:08:34</small>] [**Trin**]->[**Root**] *qa resume*:
+ Trin begins user-authorized Phase4 fix3 UAT after Oracle consult. Why: independently verify only ordered read-only formula preview, two-source provenance/fallback, DEL/CLR/invalid preservation and frozen state/regression boundaries; any defect stops with no fix4.
+
+---
+[<small>2026-11-09 16:12:03</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make sprint3-visual-review | /var/home/drusifer/Projects/dungeon-master/build/build.out
+Sprint 3 browser smoke prepared 10 checks across CLEAN_ROOM, AMIGA_GRAPHICS_DAT.
+
+---
+[<small>2026-11-09 16:12:17</small>] [**Trin**]->[**Root,Morpheus**] *qa progress*:
+ Authorized fix3 focused PASS: QA pixel/state case1/1 and full independent8/8 prove canonical noninteractive rect, ordered clean labels, active-champion mapping, source-guarded Amiga glyphs+fallback, DEL/CLR/invalid preservation, and render/state purity. Chromium clean+Amiga10 checks passes after QA-only 6Hz snapshot-race correction; failures/errors empty. Why: product boundary is green; bounded render/input follows.
+
+---
+[<small>2026-11-09 16:13:09</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make judge-trace | /var/home/drusifer/Projects/dungeon-master/build/build.out
+bobp trace-annotate --date 2026-11-09 || true
+ERROR: Could not find Claude project dir for /var/home/drusifer/Projects/dungeon-master
+
+---
+[<small>2026-11-09 16:14:23</small>] [**Trin**]->[**Morpheus**] *qa handoff*:
+ Authorized Phase4 fix3 PASS: preview1/1, independent8/8, bounded30/30. Clean labels, active champion, Amiga glyph/fallback, DEL/CLR/invalid state-pixel preservation and read-only mapping pass; prior focus/validator/item13-14/geometry green. Chromium clean+Amiga10 checks no failures/errors; lint/build/diff pass; trace unavailable. Why: Oracle scope satisfied, no fix4. Summary: agents/trin.docs/Sprint3_Phase4_Authorized_Fix3_UAT_Summary_2026-11-09T16-13.md. @Morpheus re-review; Smith pending.
+
+---
+[<small>2026-11-09 16:16:55</small>] [**Morpheus**]->[**Smith,Mouse,Root**] *lead approve authorized-fix3*:
+ Authorized Phase4 fix3 architecture APPROVED. Formula preview is read-only active-champion presentation on canonical layout; clean labels and source-guarded Amiga glyph/fallback pass. No engine/input/RNG/inventory/focus mutation or dependency inversion. Trin preview1/1, independent8/8, bounded30/30, two-source Chromium10 checks. Why: Smith visibility blocker is closed within User/Oracle scope. @Smith repeat fresh actual-browser UX gate; Phase5 blocked. No fix4—escalate any defect.
+
+---
+[<small>2026-11-09 16:17:28</small>] [**Smith**]->[**Root**] *user test resume*:
+ Smith resumes mandatory Phase4 actual-browser UX gate after user-authorized fix3, Oracle consult, independent Trin pass and Morpheus approval. Why: confirm the new visible formula preview in real clean-room and Amiga captures before releasing Phase5.
+
+---
+[<small>2026-11-09 16:17:45</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make sprint3-visual-review | /var/home/drusifer/Projects/dungeon-master/build/build.out
+Sprint 3 browser smoke prepared 10 checks across CLEAN_ROOM, AMIGA_GRAPHICS_DAT.
+
+---
+[<small>2026-11-09 16:19:03</small>] [**Smith**]->[**Mouse,Root**] *user approve*:
+ *user approve Phase4 P4.3 after authorized fix3. Fresh two-source Chromium: clean mode visibly shows ordered LO FUL IR; Amiga shows source glyphs with separators. DEL/CLR and invalid invocation correlate state to preview pixels; committed cast restores focus. Bars/messages, Purist/QoL ownership, provenance, pointer priority and 16 geometry cases/source remain green; failures/errors empty. Why: S3-4.2 visibility blocker is closed by actual visual evidence. @Mouse checkpoint Phase4 and release Phase5.
+
+---
+[<small>2026-11-09 16:20:35</small>] [**Mouse**]->[**Root**] *sm checkpoint*:
+ Mouse records Phase4 after fix1/fix2, anti-loop stop, User+Oracle-authorized fix3, independent Trin/Morpheus approvals, and fresh Smith two-source actual-browser approval. Why: preserve full chronology before checking P4.1-P4.3 and releasing only final acceptance.
+
+---
+[<small>2026-11-09 16:21:47</small>] [**Mouse**]->[**Trin,Morpheus**] *sm handoff*:
+ Phase4 checkpoint complete: P4.1-P4.3 checked; Sprint3 is9/12 (75%). Chronology preserves fix1 focus/G-B, fix2 validator/pointer, anti-loop stop, User+Oracle-authorized fix3 preview, Trin/Morpheus passes, and fresh Smith two-source approval. trace unavailable, not passed. Why: release only P5.1. @Trin final evidence/regression audit; @Morpheus final A1-A12 review.
+
+---
+[<small>2026-11-09 16:22:22</small>] [**Trin**]->[**Root,Morpheus**] *qa init*:
+ Trin begins Sprint3 P5.1 final acceptance audit. Why: build a complete S3-1..S3-6 criterion-to-independent-evidence matrix, verify A1-A12 and Sprint1/2 compatibility, then run exactly one final serial aggregate/browser/quality gate set with honest chronology and trace availability.
+
+---
+[<small>2026-11-09 16:25:49</small>] [**make**]->[**all**] *build*:
+ Build FAILED exit=2 | make test-q | /var/home/drusifer/Projects/dungeon-master/build/build.out
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+make: *** [Makefile:31: test-q] Error 1
+
+---
+[<small>2026-11-09 16:27:58</small>] [**Trin**]->[**Neo**] *qa blocked*:
+ P5.1 BLOCKED: one-shot aggregate failed 6/333 (47/49 files). Five inventory no-op commands lose state identity because dispatch always clones to clear interaction; approaching LEFT projectile renders on viewer-left because projection ignores reverse travel direction. Downstream lint/type/build/browser/trace stopped by rule. Exact evidence and 38-criterion matrix saved. Why: Sprint1/2 compatibility and S3-3.5/A6/A11 cannot pass. @Neo *swe fix only these two regressions, then return to Trin.
+
+---
+[<small>2026-11-09 20:28:35</small>] [**User**]->[**Oracle,Neo**] *approve*:
+ yes — authorize one final bounded stabilization cycle for the two P5.1 root causes only
+
+---
+[<small>2026-11-09 20:30:32</small>] [**Oracle**]->[**Neo,Root**] *ora handoff*:
+ Final stabilization consult complete. Scope only: preserve exact GameState identity when inventory reducer returns input; make projectile lane projection direction-aware so approaching LEFT/RIGHT mirror correctly. Keep accepted inventory transitions, engine projectile semantics, input priority, depth/size/collisions unchanged. Why: restore Sprint1/2 + A6/A10/A11 compatibility without reopening scope. @Neo *swe fix two P5.1 roots.
+
+---
+[<small>2026-11-09 20:31:00</small>] [**Neo**]->[**Root**] *swe fix*:
+ Neo begins user-authorized final bounded P5.1 stabilization after Oracle consult. Why: restore exact inventory no-op identity and direction-aware approaching projectile lane projection only; accepted transitions and all other semantics remain frozen.
+
+---
+[<small>2026-11-09 20:35:06</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make build | /var/home/drusifer/Projects/dungeon-master/build/build.out
+computing gzip size...
+dist/index.html                  9.13 kB │ gzip:  2.21 kB
+dist/assets/index-CnVHp6HD.js  154.46 kB │ gzip: 52.74 kB
+✓ built in 399ms
+
+---
+[<small>2026-11-09 20:35:56</small>] [**Neo**]->[**Trin**] *swe handoff*:
+ Final bounded P5.1 stabilization complete: inventory no-ops preserve exact GameState identity and accepted transitions alone clear interaction; approaching projectile lanes now mirror across all four facings while receding/depth/size/impact stay unchanged. Exact red6/6 reproduced; affected32/32 + adjacent62/62 green; lint/types/build/diff pass. @Trin *qa rerun six then authorized fresh final gate; any new defect stops.
+
+---
+[<small>2026-11-09 20:39:42</small>] [**make**]->[**all**] *build*:
+ Build FAILED exit=2 | make test-q | /var/home/drusifer/Projects/dungeon-master/build/build.out
+Duration  51.90s (transform 4.43s, setup 0ms, collect 18.55s, tests 288.63s, environment 17ms, prepare 96.82s)
+
+
+make: *** [Makefile:31: test-q] Error 1
+
+---
+[<small>2026-11-09 20:41:18</small>] [**Trin**]->[**User,Oracle**] *qa blocked*:
+ Focused stabilization PASS 35/35: original six, all inventory no-op branches, and 32 projection combinations. Single resumed aggregate FAILED 15/339 across six render/tool files, dominated by common 5s timeouts/interrupted cleanup; the same Phase2 file had just passed focused. Downstream gates stopped. Why: aggregate remains red despite likely resource instability. Evidence: agents/trin.docs/Sprint3_Final_Stabilization_UAT_Blocker_2026-11-09T20-40.md. @User @Oracle decide next scope; no fix/rerun requested.
+
+---
+[<small>2026-11-09 20:43:27</small>] [**Oracle**]->[**User,Root**] *ora blocked*:
+ Oracle: focused fix evidence is green35/35; aggregate failures are unrelated common 5s timeouts, including a file green immediately before aggregate. Likely parallel resource instability, not a captured product assertion. Do not rerun unchanged test-q. Recommend separate authorization for one serialized-worker target, failed6-file run, then one full aggregate only if green. Details: agents/oracle.docs/Sprint3_Aggregate_Timeout_Diagnosis_2026-11-09T20-42.md.
+
+---
+[<small>2026-11-09 20:44:24</small>] [**User**]->[**Tank,Trin**] *approve*:
+ yes — authorize bounded serialized single-worker test target and verification
+
+---
+[<small>2026-11-09 20:45:04</small>] [**Tank**]->[**Root,Trin**] *devops ci*:
+ Tank begins the authorized serialized Vitest target. Why: remove aggregate worker contention without changing product code or the existing 5-second timeout; Trin retains gate ownership.
+
+---
+[<small>2026-11-09 20:45:36</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make test-serial | /var/home/drusifer/Projects/dungeon-master/build/build.out
+-h, --help                                            Display this message
+
+---
+[<small>2026-11-09 20:46:40</small>] [**Tank**]->[**Trin,Root**] *handoff*:
+ Added test-serial: one worker, file parallelism off, ARGS passthrough, existing 5s timeout unchanged. Help/installed Vitest flag validation and diff-check pass; no tests or product/CI/deploy changes. Why: isolate aggregate resource contention declaratively. Exact six-file then conditional full commands: agents/tank.docs/Sprint3_Serial_Test_Target_Summary_2026-11-09T20-46.md. @Trin run the bounded gates.
+
+---
+[<small>2026-11-09 20:50:30</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make judge-trace | /var/home/drusifer/Projects/dungeon-master/build/build.out
+bobp trace-annotate --date 2026-11-09 || true
+ERROR: Could not find Claude project dir for /var/home/drusifer/Projects/dungeon-master
+
+---
+[<small>2026-11-09 20:52:01</small>] [**Trin**]->[**Morpheus**] *handoff*:
+ P5.1 FINAL PASS: 38/38 criteria. Focused35/35; serialized diagnostic72/72 and full aggregate339/339 with unchanged 5s timeout. Lint, typecheck, 49-module build, and fresh clean+Amiga browser10 pass; failures/errors empty. Trace invoked but unavailable (no Claude project dir), not claimed passed. Why: product/compatibility gates are complete after isolating worker contention. Summary: agents/trin.docs/Sprint3_Final_Acceptance_Pass_Summary_2026-11-09T20-50.md. @Morpheus *lead final A1-A12 review.
+
+---
+[<small>2026-11-09 20:56:01</small>] [**Morpheus**]->[**Smith,Mouse,Root**] *lead approve p5.1*:
+ P5.1 final architecture APPROVED: 38/38 criteria; ADR-014 A1-A12 ownership/determinism/focus/provenance intact. Bounded stabilization restores inventory no-op identity and approaching lane projection only. Serialized diagnostic72/72 + aggregate339/339 retained 5s timeout; lint/type/build and two-source browser pass. Trace unavailable, not passed. Why: final diff/evidence is compatible and scope-clean. @Mouse checkpoint P5.1; @Smith run mandatory P5.2 journey. Any blocker stops.
+
+---
+[<small>2026-11-09 20:57:13</small>] [**Mouse**]->[**Root**] *sm checkpoint*:
+ Mouse records P5.1 after real6/333 compatibility failures, User+Oracle-bounded stabilization, focused35/35, parallel324/339 timeout blocker, separately authorized serialized target, final72/72+339/339, and Morpheus A1-A12 approval. Why: preserve full chronology before checking only P5.1.
+
+---
+[<small>2026-11-09 20:58:10</small>] [**Mouse**]->[**Smith**] *sm handoff*:
+ P5.1 checkpoint complete: checked only P5.1; Sprint3 is10/12 (83%). Chronology retains real6/333 regressions, bounded stabilization35/35, parallel324/339 timeout blocker, authorized one-worker target with unchanged5s timeout, final72/72+339/339, lint/type/build/browser, 38/38 and A1-A12 approval. trace unavailable, not passed. Why: release only P5.2. @Smith *user test Sprint3 final journey.
+
+---
+[<small>2026-11-09 20:58:41</small>] [**Smith**]->[**Root**] *user test final*:
+ Smith begins Sprint3 P5.2 final end-to-end user journey after P5.1 approval. Why: verify the stabilized progression/combat/projectile/magic/potion experience in a fresh real browser across both sources before Oracle close.
+
+---
+[<small>2026-11-09 20:59:36</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make sprint3-visual-review | /var/home/drusifer/Projects/dungeon-master/build/build.out
+Sprint 3 browser smoke prepared 10 checks across CLEAN_ROOM, AMIGA_GRAPHICS_DAT.
+
+---
+[<small>2026-11-09 21:00:38</small>] [**Smith**]->[**Oracle,Mouse,Cypher,Root**] *user approve*:
+ *user approve Sprint3 P5.2 final journey. Fresh clean+Amiga browser10: failures/errors empty; formula/action focus, pointer ownership, recovery, bars/messages, provenance and 16 geometry cases/source visually/state-correlated green. Combined with final 38/38 criteria, focused35/35, serialized72/72+339/339 and A1-A12 approval, progression/combat/projectiles/magic/potions and stabilized inventory/lane boundaries are accepted. Why: no UX blocker remains. @Oracle *ora groom P5.3, then retros/local close.
+
+---
+[<small>2026-11-09 21:02:16</small>] [**Mouse**]->[**Root**] *sm checkpoint*:
+ Mouse verified Smith P5.2 final UX approval: fresh clean-room+Amiga browser10, failures/errors empty, 16 geometry cases/source and full progression/combat/projectile/magic/potion journey accepted; no UX blocker. Why: check only P5.2 and preserve P5.3 close gates.
+
+---
+[<small>2026-11-09 21:03:16</small>] [**Mouse**]->[**Oracle**] *sm handoff*:
+ P5.2 checkpoint complete: Smith final journey approved; Sprint3 is 11/12 (92%). P5.3 stays unchecked. Why: release only the ordered close chain. @Oracle *ora groom Sprint3 and report/archive first; then seven retros, Cypher local launch, and Mouse close. No commit/push/release/deploy.
+
+---
+[<small>2026-11-09 21:08:46</small>] [**Oracle**]->[**Neo,Trin,Morpheus,Oracle,Mouse,Cypher,Smith**] *ora handoff*:
+ P5.3 initial grooming is complete: authoritative docs now record Sprint3 delivery, honest fix chronology, serial 72/72 + aggregate 339/339, two-source browser approval, and unavailable trace. @Neo @Trin @Morpheus @Oracle @Mouse @Cypher @Smith please record *sprint retro now; retros and Cypher's local-launch record must precede Mouse close and Oracle chat reporting, so CHAT remains unarchived.
+
+---
+[<small>2026-11-09 21:10:42</small>] [**Trin**]->[**Cypher**] *sprint retro*:
+ Retro complete. QA caught duplicate IDs, focus leakage, no-op identity loss, and lane inversion; architecture/Smith caught authority and visibility gaps. Serial 72/72 + 339/339 at unchanged 5s proved parallel timeout instability; trace remains unavailable despite green Make exit. Prioritize explicit trace status, serial final gates, identity/projection sentinels, and deterministic browser handshakes. Details: agents/trin.docs/Sprint3_Retrospective_Summary_2026-11-09T21-09.md. @Cypher *pm backlog.
+
+---
+[<small>2026-11-09 21:10:44</small>] [**Morpheus**]->[**Cypher,Mouse,Root**] *lead sprint-retro*:
+ Sprint3 architecture retro complete: A1-A12 held. Priorities: central interaction policy; typed travel/view coordinates before AI; mandatory state-to-pixel contracts; modular source adapters; standard validation/effect scopes; protect passive-target seam; repair serial/trace tooling; plan Sprint5 migration. Why: fixes clustered at cross-layer authority and evidence boundaries. @Cypher groom backlog. Summary: agents/morpheus.docs/Sprint3_Architecture_Retrospective_2026-11-09T21-09.md
+
+---
+[<small>2026-11-09 21:10:49</small>] [**Neo**]->[**Cypher**] *sprint retro*:
+ Neo retro: strong pure deterministic engines, fixed RNG, typed projectiles, derived effects, canonical layouts. Debt is seam contracts: shared validators, no-op identity, travel/view projection, visible interaction state. Backlog: typed validation results, identity/projection matrices, observability checklist, stable browser clock, state-correlated pixels, serialized final gate. Why: these seams caused late fixes. Full: agents/neo.docs/Sprint3_Retrospective_Summary_2026-11-09T21-09.md @Cypher *pm backlog.
+
+---
+[<small>2026-11-09 21:12:18</small>] [**Oracle**]->[**Cypher**] *sprint retro*:
+ Oracle retro complete. Docs preserve scope and full failure/recovery chronology; archive is ready only after all retros + local launch. Backlog: one canonical close-evidence index, explicit trace passed/failed/unavailable status, one close-order template, deduplicated evidence links, stable browser-artifact manifest, and pre-commit review of untracked Sprint3 records. Why: reduce drift and make later audits reproducible. @Cypher *pm backlog.
+
+---
+[<small>2026-11-09 21:12:21</small>] [**Smith**]->[**Cypher**] *retro*:
+ Smith retro: state-to-pixel review caught the invisible formula missed by green state/nonblack screenshots. Shared layout, one focus owner and honest provenance worked. Backlog: broader browser storyboards, semantic visible-region/priority assertions, narrow-deck accessibility stress, approach/recede geometry and richer reports. Why: future gates must prove recognition. Details: agents/smith.docs/Sprint3_UX_Retrospective_2026-11-09T21-11.md. @Cypher incorporate.
+
+---
+[<small>2026-11-09 21:12:32</small>] [**Mouse**]->[**Cypher**] *sprint retro*:
+ Mouse retro: task-count velocity hid Phase4/P5 cross-layer rework, correction cycles, and blocked time. Anti-loop, explicit User authorization, unavailable-trace honesty, and sole-board checkpoints worked. Prioritize seam-sized phases, readiness gates, flow metrics, a standard handoff envelope, separate retry accounting, authorization ledger, explicit tool states, and serial final gates. @Cypher *pm backlog. Full: agents/mouse.docs/Sprint3_Retrospective_Summary_2026-11-09T21-11.md
+
+---
+[<small>2026-11-09 21:13:43</small>] [**Cypher**]->[**Root**] *pm retro init*:
+ Cypher begins the seventh Sprint3 retrospective from six completed domain handoffs. Why: convert delivery lessons into prioritized product/enabler backlog before Oracle archives chat and before any local launch.

@@ -2,14 +2,14 @@ Sprint 3 task board; sole active task list for `sprint-3`.
 
 TLDR:
     Goal: Deliver deterministic usage progression, player combat, 24-rune magic, potions, and a mouse-complete 320x200 experience on the existing pure engine.
-    Status: Phases 1-3 approved and complete (6/12 tasks, 50%); Phase 3 passed after one recorded party-Shield architecture fix cycle.
-    Next: Phase 4 is ready for Neo, followed by independent browser evidence and the mandatory Smith UX approval gate.
+    Status: P5.2 final actual-browser user journey approved (11/12 tasks, 92%); no UX blocker remains after the fresh clean-room and Amiga evidence.
+    Next: P5.3 is ready for Oracle grooming, seven domain retrospectives, Cypher local launch, and Mouse board close, in that order.
 
 # Sprint 3 — Combat, Runic Magic, and Progression
 
 - Product contract: [docs/SPRINT3.md](docs/SPRINT3.md), S3-1 through S3-6.
 - Architecture: [docs/SPRINT3_ARCHITECTURE.md](docs/SPRINT3_ARCHITECTURE.md), A1 through A12.
-- Plan gate: Morpheus approved the five-phase dependency order and evidence gates on 2026-11-06. Phases 1-3 passed Neo, Trin, and Morpheus gates; Phase 4 is ready with mandatory Smith approval before Phase 5.
+- Plan gate: Morpheus approved the five-phase dependency order and evidence gates on 2026-11-06. P5.1 passed Trin and Morpheus with 38/38 criteria and A1-A12 accepted; Smith approved the fresh two-source P5.2 final user journey, releasing only the ordered P5.3 close chain.
 - Root `task.md` is the only active task board. Do not create secondary task lists.
 - All implementation phases use tests first and the chain Neo -> Trin independent QA -> Morpheus review. Smith is mandatory where actual user-visible behavior exists.
 - Run project automation serially through `bobp make`; never overlap shared `build/build.out` writers. Do not rerun unchanged suites.
@@ -41,16 +41,16 @@ Chain: Neo -> Trin independent QA -> Morpheus review. Pure rules/catalogs first;
 
 Chain: Neo -> Trin independent QA -> Morpheus review -> mandatory Smith actual-browser UX gate. Phase 5 cannot start until Smith explicitly approves.
 
-- [ ] **S3-P4.1** (@Neo): TDD the single interaction-mode owner plus shared layout/input rectangles for action, rune, and progression panels. Provide complete Purist mouse flows, optional QoL shortcuts only when enabled, Escape/recovery behavior, disabled reasons, and lifecycle cleanup on inventory/sleep/mirror/death/restart without input leakage or stale overlays. (S3-1.4,S3-2.1..3,S3-2.6,S3-4.1..7,S3-6.1..4; A10-A11)
-- [ ] **S3-P4.2** (@Neo): Render source-guarded original/fallback action labels, 24 rune glyphs, damage/rank/status feedback, and near/far projectile/impact geometry in all facings/lanes. Preserve champion bars/messages, original item 13/14 distinction, raw export/catalog/lighting behavior, and clean-room provenance. (S3-2.5..6,S3-3.4..5,S3-4.1,S3-5.2,S3-6.1..5; A6,A11-A12)
-- [ ] **S3-P4.3** (@Trin/@Smith): Independently exercise the bounded review scenario in a real browser for original and clean-room sources: mouse-only and QoL paths, every shipped action/spell/potion, success and failure recovery, all four facings/two lanes/near-far cases, focus restoration, known draw markers, state assertions, captures, and zero uncaught errors. Unit screenshots or nonblack pixels alone are insufficient. (S3-2..6; A10-A12)
+- [x] **S3-P4.1** (@Neo): TDD the single interaction-mode owner plus shared layout/input rectangles for action, rune, and progression panels. Provide complete Purist mouse flows, optional QoL shortcuts only when enabled, Escape/recovery behavior, disabled reasons, and lifecycle cleanup on inventory/sleep/mirror/death/restart without input leakage or stale overlays. (S3-1.4,S3-2.1..3,S3-2.6,S3-4.1..7,S3-6.1..4; A10-A11)
+- [x] **S3-P4.2** (@Neo): Render source-guarded original/fallback action labels, 24 rune glyphs, damage/rank/status feedback, and near/far projectile/impact geometry in all facings/lanes. Preserve champion bars/messages, original item 13/14 distinction, raw export/catalog/lighting behavior, and clean-room provenance. (S3-2.5..6,S3-3.4..5,S3-4.1,S3-5.2,S3-6.1..5; A6,A11-A12)
+- [x] **S3-P4.3** (@Trin/@Smith): Independently exercise the bounded review scenario in a real browser for original and clean-room sources: mouse-only and QoL paths, every shipped action/spell/potion, success and failure recovery, all four facings/two lanes/near-far cases, focus restoration, known draw markers, state assertions, captures, and zero uncaught errors. Unit screenshots or nonblack pixels alone are insufficient. (S3-2..6; A10-A12)
 
 ## Phase 5 — Full acceptance, documentation, and local close
 
 Chain: Trin final audit -> Morpheus architecture review -> Smith end-to-end approval -> Oracle groom -> all-persona retrospective -> Cypher local launch -> Mouse board close. Any defect returns only to its failing phase.
 
-- [ ] **S3-P5.1** (@Trin/@Morpheus): Map every accepted criterion to independent evidence; verify determinism, ownership, exact costs, no duplication, no invalid-action XP, existing Sprint 1/2 compatibility, and honest chronology. Once source is stable, run one final serial affected/aggregate/lint/type/build set through available `bobp make` targets; report the known `jinja2` trace audit unavailable if still unresolved. (S3-1..6; A1-A12)
-- [ ] **S3-P5.2** (@Smith): Perform the final actual 320x200 user journey across progression, combat, projectiles, runes, spells, brewing/drinking, Purist mouse, QoL keyboard, original/fallback sources, visible resource/status feedback, and recovery paths. Explicit approve or route a reproducible defect through Trin. (S3-1..6; A10-A12)
+- [x] **S3-P5.1** (@Trin/@Morpheus): Map every accepted criterion to independent evidence; verify determinism, ownership, exact costs, no duplication, no invalid-action XP, existing Sprint 1/2 compatibility, and honest chronology. Once source is stable, run one final serial affected/aggregate/lint/type/build set through available `bobp make` targets; report the known `jinja2` trace audit unavailable if still unresolved. (S3-1..6; A1-A12)
+- [x] **S3-P5.2** (@Smith): Perform the final actual 320x200 user journey across progression, combat, projectiles, runes, spells, brewing/drinking, Purist mouse, QoL keyboard, original/fallback sources, visible resource/status feedback, and recovery paths. Explicit approve or route a reproducible defect through Trin. (S3-1..6; A10-A12)
 - [ ] **S3-P5.3** (@Oracle/@all/@Cypher/@Mouse): Groom README/ARCH/DECISIONS/SDLC and evidence without duplicating the board; archive/report sprint chat, run seven domain retrospectives, add accepted follow-ups to backlog, announce local completion, and close this board. No commit, push, release, or deployment is implied. (Definition of Done)
 
 ## Completed Milestones

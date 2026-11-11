@@ -1,8 +1,8 @@
-System architecture for the web-based Amiga Dungeon Master trilogy implementation, including Sprint 2 gameplay and the offline indexed sprite-export follow-up.
+System architecture for the web-based Amiga Dungeon Master trilogy implementation, including Sprint 3 progression, combat, projectiles and magic.
 
 TLDR:
     Impact: Extends the hexagonal 6 Hz TypeScript core and 320x200 Amiga Canvas renderer with FTL's 180-entry ObjectDescriptor catalog (graphics.dat items 556 & 559 + icon sheets 42..48), DB5..DB10 sub-tile/alcove world items, Champion Paperdoll Inventory (item[17] + sub-panels 23/25), 6 Hz corridor projectile physics, and Food/Water/Stamina/Sleep/Vi Altar survival systems.
-    Next Steps: Offline export implementation and QA/architecture/mechanism review passed; retain task.md as the final gate and release-status authority. Runtime lighting and campaign-pack loading remain future work.
+    Next Steps: Sprint 3 implementation and final QA/architecture/browser review passed locally; retain task.md as the final gate and release-status authority. Autonomous monsters, saves and campaign-pack loading remain future work.
 
 # Project Architecture (`docs/ARCH.md`)
 
@@ -230,3 +230,13 @@ Each usage carries a raw source index, optional crop, evidence and an opaque/ind
 The G inspector provides search, combined filters, persistent selection/details and explicit raw-versus-usage previews. Unknowns allow raw interpretations without inferred runtime policies. Source palette ramps remain reference choices, separate from parametric world lighting. Runtime dependency direction remains one-way: catalog data/policy → pure inspection rendering → DOM composition; the review script stays outside runtime source.
 
 Delivered evidence on 2026-11-06 covers `535` measured records (`39` verified roles, `496` unclassified), a generated-source guard, `570` actual-browser checks and `9` inspected captures with zero exceptions, `3` independent inspection tests, the final `268`-test aggregate and production build. Source/manifest hashes and all raw PNG bytes remained compatible. See [ADR-013](DECISIONS.md) and [catalog acceptance status](SPRINT_SPRITE_CATALOG.md). Full semantic identification of all 535 sprites, painter migration and runtime image/campaign-pack loading remain future work.
+
+## 11. Sprint 3 Progression, Combat, Projectile and Magic Delivery (2026-11-09)
+
+[ADR-014](DECISIONS.md#adr-014-deterministic-sprint-3-combat-magic-progression-and-interaction-boundaries-2026-11-06) and the [A1–A12 design](SPRINT3_ARCHITECTURE.md) now describe delivered local behavior rather than planning alone. The pure 6 Hz reducer remains the authority for 16-subskill progression, catalog-driven combat, absolute-tick cooldowns/effects, deterministic RNG, 24-rune formula resolution and atomic five-family potion transactions. Physical items remain in the normalized item authority; typed ammunition and spell payloads reuse the projectile path without becoming inventory items. Passive review targets preserve the explicit boundary against Sprint 4 autonomous monster AI.
+
+The 320×200 interaction shell has one discriminated action/rune/progression owner in the right deck, leaving champion vitals and messages visible. Shared layout rectangles drive draw and hit testing. Original `item[560]` labels, `item[557]` rune glyphs and sprite 14 damage art are selected only for original-data provenance; clean-room equivalents never inherit those identities by index or dimensions. Projectile presentation is travel-relative: approaching LEFT/RIGHT lanes account for reverse direction before projection.
+
+Stabilization preserved the architectural boundaries: the Phase 2 explosion correction deduplicated bounded targets, the Phase 3 correction applied Shield to the party contract, and Phase 4 used two ordinary fix cycles plus one user-authorized presentation-only cycle for the visible current formula. The final bounded stabilization restored referential identity for unchanged inventory commands and corrected reverse-travel approaching-projectile projection; neither correction changed rules, input contracts, ownership or accepted geometry outside those seams.
+
+Final evidence: all `38/38` accepted criteria, focused stabilization `35/35`, serialized diagnostic `72/72`, full aggregate `339/339`, lint, strict TypeScript and production build passed. Fresh actual-browser review passed `10/10` scenarios for each of original and clean-room sources, including `16` projectile geometry cases per source, with empty failure/error records. The first post-stabilization parallel aggregate timed out across unrelated resource-heavy files; the accepted `test-serial` mechanism used one worker and disabled file parallelism without raising the `5000 ms` timeout. Judge trace was invoked but unavailable because no Claude project directory existed. These are local acceptance results only: no commit, push, release or deployment is claimed.

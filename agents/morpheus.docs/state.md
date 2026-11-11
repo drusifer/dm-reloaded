@@ -19,13 +19,23 @@
 - Phase 4 architecture review rejected two remaining authority defects: `interactionPainter::actionReason` duplicates only part of reducer validation and omits missing-ammunition/invalid-target presentation, while pointer utility pills resolve before mirror and active interaction ownership contrary to A10.
 - Sprint 3 Phase 4 is architecture-approved after final production fix cycle 2. One pure engine `validateCombatAction` now drives reducer and painter reasons, including missing ammunition and invalid target, without validation-side mutation; A10 mirror/active-interaction pointer priority is restored.
 - Phase 4 final evidence: Neo architecture2/2, focused23/23, bounded45/45; Trin independent7/7 and bounded11-file70/70; Chromium clean-room/Amiga10 checks plus geometry/source cases; lint/types/build/diff-check passed. Prior carried-cursor/inventory and focus/G-B boundaries remain green; trace is unavailable and not claimed.
+- Smith's first actual-browser Phase 4 gate found one visibility blocker: the active ordered rune formula existed in state but had no presentation. After the anti-loop stop, the User explicitly authorized an Oracle-bounded presentation-only fix 3.
+- Authorized fix 3 is architecture-approved: a canonical read-only formula rectangle renders the active champion's ordered formula with clean labels or source-guarded Amiga glyphs/readable fallback. It adds no input command, mutation, dependency inversion, or engine/rule change.
+- Fix 3 evidence: Neo focused1/1 and bounded30/30; Trin preview1/1, independent8/8, bounded30/30; corrected two-source Chromium10 checks with state-correlated pixels and no failures/errors; lint/types/build/diff-check passed. The initial browser mismatch was a QA-only 6 Hz snapshot race, not a production fix.
+- Smith approved the fresh Phase 4 two-source browser gate after fix 3, and Mouse checkpointed P4.1-P4.3 before releasing P5.1.
+- P5.1 initially failed 6/333 on five inventory no-op identity regressions and one approaching-projectile lane projection regression. User/Oracle authorized one bounded stabilization; exact identity now survives every no-op, accepted inventory transitions alone close interaction, and travel-relative lane presentation mirrors approaching projectiles without engine changes.
+- A later parallel aggregate failed 15/339 at the common 5-second deadline across unrelated render/tool files after focused35/35 passed. User authorized a serialized one-worker target only; the timeout remained unchanged. Serialized diagnostic72/72 and aggregate339/339 passed, followed by lint/type/build and fresh two-source browser success.
+- Sprint 3 P5.1 is architecture-approved: all 38 criteria have independent evidence and ADR-014/A1-A12 ownership, determinism, dependency, focus, provenance, and compatibility boundaries remain intact. Trace was invoked but is unavailable because this Codex workspace lacks a Claude transcript directory; it is not claimed as passed.
+- Smith subsequently approved P5.2's final clean-room/Amiga actual-user journey, and Oracle completed initial P5.3 grooming before requesting all seven retrospectives.
+- Morpheus's Sprint 3 retrospective concludes that A1-A12 held, while late corrections clustered around authority duplication, cross-layer focus policy, missing visible readback, coordinate-frame ambiguity, reducer no-op identity, and verification infrastructure contention.
+- Architecture backlog priorities: central interaction transition policy; explicit spatial coordinate frames before Sprint 4; presentation contracts/state-to-pixel gates; modular source adapters/painters; standard validation/transition results; formal effect scopes; protected passive-target seam; serialized/trace tooling health; explicit Sprint 5 state migration.
 
 ## Current Task
-Sprint 3 Phase 4 architecture re-review: 100% complete and APPROVED after final production fix cycle 2.
-Approval: `agents/morpheus.docs/Sprint3_Phase4_Review_Approval_2026-11-06T22-25.md`.
-The stable build is handed to Smith for the mandatory actual-browser UX gate. Phase 5 remains blocked pending Smith approval and Mouse's sole-board checkpoint.
+Sprint 3 Morpheus architecture retrospective: 100% complete.
+Summary: `agents/morpheus.docs/Sprint3_Architecture_Retrospective_2026-11-09T21-09.md`.
+No code, tests, root board, or global docs were edited; findings and prioritized backlog are handed to Cypher for P5.3 close grooming.
 
 ## Next Steps
-1. @Smith perform the mandatory actual-browser Phase 4 UX gate across original and clean-room sources and explicitly approve or report a reproducible defect.
-2. If Smith finds a production blocker, stop and escalate to User/Oracle; no automatic fix cycle 3 is authorized.
-3. On Smith approval, @Mouse updates only the sole root `task.md` checkpoint before Phase 5 begins.
+1. @Cypher incorporate accepted architecture backlog items into product backlog/local close messaging without reopening Sprint 3 implementation.
+2. Prioritize interaction policy, spatial coordinate frames, presentation contracts, and verification tooling before adjacent new gameplay scope.
+3. @Mouse closes P5.3 only after all seven retrospectives and Cypher's local-launch record; no commit, push, release, or deployment.

@@ -50,9 +50,10 @@ export const ACTION_PANEL_RECTS = {
 } as const;
 
 export const RUNE_RECTS: readonly ScreenRect[] = Array.from({ length: 24 }, (_, index) => ({
-  x: 225 + (index % 6) * 16, y: 36 + Math.floor(index / 6) * 15, w: 15, h: 14
+  x: 225 + (index % 6) * 16, y: 35 + Math.floor(index / 6) * 12, w: 15, h: 11
 }));
 export const RUNE_PANEL_RECTS = {
+  FORMULA: { x: 225, y: 84, w: 94, h: 12 },
   REMOVE: { x: 225, y: 98, w: 22, h: 12 }, CLEAR: { x: 249, y: 98, w: 22, h: 12 },
   FLASK: { x: 273, y: 98, w: 22, h: 12 }, CLOSE: { x: 297, y: 98, w: 22, h: 12 },
   INVOKE: { x: 225, y: 112, w: 94, h: 11 }

@@ -18,7 +18,7 @@ import {
   partyLightBonus,
   slotAcceptsDef
 } from '../../src/engine/inventory';
-import type { GameState } from '../../src/engine/types';
+import type { GameCommand, GameState } from '../../src/engine/types';
 import { hold, lastMessage, partyOf, run, withItem } from './testkit';
 
 describe('Task 1.2: starting gear on recruit', () => {
@@ -52,6 +52,41 @@ describe('Task 1.2: starting gear on recruit', () => {
 });
 
 describe('Task 1.2: slot compatibility & cursor hand', () => {
+  it('preserves exact state identity for the audited inventory no-op matrix', () => {
+    const starter = partyOf('zed');
+    const floor = { ...starter, party: { ...starter.party, level: 0, x: 2, y: 2 } };
+    const wall = { ...starter, party: { ...starter.party, level: 0, x: 0, y: 0 } };
+    const cases: readonly [GameState, GameCommand][] = [
+      [starter, { type: 'CLICK_EQUIP_SLOT', championIndex: 3, slot: 'head' }],
+      [starter, { type: 'CLICK_BACKPACK_SLOT', championIndex: 0, slotIndex: 99 }],
+      [starter, { type: 'CONSUME_HAND_ITEM', championIndex: 0 }],
+      [floor, { type: 'PICKUP_OR_DROP_FLOOR', quadrant: 0 }],
+      [wall, { type: 'PICKUP_OR_DROP_FLOOR', quadrant: 0 }]
+    ];
+
+    for (const [state, command] of cases) {
+      const result = run(state, command);
+      expect(result.state).toBe(state);
+      expect(result.events).toEqual([]);
+    }
+  });
+
+  it('clears interaction only when an allowed inventory command changes state', () => {
+    const base = partyOf('zed');
+    const interacting: GameState = {
+      ...base,
+      interaction: { kind: 'PROGRESSION_VIEW', championIndex: 0 }
+    };
+    const rejected = run(interacting, { type: 'TOGGLE_INVENTORY', championIndex: 9 });
+    expect(rejected.state).toBe(interacting);
+    expect(rejected.state.interaction).toEqual(interacting.interaction);
+
+    const accepted = run(interacting, { type: 'TOGGLE_INVENTORY', championIndex: 0 });
+    expect(accepted.state).not.toBe(interacting);
+    expect(accepted.state.openInventoryChampionIndex).toBe(0);
+    expect(accepted.state.interaction).toEqual({ kind: 'NONE' });
+  });
+
   it('maps equip masks onto slots', () => {
     const helm = findItemDefByLegacyName('HELMET');
     expect(slotAcceptsDef('head', helm)).toBe(true);

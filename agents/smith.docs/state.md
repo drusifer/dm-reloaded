@@ -1,18 +1,22 @@
 # Agent State
 
 ## Context
-- Sprint 3 planning Gates 1 and 2 are approved; Phase 4 implementation passed Trin and Morpheus after two bounded production fix cycles.
-- Fresh `bobp make sprint3-visual-review` state/geometry evidence passes across `CLEAN_ROOM` and `AMIGA_GRAPHICS_DAT`: 10 named checks, no failures or browser errors.
-- Actual visual inspection found a blocking S3-4.2 failure: `runeFormulas.iaido` contains `LO FUL IR`, but neither rune-panel screenshot renders the current formula.
-- VIA confirmed the `RUNE_PANEL` branch of `paintInteractionPanel` draws rune cells and controls but never renders `state.runeFormulas`.
-- The existing two-cycle anti-loop limit is exhausted; no automatic third Neo fix may start without explicit user authorization.
+- Sprint 3 planning Gates 1 and 2 are approved. Phase 4 used two normal fix cycles, then a user-authorized, Oracle-bounded presentation-only fix cycle 3 for the missing formula preview.
+- Trin independently passed preview/state/pixel cases and bounded regressions; Morpheus approved the read-only presentation boundary.
+- Smith reran `bobp make sprint3-visual-review` fresh on 2026-11-09 and visually inspected both source modes.
+- Clean-room mode visibly renders ordered `LO FUL IR`; Amiga mode renders the three source-guarded rune glyphs with separators. DEL, CLR and invalid-invocation state/pixel correlations pass.
+- Fresh two-source report has 10 named checks, `failures: []`, and `browserErrors: []`; focus, pointer priority, bars/messages, provenance and 16 facing/lane/depth cases per source remain green.
+- P5.1 final acceptance subsequently exposed and fixed bounded inventory no-op identity and approaching-projectile lane projection regressions. Final focused35/35, serialized diagnostic72/72, aggregate339/339, lint/type/build, 38/38 criterion and A1-A12 reviews pass.
+- Smith reran the actual browser target again after that stabilization and visually confirmed the two-source interaction/render journey with no regression.
+- Sprint 3 UX retrospective: state-to-pixel semantic assertions, honest source provenance, shared geometry and explicit focus ownership were decisive. The missing formula preview proved that correct state and a nonblack panel do not establish visibility.
+- Future UX backlog: broaden actual-browser storyboards beyond runes, generate priority-matrix cases, stress narrow-deck labels/statuses, add non-color-only feedback checks, include approach/recede in spatial matrices, and make JSON evidence semantically auditable.
 
 ## Current Task
-- Phase 4 mandatory actual-browser UX gate: BLOCKED.
-- Blocker report: `agents/smith.docs/Sprint3_Phase4_UX_Blocker_2026-11-08T12-19.md`.
-- P4.3 is not approved and Phase 5 must not begin.
+- Sprint 3 UX retrospective: COMPLETE.
+- Retrospective: `agents/smith.docs/Sprint3_UX_Retrospective_2026-11-09T21-11.md`.
+- Final P5.2 approval remains `agents/smith.docs/Sprint3_Final_UX_Approval_2026-11-09T20-59.md`.
 
 ## Next Steps
-- @User decide whether to authorize one exceptional third bounded production fix cycle or explicitly revise/defer S3-4.2.
-- If authorized: @Neo render the current ordered formula in the right deck for both source modes; @Trin independently verify state-to-glyph/text agreement; @Morpheus re-review; then @Smith rerun this actual-browser gate.
-- Preserve all passing state, focus, pointer-priority, provenance, bar/message and spatial-geometry evidence while fixing only the formula preview.
+- @Cypher add the concrete UX backlog items from the retrospective to future sprint planning and complete local launch after all seven retrospectives.
+- @Oracle finish P5.3 knowledge grooming/chat report; @Mouse close root `task.md` only after all close gates.
+- No automatic commit, push, release, or deployment is authorized.

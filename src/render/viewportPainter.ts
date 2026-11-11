@@ -88,7 +88,9 @@ export function projectileMarkerRect(state: GameState, projectile: ProjectileSta
   if (forward < 1 || forward > 4 || Math.abs(lateral) > forward + 1) return null;
   const sizes = [0, 13, 9, 6, 4] as const;
   const size = sizes[forward] ?? 4;
-  const laneOffset = (projectile.lane === 'LEFT' ? -1 : 1) * Math.max(3, Math.floor(18 / forward));
+  const approaching = projectile.direction === (((state.party.facing + 2) & 3) as Direction);
+  const travelRelativeSide = projectile.lane === 'LEFT' ? -1 : 1;
+  const laneOffset = travelRelativeSide * (approaching ? -1 : 1) * Math.max(3, Math.floor(18 / forward));
   const centerX = LAYOUT_RECTS.VIEWPORT.x + 112 + Math.round((lateral * 42) / forward) + laneOffset;
   const centerY = LAYOUT_RECTS.VIEWPORT.y + 112 - forward * 18;
   return { x: centerX - Math.floor(size / 2), y: centerY - Math.floor(size / 2), w: size, h: size };

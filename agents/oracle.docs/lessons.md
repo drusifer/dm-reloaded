@@ -81,3 +81,11 @@ Original sheet42 icons4..7 progress from unlit to full flame, not fresh to burne
 - Transparency is a usage policy, not proof that a particular crop contains a transparent pixel. The actual torch icon7 crop has256colored pixels and zero index0 holes. Independent review must compare every nonzero source pixel, require transparent RGBA when index0 is actually present, and account for the full crop without inventing `holes > 0`.
 - Cross-sprite masks need explicit conditional relationships. Door110 may disclose auxiliary source301 when bashed while stating that the ordinary slab preview does not apply the compound mask; source301 remains a separate white/index0 stencil role.
 - Preserve failure chronology. The first actual catalog run failed the false torch-hole assertion; Oracle diagnosis and one harness-only correction produced a materially different retry that passed570checks/9captures with zero browser errors. Never erase the first failure or imply a third attempt.
+
+
+## Lesson 013 — Preserve Gate Chronology and Separate Product Failures from Aggregate Contention (2026-11-09)
+
+- A focused pass does not erase a later aggregate failure, and a timeout does not prove a product regression. Preserve the failing log; compare failure shape, shared deadlines, child-process status and immediate focused evidence before classifying the root cause.
+- Do not blindly rerun an unchanged aggregate. A separately authorized harness-only recovery may serialize files and constrain workers, but it should retain the existing per-test timeout so slower assertions are not hidden. Run the failing diagnostic set once, then one aggregate only after it passes.
+- Identity is observable compatibility: invalid or unchanged inventory commands must return the same state object, not merely deep-equal data. Projectile lanes are travel-relative; reverse-direction approaching geometry must be included in all-facing visual matrices.
+- State tests cannot prove a visible affordance. The authorized Phase4 current-formula correction was presentation-only, and actual original/clean-room browser evidence was still required. Record unavailable process traces as unavailable, never as product passes.

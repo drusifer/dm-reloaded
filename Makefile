@@ -1,4 +1,4 @@
-.PHONY: help setup install extract-assets dev build test test-q lint typecheck tldr via-index judge-trace clean visual-review visual-review-setup sprint3-visual-review export-sprites export-sprites-review
+.PHONY: help setup install extract-assets dev build test test-q test-serial lint typecheck tldr via-index judge-trace clean visual-review visual-review-setup sprint3-visual-review export-sprites export-sprites-review
 
 DATE ?= $(shell date +%F)
 
@@ -29,6 +29,9 @@ test: ## Run full test suite (lint + typecheck + verbose Vitest)
 
 test-q: ## Run fast quiet Vitest suite for TDD iteration
 	npx vitest run --reporter=dot $(ARGS)
+
+test-serial: ## Run Vitest with one worker and no file parallelism for resource-bounded verification
+	npx vitest run --reporter=dot --no-file-parallelism --minWorkers=1 --maxWorkers=1 $(ARGS)
 
 lint: ## Run ESLint and TypeScript strict compiler checks
 	npx eslint src tests

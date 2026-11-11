@@ -1,19 +1,18 @@
 # Agent State
 
 ## Context
-- Bob Protocol refreshed 2026-11-06T18-39-05:00 from the latest shared chat and project capabilities.
-- The live chat records sprint-2-catalog closed at 100%, followed by an explicitly authorized commit/push request; initialization did not independently audit either delivery or Git outcome.
-- `bobp setup-agent-links` confirmed 9 personas and 13 shared skills. Existing discovery links and VIA index were already present; VIA MCP and Codex VIA registration were refreshed successfully.
-- `agents/PROJECT.md` remains unchanged with VIA enabled.
-- No tests were run and no product code was changed during initialization.
+- Bob Protocol initialized 2026-11-09T15-00 from shared chat, Bob instructions/state, and PROJECT.md.
+- VIA is enabled and its MCP query works. All persona/shared-skill discovery links in .claude/skills and /var/home/drusifer/.codex/skills resolve to this project; no repair needed.
+- Latest Smith handoff reports Sprint 3 Phase 4 blocked: entered rune formula is absent from both source-mode renderings. Two automatic fix cycles are exhausted; Phase 5 remains blocked pending Oracle consultation and explicit user authorization for further repair, or scope revision.
+- Existing modified/untracked sprint artifacts were preserved. Initialization did not independently verify prior implementation or test results.
 
 ## Current Task
-- Bob Protocol initialization: 100% complete.
-- Summary: `agents/bob.docs/Init_Summary_2026-11-06T18-39.md`.
-- Protocol discovery and shared coordination are ready for the next command.
+- Protocol initialization: 100% complete.
+- Loaded context, checked links, logged invocation and initialization; no product changes or tests.
+- Summary: agents/bob.docs/Init_Summary_2026-11-09T15-00.md.
 
 ## Next Steps
-- Await user's next command.
-- Route the next request to the appropriate persona or Bloop workflow and load that persona's current state before work.
-- If asked about the earlier commit/push request, verify repository and remote state rather than inferring completion from the chat entry.
-- Preserve task.md as sole task board; use VIA for code navigation and bobp make for project automation.
+- Await user's next command; initialization alone does not authorize another fix cycle.
+- Route subsequent work to the appropriate persona, loading its instructions/state first.
+- For Phase 4 follow-up, read Smith's state and Sprint3_Phase4_UX_Blocker_2026-11-08T12-19.md, consult Oracle, and respect the anti-loop gate.
+- Keep root task.md authoritative; use VIA for symbol lookup and bobp make for project automation.

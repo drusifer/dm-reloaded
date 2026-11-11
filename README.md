@@ -2,7 +2,7 @@ Project overview, quickstart commands, controls, and documentation index for the
 
 TLDR:
     Goal: Provide a complete browser-based TypeScript/Canvas/WebAudio recreation of the FTL Games Amiga Dungeon Master trilogy.
-    Status: Sprint 2 inventory, world items, throwing and survival implemented; QA, architecture and live browser gates passed; retrospective recorded; delivered locally.
+    Status: Sprint 3 progression, combat, typed projectiles, 24-rune magic and five potion families implemented; final QA, architecture and live browser gates passed; delivered locally pending retrospective close.
     Action: Run bobp make setup to install dependencies and unpack local Amiga archives, then bobp make dev to play or bobp make test to verify.
 
 # Dungeon Master — Amiga Trilogy (Web Edition)
@@ -28,6 +28,15 @@ A browser recreation of FTL Games' Commodore Amiga first-person real-time dungeo
 - New pickup, throw, drink, lock and death cues default to synthesized sounds. The soundboard can assign original samples, synthesis or explicit silence.
 - The sprite catalog (`G`) searches decoded sprites by raw index or verified key, combines category/knowledge filters, and persistently shows source dimensions, evidence, usage-specific crop/mask policy and raw-versus-runtime previews. The supplied original archive currently reports **535 records: 39 verified roles and 496 explicitly unclassified**; generated fallback art never inherits DM1 identities.
 
+## Progression, Combat and Magic
+
+- Every champion has four class ranks backed by **16 usage-driven subskills**. Successful actions award the owning subskill; blocked or invalid actions do not spend resources, advance RNG or grant experience.
+- Item-driven melee, throwing and ranged actions share deterministic cooldown, reach, lane and projectile rules. Physical items retain single ownership and landing behavior; spell payloads disappear after resolving bounded impacts and explosions.
+- The mouse-complete right-deck interface exposes all **24 ordered runes**, spell invocation, potion brewing and progression review without covering champion vitals or the message strip. Original and clean-room presentations keep their provenance distinct.
+- The shipped potion set covers Vi healing, Ya stamina, Ee mana, Ku strength and Bro antivenom across six power runes, with explicit invalid, insufficient-resource, fizzle, backfire and success outcomes.
+
+Sprint 3 acceptance on 2026-11-09 covered all **38/38** product criteria, final serialized diagnostic **72/72**, full aggregate **339/339**, lint, strict TypeScript and production build. Fresh actual-browser review passed **10/10 scenarios for each of original and clean-room sources**, including 16 projectile geometry cases per source, with no captured failures or browser errors. The earlier parallel aggregate timed out under resource contention; the accepted `test-serial` path disabled file parallelism and used one worker while retaining the unchanged 5-second test timeout. The separate judge trace was invoked but remained unavailable because no Claude project directory was present; it is not counted as passing evidence.
+
 ## Controls
 
 | Action | Control |
@@ -49,7 +58,7 @@ Catalog validation on 2026-11-06: **268 aggregate tests**, ESLint, strict TypeSc
 
 ## Current Limits
 
-Special wall ornaments and skulls use recognizable procedural art until original sprite classification is verified; world items use perspective-scaled inventory icons. Scroll parchment wraps and truncates long text with an ellipsis; inspection retains the transcript in game messages. Combat, spells, monsters, persistent saves and campaign-pack loading remain later work. The separate BobProtocol trace audit currently lacks its Python `jinja2` dependency; this does not represent a passing audit.
+Special wall ornaments and skulls use recognizable procedural art until original sprite classification is verified; world items use perspective-scaled inventory icons. Scroll parchment wraps and truncates long text with an ellipsis; inspection retains the transcript in game messages. Autonomous monsters/AI, persistent saves and campaign-pack loading remain later work. The separate judge trace is currently unavailable and does not represent a passing audit.
 
 ## Quickstart (`bobp make`)
 
@@ -97,7 +106,9 @@ Press `G` in the running game or use **SPRITES [G]**. Search by numeric source i
 - **[PRD.md](docs/PRD.md)** — Product Vision, Dual-Mode Asset Strategy, Mechanics, and Trilogy Roadmap
 - **[USER_STORIES.md](docs/USER_STORIES.md)** — Sprint 2 Stories and archived Sprint 1 Acceptance Criteria
 - **[ARCH.md](docs/ARCH.md)** — Hexagonal Architecture, `320×200` HUD Spec, and Data Flow
-- **[DECISIONS.md](docs/DECISIONS.md)** — Product & Architectural Decision Records (`PDR-001`, `ADR-001..009`)
+- **[SPRINT3.md](docs/SPRINT3.md)** — Accepted progression, combat, projectile, magic, potion and UX contract
+- **[SPRINT3_ARCHITECTURE.md](docs/SPRINT3_ARCHITECTURE.md)** — Sprint 3 deterministic architecture and final implementation evidence
+- **[DECISIONS.md](docs/DECISIONS.md)** — Product & Architectural Decision Records (`PDR-001`, `ADR-001..014`)
 - **[task.md](task.md)** — Sprint Task Board (Single Source of Truth)
 - **[agents/DOCUMENTATION_INDEX.md](agents/DOCUMENTATION_INDEX.md)** — BobProtocol Persona & Skill Reference
 

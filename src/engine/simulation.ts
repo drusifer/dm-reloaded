@@ -831,7 +831,10 @@ export function dispatchCommand(state: GameState, command: GameCommand): Simulat
         }, events), events };
       }
       const inv = applyInventoryCommand(state, command, events);
-      return { state: { ...inv.state, interaction: { kind: 'NONE' } }, events };
+      return {
+        state: inv.state === state ? state : { ...inv.state, interaction: { kind: 'NONE' } },
+        events
+      };
     }
 
     // Reducers owned by ProjectileEngine / SurvivalEngine.
