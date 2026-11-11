@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tool-Use Trace — dungeon-master 2026-11-11</title>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --surface2: #263244;
+    --border: #334155; --text: #e2e8f0; --muted: #94a3b8;
+    --clean-row: #1e293b; --flagged-row: #2d1f0e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 13px/1.5 'JetBrains Mono', 'Fira Code', monospace; }
+  a { color: #60a5fa; }
+
+  /* Header */
+  .header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .header h1 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .header .meta { color: var(--muted); font-size: 12px; }
+  .stats { display: flex; gap: 24px; margin-top: 12px; flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; }
+  .stat .val { font-size: 22px; font-weight: 700; }
+  .stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+  /* Filters */
+  .filters { padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--surface2);
+             display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .filters span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-right: 4px; }
+  .filter-btn { border: none; border-radius: 4px; padding: 3px 10px; font: inherit;
+                font-size: 11px; cursor: pointer; transition: opacity .15s; }
+  .filter-btn.active { opacity: 1; }
+  .filter-btn.inactive { opacity: 0.35; }
+  .filter-btn.all-btn { background: #334155; color: #e2e8f0; }
+
+  /* Sessions */
+  .sessions { padding: 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+  details { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  details[open] summary { border-bottom: 1px solid var(--border); }
+  summary { padding: 10px 16px; cursor: pointer; background: var(--surface2); list-style: none;
+            display: flex; align-items: center; gap: 12px; user-select: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary .chevron { color: var(--muted); transition: transform .2s; font-size: 10px; }
+  details[open] summary .chevron { transform: rotate(90deg); }
+  summary .sid { font-weight: 700; }
+  summary .smeta { color: var(--muted); font-size: 11px; }
+  summary .sflag { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+
+  /* Tool call table */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  tr.clean { background: var(--clean-row); }
+  tr.flagged { background: var(--flagged-row); }
+  tr:hover td { filter: brightness(1.12); }
+  td { padding: 4px 8px; border-bottom: 1px solid #1a2535; vertical-align: top; }
+  td.seq { color: var(--muted); width: 44px; text-align: right; white-space: nowrap; padding-right: 12px; }
+  td.tool { width: 160px; white-space: nowrap; }
+  td.summary { word-break: break-all; }
+  td.badges { width: 220px; }
+
+  /* Tool name chip */
+  .tool-chip { display: inline-block; padding: 1px 7px; border-radius: 3px; font-weight: 600;
+               font-size: 11px; color: #fff; }
+
+  /* AP badge */
+  .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px;
+           font-weight: 700; color: #fff; cursor: help; position: relative; margin: 1px 2px 1px 0;
+           white-space: nowrap; }
+  .badge .tooltip { display: none; position: absolute; z-index: 100; bottom: calc(100% + 6px); left: 0;
+                    background: #0f172a; border: 1px solid #475569; border-radius: 6px;
+                    padding: 10px 12px; width: 320px; font-size: 11px; line-height: 1.5;
+                    font-weight: 400; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+  .badge:hover .tooltip { display: block; }
+  .tooltip .t-code { font-weight: 700; margin-bottom: 4px; }
+  .tooltip .t-desc { color: #94a3b8; margin-bottom: 6px; }
+  .tooltip .t-fix-lbl { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+  .tooltip .t-fix { color: #e2e8f0; margin-top: 2px; }
+
+  /* Summary table */
+  .summary-section { padding: 0 24px 24px; }
+  .summary-section h2 { font-size: 14px; margin-bottom: 12px; color: var(--muted);
+                         text-transform: uppercase; letter-spacing: .06em; }
+  .sum-table { border-collapse: collapse; width: 100%; max-width: 700px; }
+  .sum-table th { text-align: left; padding: 6px 12px; font-size: 11px; color: var(--muted);
+                   text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+  .sum-table td { padding: 6px 12px; border-bottom: 1px solid #1e293b; font-size: 12px; }
+  .sum-table .count { font-weight: 700; font-size: 14px; }
+
+  /* Hidden rows for filtering */
+  tr.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Tool-Use Trace — dungeon-master</h1>
+  <div class="meta">2026-11-11 &nbsp;·&nbsp; 1 sessions &nbsp;·&nbsp;
+    Rules: agents/tools/trace_rules.json</div>
+  <div class="stats">
+    <div class="stat"><span class="val">64</span><span class="lbl">Tool Calls</span></div>
+    <div class="stat"><span class="val">8</span><span class="lbl">Flags</span></div>
+    <div class="stat"><span class="val">12.5%</span><span class="lbl">Flag Rate</span></div>
+    <div class="stat"><span class="val">1</span><span class="lbl">Sessions</span></div>
+  </div>
+</div>
+
+<div class="filters">
+  <span>Filter:</span>
+  <button class="filter-btn all-btn active" onclick="filterAll(this)">Show All</button>
+  
+  <button class="filter-btn active" data-ap="AP-SKILL-RELOAD"
+          style="background:#6366f1; color:#fff;"
+          onclick="filterAP(this, 'AP-SKILL-RELOAD')">AP-SKILL-RELOAD</button>
+  
+  <button class="filter-btn active" data-ap="AP-MAKE-BYPASS"
+          style="background:#ef4444; color:#fff;"
+          onclick="filterAP(this, 'AP-MAKE-BYPASS')">AP-MAKE-BYPASS</button>
+  
+  <button class="filter-btn active" data-ap="AP-RAW-VENV"
+          style="background:#dc2626; color:#fff;"
+          onclick="filterAP(this, 'AP-RAW-VENV')">AP-RAW-VENV</button>
+  
+  <button class="filter-btn active" data-ap="AP-MAKE-PIPE"
+          style="background:#f97316; color:#fff;"
+          onclick="filterAP(this, 'AP-MAKE-PIPE')">AP-MAKE-PIPE</button>
+  
+  <button class="filter-btn active" data-ap="AP-VIA-GREP"
+          style="background:#8b5cf6; color:#fff;"
+          onclick="filterAP(this, 'AP-VIA-GREP')">AP-VIA-GREP</button>
+  
+  <button class="filter-btn active" data-ap="AP-VIA-READ"
+          style="background:#a855f7; color:#fff;"
+          onclick="filterAP(this, 'AP-VIA-READ')">AP-VIA-READ</button>
+  
+  <button class="filter-btn active" data-ap="AP-DUP-READ"
+          style="background:#eab308; color:#fff;"
+          onclick="filterAP(this, 'AP-DUP-READ')">AP-DUP-READ</button>
+  
+</div>
+
+<div class="sessions">
+
+<details open>
+  <summary>
+    <span class="chevron">▶</span>
+    <span class="sid">71db9cb9</span>
+    <span class="smeta">??:?? &nbsp;·&nbsp; 64 calls &nbsp;·&nbsp; 8 flags</span>
+    <span class="sflag">
+      
+      <span class="badge" style="background:#f97316">
+        AP-MAKE-PIPE ×7
+      </span>
+      
+      <span class="badge" style="background:#ef4444">
+        AP-MAKE-BYPASS ×1
+      </span>
+      
+    </span>
+  </summary>
+  <table>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">1</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">tail -n 60 agents/CHAT.md; ls agents; tail -n 40 task.md 2&gt;/dev/null</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">2</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat agents/cypher.docs/state.md | head -60; git status --short | head</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">3</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp chat &#34;Bob Protocol initialized. Resuming from last handoff: Sprint3 at 11/12, P5.3 open; all retros in except Cypher&#39;s backlog + local-launch record, then Mouse close. Cypher state.md is stale...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">4</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 1,60p agents/cypher.docs/SKILL.md; ls docs; grep -n -i &#34;backlog&#34; docs/*.md | head -20; ls agents/cypher.docs</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">5</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; agents/cypher.docs/Sprint3_Retro_Backlog_Summary_2026-11-10T23-30.md &lt;&lt;&#39;EOF&#39;
+# Sprint 3 Retrospective, Backlog and Local Launch (Cypher)
+
+Inputs: Trin, Morpheus, Neo, Oracle, Smith, Mouse ret...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">6</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;Sprint 3\|S3-P5.3\|^## &#34; task.md | head -30; tail -n 30 agents/mouse.docs/state.md</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">7</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;task.md&#39;
+s=open(p).read()
+s=s.replace(&#34;- [ ] **S3-P5.3**&#34;,&#34;- [x] **S3-P5.3**&#34;)
+old=&#34;## Backlog After Sprint 3\n\n&#34;
+new=old+&#34;&#34;&#34;- **Sprint 3 retro follow-ups (accepted 2026-11-10...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">8</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n -i &#34;archive&#34; agents/oracle.docs/SKILL.md | head -15; ls agents/chat_archive | tail -5; wc -l agents/CHAT.md; ls agents/oracle.docs | tail -5</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">9</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 112,130p agents/oracle.docs/SKILL.md; ls agents/chat_archive; head -12 agents/CHAT.md; head -8 agents/chat_archive/CHAT_sprint-2-catalog.md; grep -n &#34;archive\|chat_archive&#34; Makefile | head; ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">10</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp chat-report --moniker sprint-3 --summary &#34;Delivered Sprint 3: deterministic progression, combat actions, shared typed projectiles, 24-rune magic, powered potions and a playable 320x200 combat/...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">11</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; agents/oracle.docs/state.md &lt;&lt;&#39;EOF&#39;
+
+## Sprint 3 Archive (2026-11-10)
+Chat archived via `bobp chat-report --moniker sprint-3` to `agents/chat_archive/CHAT_sprint-3.md` (+ `.diagram.md`); CHA...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">12</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">ls; cat agents/PROJECT.md | head -40; wc -l docs/*.md; ls src 2&gt;/dev/null | head -50; git status --short | head -5</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">13</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 1,80p docs/SPRINT3.md; grep -n -i &#34;sprint 4\|monster&#34; docs/PRD.md docs/ARCH.md docs/DECISIONS.md | head -30</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">14</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">find src tests -type f | xargs wc -l | sort -rn | head -60; bobp make help 2&gt;&amp;1 | head -40</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">15</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n -i &#34;creature\|monster&#34; src/data/dungeonDatParser.ts src/engine/types.ts src/engine/simulation.ts src/engine/combat.ts | head -50; sed -n 1,60p src/engine/types.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">16</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 60,552p src/engine/types.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">17</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;thing\|Thing\|^export\|^function\|^const [A-Z_]* =&#34; src/data/dungeonDatParser.ts | head -90; sed -n 40,60p src/data/dungeonDatParser.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">18</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 254,330p src/data/dungeonDatParser.ts; sed -n 480,600p src/data/dungeonDatParser.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">19</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 1,40p tests/data/dungeonDatParser.test.ts; ls public scripts tests tests/engine; sed -n 1,104p tests/engine/testkit.ts | head -60; cat package.json | sed -n 1,30p</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">20</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">ls public/assets/extracted/dm1/ | head; sed -n 330,480p src/data/dungeonDatParser.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">21</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+import struct, collections
+b=open(&#39;public/assets/extracted/dm1/Dungeon.decomp.dat&#39;,&#39;rb&#39;).read()
+u=lambda o:struct.unpack(&#39;&gt;H&#39;,b[o:o+2])[0]
+nm=b[4];tw=u(6);ow=u(10)
+cnt=[u(12+2*i) ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">22</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;combatTargets\|CombatTargetState&#34; -r src | head -40; sed -n 1,80p src/engine/combat.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">23</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 76,209p src/engine/combat.ts; grep -n &#34;stepSingleTick&#34; -A70 src/engine/simulation.ts | sed -n 1,140p</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">24</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; docs/SPRINT4.md &lt;&lt;&#39;EOF&#39;
+# Sprint 4 — Monster Ecology, AI &amp; Traps (Product Contract + Architecture)
+
+Tier-1 sprint; Cypher stories, Morpheus architecture and Mouse plan are kept in one documen...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">25</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp chat &#34;*user approve Gate1+2 with 2 binding notes: (a) party injury must be visible in HUD (not message-only) and monsters beyond sight stay hidden; (b) placeholder silhouettes must be labelled...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">26</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/data/monsterCatalog.ts &lt;&lt;&#39;EOF&#39;
+/**
+ * Monster catalog for the 27 Dungeon Master type slots.
+ *
+ * TLDR:
+ *   Ids and names follow the DM1 creature order read from Dungeon.dat; numeric sta...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">27</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/engine/types.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;&#34;&#34;export interface CombatTargetState {
+  readonly id: string;&#34;&#34;&#34;,&#34;&#34;&#34;export interface MonsterRuntime {
+  readonly typeId: numb...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">28</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 600,640p src/data/dungeonDatParser.ts; sed -n 840,916p src/data/dungeonDatParser.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">29</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/data/dungeonDatParser.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;&#34;&#34;          if (entry.category &lt; 5 || entry.category &gt; 10) {
+            continue;
+          }
+          if (tileTyp...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">30</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i &#34;29s#^#import { monsterTypeDef } from &#39;./monsterCatalog&#39;;\n#&#34; src/data/dungeonDatParser.ts &amp;&amp; sed -n 11,30p src/data/dungeonDatParser.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">31</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i &#34;s/^  type ItemInstanceId,\n  type StartingGearSpec/&amp;/; 0,/  type ItemInstanceId,/s//  type ItemInstanceId,\n  type MonsterGroupSpec,/&#34; src/data/dungeonDatParser.ts &amp;&amp; echo &#34;export * from &#39;....</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">32</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;export\|CHAMPION_DIED\|gameOver&#34; src/engine/survival.ts | head -30; grep -n &#34;armorStrength&#34; -r src | head; grep -n &#34;SOUND_CUE&#34; src/engine/*.ts | head -5; grep -n &#34;export function&#34; src/engi...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">33</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 80,142p src/engine/survival.ts; sed -n 135,160p src/engine/inventory.ts; grep -n &#34;function.*[Pp]assable\|function isWalkable\|export function getTile&#34; -r src/engine | head</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">34</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 55,110p src/engine/simulation.ts; grep -n &#34;function pushMessage&#34; -A10 src/engine/*.ts | head -20; grep -n &#34;import&#34; src/engine/survival.ts | head</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">35</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;damageTarget\|DAMAGE_APPLIED&#34; src/engine/*.ts | head -20; grep -n &#34;SoundCueId\|case &#39;\|Record&lt;SoundCueId&#34; src/ui/soundboard.ts | head -20; sed -n 326,340p src/engine/projectiles.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">36</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 14,60p src/ui/soundboard.ts; sed -n 100,140p src/ui/soundboard.ts; grep -n &#34;THROW_SWOOSH\|CHAMPION_DEATH&#34; -r src | grep -v &#34;types.ts&#34; | head</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">37</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+import re
+p=&#39;src/engine/types.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;  | &#39;CHAMPION_DEATH&#39;;&#34;,&#34;  | &#39;CHAMPION_DEATH&#39;\n  | &#39;MONSTER_ATTACK&#39;\n  | &#39;MONSTER_DEATH&#39;;&#34;,1)
+s=s.replace(&#34;  readonl...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">38</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/engine/monsters.ts &lt;&lt;&#39;EOF&#39;
+/**
+ * Pure deterministic monster ecology: perception, bounded pathing, subcell formation, attacks,
+ * kill resolution, door crushing and generators.
+ *
+ * TLDR...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">39</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/engine/monsters.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;    if (!monsterCanEnterTerrain(getTile(state.levels, level, cx, cy), true) &amp;&amp; !flying) return false;\n&#34;,&#34;&#34;)
+s=s.replace(&#34;...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">40</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 165,210p src/engine/projectiles.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">41</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/engine/combat.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;&#34;&#34;  ownerChampionId: string,
+  events: EngineEvent[]
+): GameState {
+  let applied = false;&#34;&#34;&#34;,&#34;&#34;&#34;  ownerChampionId: string,
+...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">42</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;partyOf(&#34; tests/engine/*.ts | head -5; grep -n &#34;id: &#39;&#34; src/data/cleanRoomProvider.ts | head -12</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">43</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i &#34;s/&#39;wuuf&#39;/&#39;elija&#39;/g&#34; tests/engine/monsters.test.ts &amp;&amp; npx vitest run tests/engine/monsters.test.ts 2&gt;&amp;1 | grep -v &#34;^$&#34; | head -70</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">44</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i &#34;s/const state = scene({ typeId: 6, at: \[4, 1\], level });/const state = scene({ typeId: 12, at: [4, 1], level, healths: [60] });/&#34; tests/engine/monsters.test.ts &amp;&amp; npx vitest run tests/eng...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">45</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/engine/monstersRealDungeonUat.test.ts &lt;&lt;&#39;EOF&#39;
+import { existsSync, readFileSync } from &#39;node:fs&#39;;
+import { resolve } from &#39;node:path&#39;;
+import { describe, expect, it } from &#39;vitest&#39;;
+imp...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">46</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/engine/monstersRealDungeonUat.test.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;&#34;&#34;    const group = (bundle.dungeon.monsterGroups ?? []).find((g) =&gt; g.level === levelId)!;
+    const...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">47</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/engine/monstersRealDungeonUat.test.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;    expect(a.events).toEqual(b.events);\n&#34;,&#34;    expect(a.events).toEqual(b.events);\n    expect(a.eve...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">48</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i -E &#39;s/^- \[ \] \*\*S4-P(1|2|3)\./- [x] **S4-P\1./&#39; task.md &amp;&amp; bobp chat &#34;Phases1-3 done (catalog+parser+real-file gate, AI/pathing/formation/attacks, kill credit/non-material/drops/crush/gen...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">49</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 60,100p src/render/viewportPainter.ts; grep -n &#34;export&#34; src/render/framebuffer.ts | head -20; grep -n &#34;PALETTE_INDEX&#34; src/render/*.ts | head -3; grep -n &#34;const PALETTE_INDEX&#34; -A20 src/render...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">50</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 34,70p src/render/framebuffer.ts; sed -n 99,143p src/render/viewportPainter.ts; sed -n 830,880p src/render/viewportPainter.ts; grep -n &#34;nearPalette&#34; src/render/viewportPainter.ts | head -5</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">51</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;^export function\|^function&#34; src/render/hudPainter.ts src/render/bitmapFont.ts src/render/layout.ts; grep -n &#34;health&#34; src/render/hudPainter.ts | head -20; grep -n &#34;paintDungeonViewport\|pa...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">52</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 42,118p src/render/hudPainter.ts; sed -n 60,80p src/render/bitmapFont.ts; sed -n 20,60p src/render/index.ts; sed -n 1,30p src/render/hudPainter.ts | grep import</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">53</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;paintChampionSlot&#34; src/render/hudPainter.ts; grep -n &#34;strokeRect\|fillRect&#34; src/render/framebuffer.ts | head -4; sed -n 105,125p src/render/layout.ts | head -5; grep -n &#34;VIEWPORT&#34; src/rend...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-BYPASS"
+        data-flags="AP-MAKE-BYPASS">
+      <td class="seq">54</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/render/monsterPainter.ts &lt;&lt;&#39;EOF&#39;
+/**
+ * Placeholder monster silhouettes for the 320x200 viewport.
+ *
+ * TLDR:
+ *   monsterViewRect is the pure, test-shared projection (forward 1..4, later...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#ef4444">
+          AP-MAKE-BYPASS
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-BYPASS</div>
+            <div class="t-desc">Bash runs pytest/ruff/pylint/mypy directly — bypasses make targets.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Always use `bobp make <target>`. Output is captured to build/build.out.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">55</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/render/monsterPainter.ts&#39;
+s=open(p).read()
+a=s.index(&#34;  const target = offsetTile(state, forward, lateral);&#34;)
+b=s.index(&#34;  return true;\n}\n\nexport function monsterViewRec...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">56</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;Sprint3ReviewScenario\|review&#34; src/main.ts | head; sed -n 1,80p scripts/sprint3-visual-review.mjs; grep -n &#34;sprint3-visual-review&#34; -B1 -A6 Makefile</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">57</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;__DM_APP__\|getState\|dispatch\|return {&#34; src/main.ts | head -20; sed -n 80,140p scripts/sprint3-visual-review.mjs</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">58</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; src/engine/reviewScenario.ts &lt;&lt;&#39;EOF&#39;
+
+/**
+ * Sprint 4 bounded review arena: a lit 10x3 corridor at level 0 with a Screamer pair and a Ghost.
+ * Applies to an already-recruited party; used by...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">59</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/render/monsterPainter.test.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;    const slot = { x: 0, y: 0 };\n    void slot; void createInitialGameState; void createCleanRoomBundle; voi...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">60</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/render/automapPainter.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;  // Draw party directional marker at map center&#34;,&#34;&#34;&#34;  // Monsters appear only while currently in view (same rule as...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">61</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint4-visual-review/amiga_graphics_dat-injured.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">62</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint4-visual-review/clean_room-seen.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">63</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/render/monsterPainter.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;  drawBitmapText(fb, &#39;PLACEHOLDER MONSTER ART&#39;&#34;,&#34;  fb.fillRect(vp.x, vp.y + vp.h - 10, 140, 10, [0, 0, 0]);\n  drawB...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">64</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp make build 2&gt;&amp;1 | grep -E &#34;exit|error|built&#34; | head -4; bobp make sprint4-visual-review 2&gt;&amp;1 | grep -E &#34;Sprint 4 browser|exit&#34; | head -3; bobp make judge-trace 2&gt;&amp;1 | grep -iE &#34;jinja|exit|erro...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+  </table>
+</details>
+
+</div>
+
+<div class="summary-section">
+  <h2>Summary</h2>
+  <table class="sum-table">
+    <tr><th>Anti-Pattern</th><th>Count</th><th>Fix</th></tr>
+    
+    
+    <tr>
+      <td><span class="badge" style="background:#f97316">AP-MAKE-PIPE</span></td>
+      <td class="count">7</td>
+      <td style="color:#94a3b8">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</td>
+    </tr>
+    
+    
+    <tr>
+      <td><span class="badge" style="background:#ef4444">AP-MAKE-BYPASS</span></td>
+      <td class="count">1</td>
+      <td style="color:#94a3b8">Always use `bobp make <target>`. Output is captured to build/build.out.</td>
+    </tr>
+    
+  </table>
+</div>
+
+<script>
+const ALL_APS = ["AP-SKILL-RELOAD", "AP-MAKE-BYPASS", "AP-RAW-VENV", "AP-MAKE-PIPE", "AP-VIA-GREP", "AP-VIA-READ", "AP-DUP-READ"];
+let activeFilters = new Set(ALL_APS);
+
+function updateRows() {
+  document.querySelectorAll('tr[data-flags]').forEach(row => {
+    const flags = row.dataset.flags ? row.dataset.flags.split(' ').filter(Boolean) : [];
+    if (flags.length === 0) {
+      row.classList.remove('hidden');
+      return;
+    }
+    // Show row if ANY of its flags are active
+    const visible = flags.some(f => activeFilters.has(f));
+    row.classList.toggle('hidden', !visible);
+  });
+}
+
+function filterAP(btn, code) {
+  if (activeFilters.has(code)) {
+    activeFilters.delete(code);
+    btn.classList.remove('active');
+    btn.classList.add('inactive');
+  } else {
+    activeFilters.add(code);
+    btn.classList.remove('inactive');
+    btn.classList.add('active');
+  }
+  updateRows();
+}
+
+function filterAll(btn) {
+  const allActive = activeFilters.size === ALL_APS.length;
+  if (allActive) {
+    activeFilters.clear();
+    document.querySelectorAll('.filter-btn[data-ap]').forEach(b => {
+      b.classList.remove('active'); b.classList.add('inactive');
+    });
+    btn.textContent = 'Show All';
+  } else {
+    activeFilters = new Set(ALL_APS);
+    document.querySelectorAll('.filter-btn[data-ap]').forEach(b => {
+      b.classList.add('active'); b.classList.remove('inactive');
+    });
+    btn.textContent = 'Show All';
+  }
+  updateRows();
+}
+</script>
+</body>
+</html>

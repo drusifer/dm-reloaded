@@ -1,0 +1,30 @@
+{
+  "AP-SKILL-RELOAD": {
+    "description": "Same Skill invoked >1\u00d7 in a session \u2014 wastes full SKILL.md reload (~6k tokens each).",
+    "fix": "After the first Skill load, call sub-commands via Bash directly. Do NOT re-invoke Skill(make,...) or Skill(chat,...) within the same session."
+  },
+  "AP-MAKE-BYPASS": {
+    "description": "Bash runs pytest/ruff/pylint/mypy directly \u2014 bypasses make targets.",
+    "fix": "Always use `bobp make <target>`. Output is captured to build/build.out."
+  },
+  "AP-RAW-VENV": {
+    "description": "Bash calls .venv/bin/<tool> directly.",
+    "fix": "Use `bobp make <target>` \u2014 never reference .venv/bin directly. If no target exists, add one to this project's own Makefile."
+  },
+  "AP-MAKE-PIPE": {
+    "description": "Bash pipes `bobp make` output \u2014 it already captures to build/build.out.",
+    "fix": "Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe."
+  },
+  "AP-VIA-GREP": {
+    "description": "Grep/Glob used for symbol/import/function lookup when via is enabled.",
+    "fix": "Use mcp__via__via_query for symbol lookups. Reserve grep for free-text content search only."
+  },
+  "AP-VIA-READ": {
+    "description": "Read on a source file with no subsequent Edit/Write \u2014 likely symbol hunting.",
+    "fix": "Use mcp__via__via_query to locate symbols. Read is only needed before editing or full-file review."
+  },
+  "AP-DUP-READ": {
+    "description": "Same file Read 3+ times in one session without the file changing.",
+    "fix": "Read once, keep excerpt in context. Re-Read only to verify after an edit."
+  }
+}
