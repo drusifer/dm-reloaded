@@ -160,7 +160,8 @@ try {
     const afterRejectPreview = await previewSignature();
     const rejectionMismatches = [];
     if (afterReject.rngState !== beforeReject.rngState) rejectionMismatches.push(`rng ${beforeReject.rngState}->${afterReject.rngState}`);
-    if (afterReject.party.champions[0].mana !== beforeReject.party.champions[0].mana) {
+    // Natural mana regeneration may tick between snapshots in the live loop; a rejected cast must never SPEND mana.
+    if (afterReject.party.champions[0].mana < beforeReject.party.champions[0].mana) {
       rejectionMismatches.push(`mana ${beforeReject.party.champions[0].mana}->${afterReject.party.champions[0].mana}`);
     }
     if (afterReject.runeFormulas.iaido.join(' ') !== 'LO') {

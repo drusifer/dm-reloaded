@@ -8,6 +8,8 @@
  */
 
 import { monsterTypeDef } from '../data/monsterCatalog';
+import { monsterFrontSprite, spriteBorderKey } from '../data/monsterSprites';
+import type { DecodedSprite, GraphicsBundle, RgbColor } from '../data/graphicsDatParser';
 import {
   DIRECTION_DELTAS,
   type CombatTargetState,
@@ -16,7 +18,6 @@ import {
   type GameState,
   type Tile
 } from '../engine/types';
-import type { RgbColor } from '../data/graphicsDatParser';
 import { drawBitmapText } from './bitmapFont';
 import type { Framebuffer } from './framebuffer';
 import { LAYOUT_RECTS, type ScreenRect } from './layout';
@@ -97,8 +98,50 @@ function shade(color: RgbColor, forward: number): RgbColor {
   return [Math.round(color[0] * k), Math.round(color[1] * k), Math.round(color[2] * k)];
 }
 
-export function paintMonsters(fb: Framebuffer, state: GameState): void {
-  const visible: Array<{ target: CombatTargetState; rect: MonsterViewRect }> = [];
+/** Scale of an original sprite at each viewing distance (1 = natural size at the nearest tile). */
+const SPRITE_SCALE = [0, 1, 0.65, 0.42, 0.27] as const;
+const MAX_SPRITE_W = 150;
+const MAX_SPRITE_H = 120;
+
+export interface MonsterPaintContext {
+  readonly graphics?: GraphicsBundle;
+  /** Depth-lit 16-colour palette for a viewing distance bucket (0 nearest .. 3 farthest). */
+  readonly paletteAt?: (depth: 0 | 1 | 2 | 3) => readonly RgbColor[];
+}
+
+const keyCache = new WeakMap<DecodedSprite, number>();
+
+function transparentKey(sprite: DecodedSprite): number {
+  let key = keyCache.get(sprite);
+  if (key === undefined) {
+    key = spriteBorderKey(sprite.width, sprite.height, sprite.pixels).key;
+    keyCache.set(sprite, key);
+  }
+  return key;
+}
+
+/** The original front-view sprite for a monster type, only for the original-data source and confident mappings. */
+export function originalMonsterSprite(graphics: GraphicsBundle | undefined, typeId: number): DecodedSprite | undefined {
+  if (!graphics || graphics.source !== 'AMIGA_GRAPHICS_DAT') return undefined;
+  const index = monsterFrontSprite(typeId);
+  return index === undefined ? undefined : graphics.sprites.get(index);
+}
+
+/** Destination rectangle for an original sprite standing on the projected tile cell. */
+export function originalSpriteRect(sprite: DecodedSprite, view: MonsterViewRect): ScreenRect {
+  const scale = SPRITE_SCALE[view.forward] ?? 0.27;
+  let w = Math.max(4, Math.round(sprite.width * scale));
+  let h = Math.max(4, Math.round(sprite.height * scale));
+  const shrink = Math.min(1, MAX_SPRITE_W / w, MAX_SPRITE_H / h);
+  w = Math.max(4, Math.round(w * shrink));
+  h = Math.max(4, Math.round(h * shrink));
+  const centerX = view.x + Math.floor(view.w / 2);
+  const feet = view.y + view.h;
+  return { x: centerX - Math.floor(w / 2), y: feet - h, w, h };
+}
+
+export function paintMonsters(fb: Framebuffer, state: GameState, context: MonsterPaintContext = {}): void {
+  const visible: { target: CombatTargetState; rect: MonsterViewRect }[] = [];
   for (const target of state.combatTargets) {
     const rect = monsterViewRect(state, target);
     if (rect) visible.push({ target, rect });
@@ -106,35 +149,63 @@ export function paintMonsters(fb: Framebuffer, state: GameState): void {
   if (visible.length === 0) return;
   visible.sort((a, b) => b.rect.forward - a.rect.forward);
   const vp = LAYOUT_RECTS.VIEWPORT;
+  let placeholders = 0;
   for (const { target, rect } of visible) {
-    const def = monsterTypeDef(target.monster!.typeId);
-    const base = shade(parseHex(def?.color ?? '#888888'), rect.forward);
-    const dim = shade(base, 3);
-    const ghost = def?.traits.includes('NON_MATERIAL') ?? false;
-    const headH = Math.max(3, Math.floor(rect.h * 0.28));
-    const bodyY = rect.y + headH;
-    const bodyH = rect.h - headH;
-    const put = (x: number, y: number, w: number, h: number, color: RgbColor) => {
-      if (!ghost) { fb.fillRect(x, y, w, h, color); return; }
-      for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) if ((xx + yy) % 2 === 0) fb.setPixel(xx, yy, color);
-    };
-    put(rect.x, bodyY, rect.w, bodyH, base);
-    put(rect.x + 1, bodyY + Math.floor(bodyH * 0.55), Math.max(1, rect.w - 2), Math.ceil(bodyH * 0.45), dim);
-    const headW = Math.max(3, rect.w - 2);
-    put(rect.x + 1, rect.y, headW, headH, base);
-    const eye: RgbColor = [255, 255, 255];
-    const eyeSize = rect.forward <= 2 ? 2 : 1;
-    fb.fillRect(rect.x + 2, rect.y + Math.floor(headH / 3), eyeSize, eyeSize, eye);
-    fb.fillRect(rect.x + headW - eyeSize, rect.y + Math.floor(headH / 3), eyeSize, eyeSize, eye);
-    fb.strokeRect(rect.x - 1, rect.y - 1, rect.w + 2, rect.h + 2, [0, 0, 0]);
-    if (target.health < target.maxHealth) {
-      const barW = Math.max(6, rect.w);
-      const filled = Math.max(1, Math.round((barW * target.health) / target.maxHealth));
-      const barX = rect.x + Math.floor((rect.w - barW) / 2);
-      fb.fillRect(barX, rect.y - 4, barW, 2, [60, 0, 0]);
-      fb.fillRect(barX, rect.y - 4, filled, 2, [230, 40, 40]);
+    const typeId = target.monster!.typeId;
+    const original = originalMonsterSprite(context.graphics, typeId);
+    if (original && context.paletteAt) {
+      const dst = originalSpriteRect(original, rect);
+      const depth = Math.min(3, Math.max(0, rect.forward - 1)) as 0 | 1 | 2 | 3;
+      fb.blitSprite(original, dst.x, dst.y, context.paletteAt(depth), {
+        dstWidth: dst.w, dstHeight: dst.h, transparentIndex: transparentKey(original)
+      }, vp);
+      paintHealthPip(fb, target, dst);
+      continue;
     }
+    placeholders++;
+    paintPlaceholder(fb, target, rect);
   }
-  fb.fillRect(vp.x, vp.y + vp.h - 10, 140, 10, [0, 0, 0]);
-  drawBitmapText(fb, 'PLACEHOLDER MONSTER ART', vp.x + 3, vp.y + vp.h - 8, [200, 200, 120]);
+  if (placeholders > 0) {
+    fb.fillRect(vp.x, vp.y + vp.h - 10, 140, 10, [0, 0, 0]);
+    drawBitmapText(fb, 'PLACEHOLDER MONSTER ART', vp.x + 3, vp.y + vp.h - 8, [200, 200, 120]);
+  }
+}
+
+function paintHealthPip(fb: Framebuffer, target: CombatTargetState, rect: ScreenRect): void {
+  if (target.health >= target.maxHealth) return;
+  const barW = Math.max(6, Math.min(rect.w, 40));
+  const filled = Math.max(1, Math.round((barW * target.health) / target.maxHealth));
+  const barX = rect.x + Math.floor((rect.w - barW) / 2);
+  fb.fillRect(barX, rect.y - 4, barW, 2, [60, 0, 0]);
+  fb.fillRect(barX, rect.y - 4, filled, 2, [230, 40, 40]);
+}
+
+function paintPlaceholder(fb: Framebuffer, target: CombatTargetState, rect: MonsterViewRect): void {
+  const def = monsterTypeDef(target.monster!.typeId);
+  const base = shade(parseHex(def?.color ?? '#888888'), rect.forward);
+  const dim = shade(base, 3);
+  const ghost = def?.traits.includes('NON_MATERIAL') ?? false;
+  const headH = Math.max(3, Math.floor(rect.h * 0.28));
+  const bodyY = rect.y + headH;
+  const bodyH = rect.h - headH;
+  const put = (x: number, y: number, w: number, h: number, color: RgbColor) => {
+    if (!ghost) { fb.fillRect(x, y, w, h, color); return; }
+    for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) if ((xx + yy) % 2 === 0) fb.setPixel(xx, yy, color);
+  };
+  put(rect.x, bodyY, rect.w, bodyH, base);
+  put(rect.x + 1, bodyY + Math.floor(bodyH * 0.55), Math.max(1, rect.w - 2), Math.ceil(bodyH * 0.45), dim);
+  const headW = Math.max(3, rect.w - 2);
+  put(rect.x + 1, rect.y, headW, headH, base);
+  const eye: RgbColor = [255, 255, 255];
+  const eyeSize = rect.forward <= 2 ? 2 : 1;
+  fb.fillRect(rect.x + 2, rect.y + Math.floor(headH / 3), eyeSize, eyeSize, eye);
+  fb.fillRect(rect.x + headW - eyeSize, rect.y + Math.floor(headH / 3), eyeSize, eyeSize, eye);
+  fb.strokeRect(rect.x - 1, rect.y - 1, rect.w + 2, rect.h + 2, [0, 0, 0]);
+  if (target.health < target.maxHealth) {
+    const barW = Math.max(6, rect.w);
+    const filled = Math.max(1, Math.round((barW * target.health) / target.maxHealth));
+    const barX = rect.x + Math.floor((rect.w - barW) / 2);
+    fb.fillRect(barX, rect.y - 4, barW, 2, [60, 0, 0]);
+    fb.fillRect(barX, rect.y - 4, filled, 2, [230, 40, 40]);
+  }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createLightingContext, validateLightingProfile, lightRgb, lightPalette, lightRgba, DEFAULT_LIGHTING_PROFILE } from '../../src/render/lighting';
+import { createLightingContext, validateLightingProfile, lightRgb, lightPalette, DEFAULT_LIGHTING_PROFILE } from '../../src/render/lighting';
 import { getUiPalette, getViewportLightPalette } from '../../src/render/palette';
 import type { GraphicsBundle } from '../../src/data/graphicsDatParser';
 
@@ -28,18 +28,12 @@ describe('parametric lighting', () => {
     expect(lightRgb([100, 150, 200], createLightingContext(100, 0))).toEqual([100, 150, 200]);
   });
 
-  it('shares palette/RGBA color results, preserves every alpha and never mutates inputs', () => {
+  it('shares palette color results and never mutates inputs', () => {
     const palette = [[100, 150, 200], [0, 0, 0], [255, 80, 20]] as const;
-    const rgba = new Uint8ClampedArray([100,150,200,0, 0,0,0,128, 255,80,20,255]);
-    const before = rgba.slice();
     const context = createLightingContext(2.5, 2);
     const colors = lightPalette(palette, context);
-    const output = lightRgba(rgba, context);
-    expect(Array.from(output)).toEqual([40,60,80,0, 0,0,0,128, 102,32,8,255]);
     expect(colors).toEqual([[40,60,80], [0,0,0], [102,32,8]]);
-    expect(rgba).toEqual(before);
     expect(palette[0]).toEqual([100,150,200]);
-    expect(lightRgba(rgba, context)).toEqual(output);
   });
 
   it('rejects malformed profiles, holes, nonfinite parameters and invalid data', () => {
@@ -52,7 +46,6 @@ describe('parametric lighting', () => {
     const context = createLightingContext(5,0);
     for (const rgb of [[-1,0,0], [1.5,0,0], [Infinity,0,0], Array(3)]) expect(() => lightRgb(rgb as [number,number,number], context)).toThrow(/RGB/i);
     expect(() => lightPalette(Array(2), context)).toThrow(/RGB/i);
-    expect(() => lightRgba(new Uint8ClampedArray(3), context)).toThrow(/RGBA/i);
   });
 
   it('copies and freezes validated profile settings', () => {

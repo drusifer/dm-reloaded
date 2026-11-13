@@ -12,11 +12,12 @@ import { PaulaStereoAudio } from './audio';
 import {
   createCleanRoomBundle,
   createCleanRoomGraphicsBundle,
+  importCampaignFiles,
   parseDungeonDat,
   parseGraphicsDat
 } from './data';
 import type { GraphicsBundle } from './data';
-import { FixedTickAccumulator, createInitialGameState, dispatchCommand } from './engine';
+import { FixedTickAccumulator, createInitialGameState, deserializeSave, dispatchCommand, exportRoster, parseRoster, serializeSave } from './engine';
 import type { CampaignBundle, GameCommand, GameState } from './engine';
 import {
   clientPointToAmigaCoords,
@@ -30,8 +31,8 @@ import {
   computeCanvasPresentationRect,
   renderFrame
 } from './render';
-import { mountContactSheetUI, mountSoundboardUI } from './ui';
-import type { ContactSheetController, SoundboardController } from './ui';
+import { browserStorage, downloadSave, mountContactSheetUI, mountGameMenu, mountSoundboardUI, readSlot, writeSlot } from './ui';
+import type { ContactSheetController, GameMenuController, SoundboardController } from './ui';
 
 export interface RuntimeAssets {
   readonly campaign: CampaignBundle;
@@ -86,7 +87,17 @@ export async function loadRuntimeAssets(): Promise<RuntimeAssets> {
   return { campaign, graphics };
 }
 
+export interface AppOptions {
+  /** Status line shown (and logged) when the app starts, e.g. after an import. */
+  readonly initialStatus?: string | readonly string[];
+  /** Validates picked files and, on success, restarts the app on them; resolves to a status line. */
+  readonly importFiles?: (files: { dungeon: Uint8Array | null; graphics: Uint8Array | null }) => Promise<string>;
+}
+
 export interface DungeonMasterApp {
+  saveNow(): string;
+  loadNow(): string;
+  loadText(text: string): string;
   getState(): GameState;
   getAudio(): PaulaStereoAudio;
   dispatch(command: GameCommand): void;
@@ -103,7 +114,8 @@ function isEditableTarget(target: EventTarget | null): boolean {
 
 export function startDungeonMasterApp(
   canvas: HTMLCanvasElement,
-  assets: RuntimeAssets
+  assets: RuntimeAssets,
+  options: AppOptions = {}
 ): DungeonMasterApp {
   canvas.width = FRAMEBUFFER_WIDTH;
   canvas.height = FRAMEBUFFER_HEIGHT;
@@ -127,10 +139,73 @@ export function startDungeonMasterApp(
     contactSheet = mountContactSheetUI(document.body, assets.graphics);
   }
 
+  const campaignId = assets.campaign.dungeon.campaignId;
+  const logMessage = (text: string): string => {
+    state = { ...state, messages: [...state.messages, text].slice(-24) };
+    return text;
+  };
+  const saveNow = (): string => {
+    const written = writeSlot(browserStorage(), serializeSave(state));
+    return logMessage(written.ok ? `GAME SAVED AT TICK ${state.tick}.` : written.text);
+  };
+  const loadText = (text: string): string => {
+    const loaded = deserializeSave(text, campaignId);
+    if (!loaded.ok) return logMessage(loaded.text);
+    state = loaded.state;
+    return logMessage(`GAME LOADED (TICK ${state.tick}).`);
+  };
+  const loadNow = (): string => {
+    const read = readSlot(browserStorage());
+    return read.ok ? loadText(read.text ?? '') : logMessage(read.text);
+  };
+  const exportNow = (): string => {
+    const ok = typeof document !== 'undefined'
+      && downloadSave(document, serializeSave(state), `dm-reloaded-save-tick${state.tick}.json`);
+    return logMessage(ok ? 'SAVE FILE EXPORTED.' : 'EXPORT FAILED: DOWNLOAD WAS BLOCKED.');
+  };
+
+  const exportRosterNow = (): string => {
+    const r = exportRoster(state);
+    if (!r.ok) return logMessage(r.message);
+    const ok = typeof document !== 'undefined'
+      && downloadSave(document, r.text, `dm-reloaded-roster-tick${state.tick}.json`);
+    if (!ok) return logMessage('EXPORT FAILED: DOWNLOAD BLOCKED.');
+    return r.messages.map(logMessage).join(' ');
+  };
+  const importRosterText = (text: string): string => {
+    const parsed = parseRoster(text);
+    if (!parsed.ok) return logMessage(parsed.text);
+    const result = dispatchCommand(state, { type: 'IMPORT_ROSTER', champions: parsed.champions });
+    state = result.state;
+    audio.processEvents(result.events, state);
+    return result.events.flatMap((e) => (e.type === 'MESSAGE_LOGGED' ? [e.text] : [])).join(' ');
+  };
+
+  let menu: GameMenuController | null = null;
+  if (typeof document !== 'undefined' && document.body) {
+    menu = mountGameMenu(document.body, {
+      onSave: saveNow,
+      onLoad: loadNow,
+      onExport: exportNow,
+      onImportSave: loadText,
+      onExportRoster: exportRosterNow,
+      onImportRoster: importRosterText,
+      onImportFiles: async (files) => options.importFiles
+        ? options.importFiles(files)
+        : 'IMPORT IS NOT AVAILABLE IN THIS BUILD.'
+    });
+    if (options.initialStatus) {
+      const lines = typeof options.initialStatus === 'string' ? [options.initialStatus] : options.initialStatus;
+      menu.setStatus(lines.map(logMessage).join(' '));
+    }
+  }
+
   const syncCanvasDisplaySize = (): void => {
     const hostW = window.innerWidth || FRAMEBUFFER_WIDTH;
     const hostH = window.innerHeight || FRAMEBUFFER_HEIGHT;
-    const rect = computeCanvasPresentationRect(hostW, hostH);
+    // Keep the integer scale unless the letterbox below the canvas is too thin for the 40px menu strip.
+    const full = computeCanvasPresentationRect(hostW, hostH);
+    const rect = (hostH - full.drawHeight) / 2 >= 40 ? full : computeCanvasPresentationRect(hostW, hostH - 80);
     canvas.style.width = `${rect.drawWidth}px`;
     canvas.style.height = `${rect.drawHeight}px`;
   };
@@ -148,7 +223,7 @@ export function startDungeonMasterApp(
       return;
     }
     pointer = amigaPt;
-    if (state.gameOver) {
+    if (state.gameOver || state.victory) {
       ev.preventDefault();
       state = createInitialGameState(assets.campaign);
       return;
@@ -175,7 +250,7 @@ export function startDungeonMasterApp(
     }
 
     audio.unlockFromGesture();
-    if (state.gameOver) {
+    if (state.gameOver || state.victory) {
       ev.preventDefault();
       if (ev.key === 'Enter') state = createInitialGameState(assets.campaign);
       return;
@@ -216,6 +291,12 @@ export function startDungeonMasterApp(
     if (ev.key === 'Escape' && soundboard?.isOpen()) {
       ev.preventDefault();
       soundboard.close();
+      return;
+    }
+
+    if (state.settings.qolMode && (ev.key === 'F5' || ev.key === 'F9')) {
+      ev.preventDefault();
+      menu?.setStatus(ev.key === 'F5' ? saveNow() : loadNow());
       return;
     }
 
@@ -270,6 +351,9 @@ export function startDungeonMasterApp(
   rafId = window.requestAnimationFrame(frameLoop);
 
   return {
+    saveNow,
+    loadNow,
+    loadText,
     getState: () => state,
     getAudio: () => audio,
     dispatch: applyCommand,
@@ -284,6 +368,7 @@ export function startDungeonMasterApp(
       window.removeEventListener('keydown', onKeyDown);
       soundboard?.destroy();
       contactSheet?.destroy();
+      menu?.destroy();
     }
   };
 }
@@ -296,9 +381,21 @@ async function bootstrapBrowser(): Promise<void> {
   if (!(canvas instanceof HTMLCanvasElement)) {
     return;
   }
-  const assets = await loadRuntimeAssets();
-  const app = startDungeonMasterApp(canvas, assets);
-  (window as unknown as { __DM_APP__?: DungeonMasterApp }).__DM_APP__ = app;
+  const win = window as unknown as { __DM_APP__?: DungeonMasterApp };
+  const launch = (assets: RuntimeAssets, initialStatus?: string | readonly string[]): void => {
+    win.__DM_APP__?.destroy();
+    win.__DM_APP__ = startDungeonMasterApp(canvas, assets, {
+      ...(initialStatus ? { initialStatus } : {}),
+      importFiles: async (files) => {
+        const imported = importCampaignFiles(files);
+        if (!imported.ok) return imported.text;
+        const lines = [imported.text, ...imported.notes];
+        launch({ campaign: imported.campaign, graphics: imported.graphics }, lines);
+        return lines.join(' ');
+      }
+    });
+  };
+  launch(await loadRuntimeAssets());
 }
 
 void bootstrapBrowser();

@@ -15,6 +15,7 @@ import {
   triggerActuatorList,
   updateTileInLevels
 } from './actuators';
+import { applyRosterImport } from './roster';
 import { expandMonsterGroups } from './monsterSpawn';
 import { stepMonsters } from './monsters';
 import { createProgressionFromRanks } from './progression';
@@ -143,9 +144,14 @@ export function createInitialGameState(bundle: CampaignBundle): GameState {
     runeFormulas: {},
     selectedBrewFlasks: {},
     gameOver: false,
+    victory: false,
     activeMirror: null,
     pendingActuators: [],
-    messages: ['ENTER THE HALL OF CHAMPIONS.'],
+    messages: [
+      Object.keys(dungeon.champions).length > 0
+        ? 'ENTER THE HALL OF CHAMPIONS.'
+        : 'NO CHAMPIONS IN THIS CAMPAIGN. LOOK AROUND.'
+    ],
     settings: {
       qolMode: false, // 1988 Purist Mode default (ADR-004)
       automapOpen: false,
@@ -642,6 +648,9 @@ const SLEEP_TRANSPARENT_COMMANDS: ReadonlySet<GameCommand['type']> = new Set([
 export function dispatchCommand(state: GameState, command: GameCommand): SimulationStepResult {
   const events: EngineEvent[] = [];
 
+  // After victory the world is settled: only time may pass (monsters halt in stepMonsters).
+  if (state.victory && command.type !== 'TICK') return { state, events };
+
   // Any click / key while asleep only wakes the party ("CLICK OR PRESS ANY KEY TO WAKE").
   if (state.party.sleeping && !SLEEP_TRANSPARENT_COMMANDS.has(command.type)) {
     return { state: setSleeping(state, false, events), events };
@@ -780,6 +789,13 @@ export function dispatchCommand(state: GameState, command: GameCommand): Simulat
         cur = stepSingleTick(cur, events);
       }
       return { state: cur, events };
+    }
+
+    case 'IMPORT_ROSTER': {
+      if (state.activeMirror) return { state, events };
+      const outcome = applyRosterImport(state, command.champions);
+      for (const text of outcome.lines) events.push({ type: 'MESSAGE_LOGGED', text });
+      return { state: outcome.state, events };
     }
 
     case 'TOGGLE_QOL_MODE': {

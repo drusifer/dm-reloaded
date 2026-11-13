@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tool-Use Trace — dungeon-master 2026-11-11</title>
+<title>Tool-Use Trace — dungeon-master 2026-11-12</title>
 <style>
   :root {
     --bg: #0f172a; --surface: #1e293b; --surface2: #263244;
@@ -93,12 +93,12 @@
 
 <div class="header">
   <h1>Tool-Use Trace — dungeon-master</h1>
-  <div class="meta">2026-11-11 &nbsp;·&nbsp; 1 sessions &nbsp;·&nbsp;
+  <div class="meta">2026-11-12 &nbsp;·&nbsp; 1 sessions &nbsp;·&nbsp;
     Rules: agents/tools/trace_rules.json</div>
   <div class="stats">
-    <div class="stat"><span class="val">64</span><span class="lbl">Tool Calls</span></div>
-    <div class="stat"><span class="val">8</span><span class="lbl">Flags</span></div>
-    <div class="stat"><span class="val">12.5%</span><span class="lbl">Flag Rate</span></div>
+    <div class="stat"><span class="val">245</span><span class="lbl">Tool Calls</span></div>
+    <div class="stat"><span class="val">29</span><span class="lbl">Flags</span></div>
+    <div class="stat"><span class="val">11.8%</span><span class="lbl">Flag Rate</span></div>
     <div class="stat"><span class="val">1</span><span class="lbl">Sessions</span></div>
   </div>
 </div>
@@ -143,15 +143,15 @@
   <summary>
     <span class="chevron">▶</span>
     <span class="sid">71db9cb9</span>
-    <span class="smeta">??:?? &nbsp;·&nbsp; 64 calls &nbsp;·&nbsp; 8 flags</span>
+    <span class="smeta">??:?? &nbsp;·&nbsp; 245 calls &nbsp;·&nbsp; 29 flags</span>
     <span class="sflag">
       
       <span class="badge" style="background:#f97316">
-        AP-MAKE-PIPE ×7
+        AP-MAKE-PIPE ×25
       </span>
       
       <span class="badge" style="background:#ef4444">
-        AP-MAKE-BYPASS ×1
+        AP-MAKE-BYPASS ×4
       </span>
       
     </span>
@@ -1103,6 +1103,2786 @@ s=s.replace(&#34;  drawBitmapText(fb, &#39;PLACEHOLDER MONSTER ART&#39;&#34;,&#3
       </td>
     </tr>
     
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">65</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">tail -8 build/build.out; python3 -c &#34;import jinja2&#34; 2&gt;&amp;1 | tail -1</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">66</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">git status --short | grep -v &#34;^ M agents/CHAT\|^ M src\|tests&#34; | head -20; python3 - &lt;&lt;&#39;EOF&#39;
+import re,html
+s=open(&#39;agents/trin.docs/judge_tool_trace.html&#39;).read()
+t=re.sub(r&#39;&lt;script.*?&lt;/script&gt;|&lt;s...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">67</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;case &#39;MOVE&#39;&#34; -A60 src/engine/simulation.ts | head -90</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">68</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;function handleMove&#34; -A55 src/engine/simulation.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">69</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/engine/simulation.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;&#34;&#34;  const nextParity: 0 | 1 = state.party.stepParity === 0 ? 1 : 0;
+  const visitedKey&#34;&#34;&#34;,&#34;&#34;&#34;  const blocker = state.com...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">70</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/engine/simulation.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;    const text = &#39;A MONSTER BLOCKS THE WAY.&#39;;\n    events.push({ type: &#39;MESSAGE_LOGGED&#39;, text });\n&#34;,&#34;    const text = &#39;...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">71</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">for t in lint build sprint4-visual-review; do bobp make $t &gt; /tmp/claude-1000/mk_$t.txt 2&gt;&amp;1; echo &#34;$t: $(grep -E &#39;^=== exit&#39; /tmp/claude-1000/mk_$t.txt | tail -1) $(grep -E &#39;browser smoke&#39; /tmp/cl...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">72</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat docs/CHANGELOG.md; sed -n 96,105p docs/DECISIONS.md | cut -c1-300; sed -n 230,242p docs/ARCH.md | cut -c1-200; grep -n -i &#34;sprint 3\|sprint 4&#34; README.md docs/SDLC.md | head</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">73</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; docs/SPRINT4.md &lt;&lt;&#39;EOF&#39;
+
+## Delivered outcome and honest deviations (2026-11-11)
+Delivered locally: 27-entry catalog (approximate clean-room stats), Amiga creature-record parser (182 raw rec...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">74</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint4-visual-review/amiga_graphics_dat-killed.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">75</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i -E &#39;s/^- \[ \] \*\*S4-P(5\.2|5\.3)\./- [x] **S4-P\1./&#39; task.md &amp;&amp; python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;task.md&#39;
+s=open(p).read()
+s=s.replace(&#34;## Completed Milestones\n&#34;,&#34;&#34;&#34;## Completed Milestones
+
+- **Sprin...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">76</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">for p in neo trin morpheus smith oracle mouse cypher; do cat &gt; agents/$p.docs/state.md &lt;&lt;&#39;EOF&#39;
+# Agent State
+
+## Context
+Sprint 4 (monster ecology) delivered locally and closed 2026-11-11: docs/SPR...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">77</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">git status --short | head -60; git remote -v; git branch --show-current; cat .gitignore | head -20</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">78</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">git add -A . &#39;:!agents/tools&#39; &#39;:!agents/trin.docs/judge_tool_trace.html&#39; &amp;&amp; git commit -q -m &#34;Sprint 4: monster ecology, AI, and presentation
+
+27-type catalog, Amiga creature parsing, deterministic...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">79</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">git add agents/tools agents/trin.docs/judge_tool_trace.html &amp;&amp; git commit -q -m &#34;Add judge trace report and rules
+
+Co-Authored-By: Claude Sonnet 5.5 &lt;noreply@anthropic.com&gt;&#34; &amp;&amp; git push 2&gt;&amp;1 | tail...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">80</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">git status --short | head -3; sed -n 1,140p src/main.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">81</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 140,310p src/main.ts; sed -n 1,60p src/ui/contactSheet.ts | head -60; cat index.html | head -40</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">82</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; docs/SPRINT5.md &lt;&lt;&#39;EOF&#39;
+# Sprint 5 — Saves, File Import, Ending, Campaign Integrity (Contract + Architecture)
+
+Tier-1 sprint; Cypher stories, Morpheus architecture and Mouse plan share this d...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">83</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/engine/save.ts &lt;&lt;&#39;EOF&#39;
+/**
+ * Pure versioned save codec for GameState.
+ *
+ * TLDR:
+ *   serializeSave wraps the plain-data state in {format,version,campaignId,checksum,state};
+ *   deseri...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">84</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;contact-sheet-toggle\|soundboard-toggle\|sfx&#34; index.html | head; grep -n &#34;toggle&#34; -B1 -A14 index.html | sed -n 1,60p; ls src/ui; grep -n &#34;F5\|key ===&#34; src/input/inputController.ts | head</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">85</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/ui/saveStore.ts &lt;&lt;&#39;EOF&#39;
+/** Failure-tolerant persistence adapter for saves; the UI never touches storage directly. */
+
+export const SAVE_SLOT_KEY = &#39;dm_reloaded_save_slot_v1&#39;;
+
+export typ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">86</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/main.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;import { FixedTickAccumulator, createInitialGameState, dispatchCommand } from &#39;./engine&#39;;&#34;,&#34;import { FixedTickAccumulator, createInit...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">87</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/ui/saveStore.test.ts 2&gt;/dev/null || { mkdir -p tests/ui; }; cat &gt; tests/ui/saveStore.test.ts &lt;&lt;&#39;EOF&#39;
+import { describe, expect, it } from &#39;vitest&#39;;
+import { SAVE_SLOT_KEY, readSlot, wri...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">88</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/data/importFiles.ts &lt;&lt;&#39;EOF&#39;
+/** Pure validation/parsing of user-picked Dungeon Master files; never throws. */
+
+import type { CampaignBundle } from &#39;../engine/types&#39;;
+import { parseDungeon...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">89</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/main.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;import type { GraphicsBundle } from &#39;./data&#39;;&#34;,&#34;import { importCampaignFiles } from &#39;./data&#39;;\nimport type { GraphicsBundle } from &#39;....</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">90</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;gameOver&#34; src/render/*.ts src/input/*.ts src/engine/simulation.ts | head -20</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">91</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 60,125p src/render/index.ts; sed -n 55,62p src/input/inputController.ts; sed -n 190,196p src/input/inputController.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">92</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+import re
+def sub(p,a,b,count=1):
+    s=open(p).read()
+    assert a in s,(p,a)
+    open(p,&#39;w&#39;).write(s.replace(a,b,count))
+sub(&#39;src/engine/types.ts&#39;,&#34;  readonly gameOver: boolean;...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">93</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/engine/reviewScenario.ts&#39;
+s=open(p).read()
+s+=&#34;&#34;&#34;
+/** Sprint 5 victory review arena: a weakened Lord Chaos stands directly ahead of the party. */
+export function createVict...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">94</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/engine/victory.test.ts&#39;
+s=open(p).read()
+a=s.index(&#34;  it(&#39;halts monsters&#34;)
+b=s.index(&#34;  it(&#39;survives a save/load&#34;)
+s=s[:a]+&#34;&#34;&#34;  it(&#39;halts monsters and ignores commands ex...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">95</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/engine/victory.test.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;    expect(victory.getPixel(30, 60)).toEqual([255, 215, 64]);\n    expect(over.getPixel(30, 60)).not.toEqual([255, 2...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">96</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/data/campaignIntegrity.test.ts &lt;&lt;&#39;EOF&#39;
+import { existsSync, readFileSync } from &#39;node:fs&#39;;
+import { resolve } from &#39;node:path&#39;;
+import { describe, expect, it } from &#39;vitest&#39;;
+import { p...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">97</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/data/campaignIntegrity.test.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;    const report: string[] = [];\n&#34;,&#34;    const report: string[] = [];\n    let pairs = 0;\n&#34;,1)
+s=s.replace(...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">98</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; scripts/sprint5-visual-review.mjs &lt;&lt;&#39;EOF&#39;
+/** Actual-browser Sprint 5 gate: save/load through real buttons, corrupt saves, file import, victory. */
+import { existsSync } from &#39;node:fs&#39;;
+impor...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">99</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;scripts/sprint5-visual-review.mjs&#39;
+s=open(p).read()
+s=s.replace(&#34;await page.evaluate(() =&gt; { Storage.prototype.setItem = () =&gt; { throw new Error(&#39;quota&#39;); }; });&#34;,&#34;await page.e...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">100</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint5-visual-review/amiga_graphics_dat-victory.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">101</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint5-visual-review/imported.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">102</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;index.html&#39;
+s=open(p).read()
+s=s.replace(&#34;      #monitor-stage {\n        width: 100vw;\n        height: 100vh;&#34;,&#34;      #monitor-stage {\n        width: 100vw;\n        height:...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">103</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint5-visual-review/clean_room-saved-loaded.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">104</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -n 225,240p src/render/framebuffer.ts</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">105</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/main.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;&#34;&#34;    const hostH = Math.max(FRAMEBUFFER_HEIGHT / 2, (window.innerHeight || FRAMEBUFFER_HEIGHT) - 40);
+    const rect = computeCanvas...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">106</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i -E &#39;s/^- \[ \] \*\*S5-P4\.2\./- [x] **S5-P4.2./&#39; task.md; for t in lint test-serial build sprint4-visual-review sprint3-visual-review; do bobp make $t &gt; build/mk_$t.txt 2&gt;&amp;1; echo &#34;$t: $(gre...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">107</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp make judge-trace &gt; build/mk_trace.txt 2&gt;&amp;1; grep -E &#34;tool calls|exit&#34; build/mk_trace.txt | tail -2; python3 - &lt;&lt;&#39;EOF&#39;
+import re,html
+t=open(&#39;agents/trin.docs/judge_tool_trace.html&#39;).read()
+t=r...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">108</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; docs/SPRINT5.md &lt;&lt;&#39;EOF&#39;
+
+## Delivered outcome and honest deviations (2026-11-11)
+Delivered locally: pure versioned/checksummed save codec with exact round-trip and resumed-determinism tests;...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">109</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp chat &#34;P4/P5.1 evidence: serial 388/388, lint, types, build, sprint3+4+5 browser gates green; real 14-level audit clean. Trin found via screenshots that the new menu covered the message log -&gt; ...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">110</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">ls /var/home/drusifer/Projects/dungeon-master/*.zip; grep -n &#34;^export&#34; src/engine/progression.ts; grep -n &#34;function grantStartingGear&#34; -A40 src/engine/inventory.ts | head -70; grep -n &#34;function bui...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">111</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;CHAMPION_MIRROR\|championsCatalog&#34; src/engine/*.ts | head -20; grep -n &#34;ITEM_CATALOG_180\b&#34; src/data/itemCatalog.ts | head -3; grep -n &#34;export function findItemDef\b&#34; -A8 src/data/itemCata...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">112</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; docs/SPRINT6.md &lt;&lt;&#39;EOF&#39;
+# Sprint 6 — Champion Carry-Over (Roster Hall) (Contract + Architecture)
+
+Tier-1 sprint; Cypher stories, Morpheus architecture and Mouse plan share this document.
+
+## ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">113</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/engine/roster.ts &lt;&lt;&#39;EOF&#39;
+/**
+ * Champion carry-over: pure roster export, strict import validation, and Hall mirror placement.
+ *
+ * TLDR:
+ *   exportRoster(state) -&gt; versioned checksummed...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">114</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i &#34;s/    name: value.name, title: value.title, gender: value.gender, portraitIndex: value.portraitIndex,/    name: value.name, title: value.title, gender: value.gender as &#39;M&#39; | &#39;F&#39;, portraitIn...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">115</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/engine/roster.test.ts &lt;&lt;&#39;EOF&#39;
+import { existsSync, readFileSync } from &#39;node:fs&#39;;
+import { resolve } from &#39;node:path&#39;;
+import { describe, expect, it } from &#39;vitest&#39;;
+import { createClea...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">116</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/engine/roster.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;const refuse = (message: string): RosterImportOutcome =&gt; ({ state, message, placed: 0 });&#34;,&#34;const refuse = (message: string)...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">117</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+def sub(p,a,b):
+    s=open(p).read(); assert a in s,(p,a); open(p,&#39;w&#39;).write(s.replace(a,b,1))
+sub(&#39;src/ui/gameMenu.ts&#39;,&#34;  onImportSave(text: string): string;&#34;,&#34;  onImportSave(tex...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">118</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i &#34;s/&#39;MENU: EXPORT ROSTER KEEPS YOUR PARTY&#39;, 20, 122/&#39;EXPORT ROSTER TO KEEP PARTY&#39;, 31, 122/&#34; src/render/index.ts &amp;&amp; npx tsc --noEmit | head -3; cat &gt; scripts/sprint6-visual-review.mjs &lt;&lt;&#39;EOF&#39;...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">119</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;scripts/sprint6-visual-review.mjs&#39;
+s=open(p).read()
+s=s.replace(&#34;    const hasSword = recruited &amp;&amp; Object.values(recruited.inventory.slots).some(id =&gt; id &amp;&amp; (async () =&gt; true)(...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">120</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint6-visual-review/amiga_graphics_dat-mirror.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">121</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+def sub(p,a,b):
+    s=open(p).read(); assert a in s,(p,a); open(p,&#39;w&#39;).write(s.replace(a,b,1))
+p=&#39;src/engine/roster.ts&#39;
+# export messages
+sub(p,&#34;&#34;&#34;  const notes = [
+    deadLeftBe...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">122</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+def sub(p,a,b):
+    s=open(p).read(); assert a in s,(p,a); open(p,&#39;w&#39;).write(s.replace(a,b,1))
+p=&#39;src/engine/roster.ts&#39;
+sub(p,&#34;  readonly message: string;\n  readonly placed: numb...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">123</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i -E &#39;s/^- \[ \] \*\*S6-P(3\.1|4\.1)\./- [x] **S6-P\1./&#39; task.md; for t in lint test-serial build sprint3-visual-review sprint4-visual-review sprint5-visual-review sprint6-visual-review; do bo...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">124</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint6-visual-review/clean_room-mirror.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-BYPASS ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-BYPASS AP-MAKE-PIPE">
+      <td class="seq">125</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp make judge-trace &gt; build/mk_trace.txt 2&gt;&amp;1; T=$(grep -E &#34;tool calls&#34; build/mk_trace.txt | tail -1); echo &#34;$T&#34;; cat &gt;&gt; docs/SPRINT6.md &lt;&lt;&#39;EOF&#39;
+
+## Delivered outcome and honest deviations (2026-...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#ef4444">
+          AP-MAKE-BYPASS
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-BYPASS</div>
+            <div class="t-desc">Bash runs pytest/ruff/pylint/mypy directly — bypasses make targets.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Always use `bobp make <target>`. Output is captured to build/build.out.</div>
+          </span>
+        </span>
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">126</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp chat &#34;P4/P5.1 evidence: serial 399/399, lint, types, build, sprint3-6 browser gates green. Trin screenshot review found 2 defects, fixed: mirror modal showed GEAR: NONE for imported veterans; ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">127</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">unzip -l Dungeon-Master-II-Skullkeep_Amiga_EN.zip | head -30; ls public/assets/extracted/ public/assets/extracted/* | head -20; grep -n -i &#34;dm2\|skullkeep&#34; docs/*.md scripts/extract_assets.py | hea...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">128</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">which unlzx 7z 7za 7zr xdms lsar unar bsdtar 2&gt;&amp;1 | head; python3 -c &#34;import sys;print(sys.version)&#34;; pip list 2&gt;/dev/null | grep -i -E &#34;lzx|libarchive|patool|py7zr|amiga&#34; ; ls -la public/assets/ex...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">129</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp &amp;&amp; mkdir -p /tmp/claude-1000/dm2test &amp;&amp; cd /tmp/claude-1000/dm2test &amp;&amp; 7z l /var/home/drusifer/Projects/dungeon-master/public/assets/extracted/dm2/DM2_archive.LZX 2&gt;&amp;1 | head -20; python3 -...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">130</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+import struct
+d=open(&#39;public/assets/extracted/dm2/DM2_archive.LZX&#39;,&#39;rb&#39;).read()
+pos=10
+n=0
+while pos+31&lt;=len(d):
+    h=d[pos:pos+31]
+    attr=h[0]; un=struct.unpack(&#39;&lt;I&#39;,h[2:6])[0...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">131</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">mkdir -p /tmp/claude-1000/lzx &amp;&amp; cd /var/home/drusifer/Projects/dungeon-master &amp;&amp; python3 - &lt;&lt;&#39;EOF&#39;
+import struct, zlib
+d=open(&#39;public/assets/extracted/dm2/DM2_archive.LZX&#39;,&#39;rb&#39;).read()
+off=3514091...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">132</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; /tmp/claude-1000/lzx/try1.py &lt;&lt;&#39;EOF&#39;
+import struct, zlib, itertools, sys
+d=open(&#39;public/assets/extracted/dm2/DM2_archive.LZX&#39;,&#39;rb&#39;).read()
+off=3514091
+h=d[off:off+31]; nl=h[30]; cl=h[14]
+star...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">133</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+import re
+s=open(&#39;/tmp/claude-1000/lzx/try1.py&#39;).read()
+s=s.replace(&#34;&#34;&#34;            lo=s.b[s.pos] if s.pos&lt;len(s.b) else 0
+            hi=s.b[s.pos+1] if s.pos+1&lt;len(s.b) else 0
+  ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">134</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; /tmp/claude-1000/lzx/dbg.py &lt;&lt;&#39;EOF&#39;
+exec(open(&#39;/tmp/claude-1000/lzx/try2.py&#39;).read().split(&#34;for mainsize in&#34;)[0])
+bits=Bits(src)
+bt=bits.read(3); print(&#39;type&#39;,bt)
+al=[bits.read(3) for _ in ra...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">135</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/lzx/dbg.py &lt;&lt;&#39;EOF&#39;
+pre=build(pl)
+for mainsize in (768,512):
+    b=Bits(src); b.read(3); [b.read(3) for _ in range(8)]; [b.read(8) for _ in range(3)]; [b.read(4) for _ in ran...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">136</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/lzx/dbg.py &lt;&lt;&#39;EOF&#39;
+for mainsize in (768,512):
+    b=Bits(src); b.read(3); [b.read(3) for _ in range(8)]; [b.read(8) for _ in range(3)]; [b.read(4) for _ in range(20)]
+    le...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">137</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/lzx/dbg.py &lt;&lt;&#39;EOF&#39;
+print(&#39;---&#39;)
+from fractions import Fraction
+b=Bits(src); b.read(3); [b.read(3) for _ in range(8)]; [b.read(8) for _ in range(3)]; [b.read(4) for _ in rang...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">138</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/lzx/dbg.py &lt;&lt;&#39;EOF&#39;
+print(&#39;=== cumulative kraft with len=17-s (s=0 =&gt; len 0)&#39;)
+lens=[(17-s)%17 for s in raw]
+run=Fraction(0)
+marks=[]
+for n,l in enumerate(lens):
+    if l: ru...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">139</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/lzx/dbg.py &lt;&lt;&#39;EOF&#39;
+print(&#39;=== exact hits&#39;)
+run=Fraction(0)
+for n,l in enumerate(lens):
+    if l: run+=Fraction(1,2**l)
+    if run==1: print(&#39;complete at&#39;,n+1)
+    if run&gt;1: ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">140</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/lzx/dbg.py &lt;&lt;&#39;EOF&#39;
+print(&#39;=== mapping search&#39;)
+for c in range(0,18):
+    for sign in (1,-1):
+        for mod in (17,16,18):
+            ls=[((c+sign*s)%mod) for s in raw]
+  ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">141</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/lzx/dbg.py &lt;&lt;&#39;EOF&#39;
+print(&#39;=== code assignment search&#39;)
+def build2(lengths, rev, desc):
+    maxl=max(lengths); table={}; code=0
+    for l in range(1,maxl+1):
+        syms=[s ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">142</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/lzx &amp;&amp; for p in unlzx lzx pylzx amitools; do echo &#34;== $p&#34;; timeout 25 pip index versions $p 2&gt;&amp;1 | head -2; done; timeout 20 npm view unlzx name version description 2&gt;&amp;1 | head ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">143</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/lzx &amp;&amp; timeout 120 pip download amitools==0.9.0 --no-deps -d dl -q 2&gt;&amp;1 | tail -2; ls dl; cd dl &amp;&amp; (unzip -o -q *.whl -d x 2&gt;/dev/null || tar xf *.tar.gz); grep -ril &#34;lzx&#34; x 2&gt;/...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">144</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">timeout 60 dnf info unar 2&gt;&amp;1 | head -8; timeout 30 dnf search unlzx 2&gt;&amp;1 | tail -3</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">145</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#94a3b8">AskUserQuestion</span>
+      </td>
+      <td class="summary">{&#39;questions&#39;: [{&#39;question&#39;: &#34;Sprint 7 (DM2 outdoor/weather, shops/coins, minions) is blocked: the DM2 data is an Amiga LZX archive and nothi</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">146</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#94a3b8">ToolSearch</span>
+      </td>
+      <td class="summary">{&#39;query&#39;: &#39;select:WebSearch&#39;, &#39;max_results&#39;: 1}</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">147</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#f43f5e">WebSearch</span>
+      </td>
+      <td class="summary">unlzx.c source Amiga LZX archive decrunch format Dr Mek</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">148</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#f43f5e">WebSearch</span>
+      </td>
+      <td class="summary">Amiga LZX archive format specification pre-tree main tree block type aligned offset unlzx github</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">149</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#ec4899">Agent</span>
+      </td>
+      <td class="summary">Fetch unlzx decoder source</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">150</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">mkdir -p /tmp/claude-1000/lzxsrc &amp;&amp; cd /tmp/claude-1000/lzxsrc &amp;&amp; for u in https://raw.githubusercontent.com/libxmp/libxmp/master/src/depackers/unlzx.c https://raw.githubusercontent.com/libxmp/libx...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">151</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/tmp/claude-1000/lzxsrc/dl_lzx.c</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">152</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/lzxsrc &amp;&amp; curl -sSL --max-time 30 -o dl_lzx_unpack.h -w &#34;%{http_code} %{size_download}\n&#34; https://raw.githubusercontent.com/libxmp/libxmp/master/src/depackers/lzx_unpack.h; wc -...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">153</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/tmp/claude-1000/lzxsrc/dl_lzx_unpack.h</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">154</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/lzxsrc &amp;&amp; for f in lzx_unpack.c; do curl -sSL --max-time 30 -o dl_$f -w &#34;$f %{http_code} %{size_download}\n&#34; https://raw.githubusercontent.com/libxmp/libxmp/master/src/depackers...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">155</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/tmp/claude-1000/lzxsrc/dl_lzx_unpack.c [offset=22] [limit=730]</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">156</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; scripts/lzx_extract.py &lt;&lt;&#39;EOF&#39;
+#!/usr/bin/env python3
+&#34;&#34;&#34;
+Amiga LZX archive extractor with full CRC verification (header CRC and per-file data CRC).
+
+TLDR:
+    python3 scripts/lzx_extract.py ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">157</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i &#34;s/        if first != 1 &lt;&lt; max_bits:/        if first != 1 &lt;&lt; (max_bits + 1):/&#34; scripts/lzx_extract.py &amp;&amp; python3 scripts/lzx_extract.py public/assets/extracted/dm2/DM2_archive.LZX --list</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">158</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">git check-ignore -v public/assets/extracted/dm2/DUNGEON.DAT public/assets/extracted/dm2/GRAPHICS.DAT public/assets/extracted/dm2/music/SK00.MOD public/assets/extracted/dm2/TITL.DAT; python3 scripts...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">159</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/data/dm2probe.test.ts &lt;&lt;&#39;EOF&#39;
+import { existsSync, readFileSync } from &#39;node:fs&#39;;
+import { resolve } from &#39;node:path&#39;;
+import { it } from &#39;vitest&#39;;
+import { parseDungeonDat, parseGraphi...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">160</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/data/dm2probe.test.ts &lt;&lt;&#39;EOF&#39;
+import { existsSync, readFileSync } from &#39;node:fs&#39;;
+import { resolve } from &#39;node:path&#39;;
+import { it } from &#39;vitest&#39;;
+import { parseDungeonDat } from &#39;../....</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">161</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">rm tests/data/dm2probe.test.ts &amp;&amp; cat &gt; docs/DM2_DATA.md &lt;&lt;&#39;EOF&#39;
+# Dungeon Master II (Skullkeep, Amiga AGA) — Data Findings
+
+Evidence gathered in Sprint 7 from the user&#39;s own `Dungeon-Master-II-Sku...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">162</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;Makefile&#39;
+s=open(p).read()
+s=s.replace(&#34;sprint6-visual-review export-sprites&#34;,&#34;sprint6-visual-review sprint7-visual-review extract-dm2 export-sprites&#34;,1)
+s=s.replace(&#34;SPRITE_IN...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">163</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;scripts/lzx_extract.py&#39;
+s=open(p).read()
+s=s.replace(&#34;&#34;&#34;        self.max_bits = max_bits
+
+    def decode(self, br: BitReader) -&gt; int:
+        peek = br.peek(16)
+        # rever...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">164</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;scripts/lzx_extract.py&#39;
+s=open(p).read()
+s=s.replace(&#34;                out.extend(bytes(distance - len(out)) if False else b&#39;&#39;)\n&#34;,&#34;&#34;)
+s=s.replace(&#34;        cursor2 = [0] * (max_...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">165</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+def sub(p,a,b):
+    s=open(p).read(); assert a in s,(p,a); open(p,&#39;w&#39;).write(s.replace(a,b,1))
+p=&#39;src/data/dungeonDatParser.ts&#39;
+sub(p,&#34;  return {\n    source: &#39;AMIGA_DAT&#39;,\n    du...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">166</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/data/importFiles.test.ts&#39;
+s=open(p).read()
+a=s.index(&#34;    const dm1 = createInitialGameState(importCampaignFiles&#34;)
+b=s.index(&#34;    const dm2r = importCampaignFiles&#34;)
+s=s[:...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">167</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/data/dm2Structure.test.ts &lt;&lt;&#39;EOF&#39;
+import { existsSync, readFileSync } from &#39;node:fs&#39;;
+import { resolve } from &#39;node:path&#39;;
+import { describe, expect, it } from &#39;vitest&#39;;
+import { MONSTE...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">168</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; scripts/sprint7-visual-review.mjs &lt;&lt;&#39;EOF&#39;
+/** Actual-browser Sprint 7 check: import the real DM2 Dungeon.dat; it must be an unrecognized, separate campaign. */
+import { existsSync } from &#39;nod...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">169</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint7-visual-review/dm2-imported.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">170</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+def sub(p,a,b):
+    s=open(p).read(); assert a in s,(p,a); open(p,&#39;w&#39;).write(s.replace(a,b,1))
+sub(&#39;src/engine/simulation.ts&#39;,&#34;    messages: [&#39;ENTER THE HALL OF CHAMPIONS.&#39;],&#34;,&#34;  ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">171</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i -E &#39;s/^- \[ \] \*\*S7-P3\.(1|2)\./- [x] **S7-P3.\1./&#39; task.md; for t in lint test-serial build sprint3-visual-review sprint4-visual-review sprint5-visual-review sprint6-visual-review sprint7...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">172</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp make judge-trace &gt; build/mk_trace.txt 2&gt;&amp;1; T=$(grep -E &#34;tool calls&#34; build/mk_trace.txt | tail -1); echo &#34;$T&#34;
+cat &gt;&gt; docs/SPRINT7.md &lt;&lt;&#39;EOF&#39;
+
+## Delivered outcome and honest deviations (2026-1...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">173</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp chat &#34;P3/P4.1 evidence: serial 412/412, lint, types, build, browser gates 3-7 green; extractor passes all 35 archive CRCs; tamper/damage/path tests green. Trin screenshot review found DM1 &#39;ENT...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">174</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#f43f5e">WebSearch</span>
+      </td>
+      <td class="summary">Dungeon Master II Skullkeep GRAPHICS.DAT file format reverse engineering</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">175</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#f43f5e">WebSearch</span>
+      </td>
+      <td class="summary">Dungeon Master II DUNGEON.DAT format tile types teleporter creature types Skullkeep dungeon editor d</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">176</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#ec4899">Agent</span>
+      </td>
+      <td class="summary">Fetch DM2 format forum threads</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">177</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">mkdir -p /tmp/claude-1000/dm2docs &amp;&amp; cd /tmp/claude-1000/dm2docs &amp;&amp; curl -sSL --max-time 30 -o node729.html -w &#34;%{http_code} %{size_download}\n&#34; &#34;http://dmweb.free.fr/?q=node/729&#34;; python3 - &lt;&lt;&#39;EOF...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">178</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#f43f5e">WebSearch</span>
+      </td>
+      <td class="summary">SKWin Dungeon Master II Windows port source code Skullkeep dungeon.dat graphics.dat github</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">179</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#f43f5e">WebSearch</span>
+      </td>
+      <td class="summary">reDM2 reverse engineering Dungeon Master II source code documentation dmweb.free.fr</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">180</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; curl -sSL --max-time 40 -H &#34;Accept: application/vnd.github+json&#34; &#34;https://api.github.com/repos/gbsphenx/skproject/git/trees/HEAD?recursive=1&#34; -o tree.json -w &#34;%{http_...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">181</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; python3 - &lt;&lt;&#39;EOF&#39;
+import json
+d=json.load(open(&#39;tree.json&#39;))
+for it in d[&#39;tree&#39;]:
+    p=it[&#39;path&#39;]
+    if &#39;/&#39; not in p and it[&#39;type&#39;]==&#39;blob&#39;: print(it.get(&#39;size&#39;),p)...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">182</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; cat dl_README.md; echo ======; sed -n 1,200p dl_Utils_convertDungeonDatToJson_Program.cs</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">183</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; sed -n 200,420p dl_Utils_convertDungeonDatToJson_Program.cs</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">184</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; sed -n 420,600p dl_Utils_convertDungeonDatToJson_Program.cs | grep -n -i -E &#34;enum|tt[A-Z]|db[A-Z]|case|oid&#34; | head -60; echo ====DDATDef; sed -n 1,200p dl_DMDC2_DDATD...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">185</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; cat dl_SKWIN_knowledge_SKWin.GDAT2.InternalCodes.txt; echo =====GDATDef; cat dl_DM2GDED_GDATDef.h</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">186</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; cat dl_DM2GDED_GDAT.h | sed -n 1,260p</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">187</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; B=https://raw.githubusercontent.com/gbsphenx/skproject/HEAD; for f in DM2GDED/GDAT.cpp DM2GDED/GDEntry.h; do n=$(echo &#34;$f&#34; | tr &#39;/&#39; &#39;_&#39;); curl -sSL --max-time 30 -o &#34;...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">188</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; sed -n 973,1205p gdat.cpp</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">189</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; grep -n &#34;makeUnsure\|MkC3Map\|makeSure&#34; gdat.cpp | head; sed -n &#39;/^bool CGDAT::makeUnsure/,/^}/p&#39; gdat.cpp | head -150</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">190</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; sed -n 2441,2520p gdat.cpp; sed -n 1214,1280p gdat.cpp</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">191</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+import struct, collections
+d=open(&#39;public/assets/extracted/dm2/GRAPHICS.DAT&#39;,&#39;rb&#39;).read()
+magic,n=struct.unpack(&#39;&gt;HH&#39;,d[:4]); cb0=struct.unpack(&#39;&gt;I&#39;,d[4:8])[0]
+print(hex(magic),n,...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">192</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; B=https://raw.githubusercontent.com/gbsphenx/skproject/HEAD; for f in DM2GDED/DM2TextEncImpl.cpp DM2GDED/DM2TTbl.cpp; do n=$(echo &#34;$f&#34; | tr &#39;/&#39; &#39;_&#39;); curl -sSL --max-...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">193</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+import struct, collections
+d=open(&#39;public/assets/extracted/dm2/GRAPHICS.DAT&#39;,&#39;rb&#39;).read()
+n=struct.unpack(&#39;&gt;H&#39;,d[2:4])[0]; cb0=struct.unpack(&#39;&gt;I&#39;,d[4:8])[0]
+sizes=list(struct.unpa...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">194</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; B=https://raw.githubusercontent.com/gbsphenx/skproject/HEAD; for f in DM2GDED/DM2ImageComp.cpp DM2GDED/DM2ImageComp.h; do n=$(echo &#34;$f&#34; | tr &#39;/&#39; &#39;_&#39;); curl -sSL --max...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">195</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; grep -n &#34;ReadImgx&#34; gdat.cpp | head -5; B=https://raw.githubusercontent.com/gbsphenx/skproject/HEAD; for f in DM2GDED/DMGHLci.cpp DM2GDED/DMGHLci.h DM2GDED/DMGHLt.h; d...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">196</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; iconv -f cp932 -t utf-8 dl_DM2GDED_DMGHLci.h -o dmghlci.h 2&gt;/dev/null || cp dl_DM2GDED_DMGHLci.h dmghlci.h; sed -n 405,560p dmghlci.h</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">197</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; /tmp/claude-1000/dm2docs/imgtest.py &lt;&lt;&#39;EOF&#39;
+import struct, collections
+d=open(&#39;public/assets/extracted/dm2/GRAPHICS.DAT&#39;,&#39;rb&#39;).read()
+n=struct.unpack(&#39;&gt;H&#39;,d[2:4])[0]; cb0=struct.unpack(&#39;&gt;I&#39;,d...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">198</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; iconv -f cp932 -t utf-8 dl_DM2GDED_DMGHLci.cpp -o dmghlci.cpp 2&gt;/dev/null || cp dl_DM2GDED_DMGHLci.cpp dmghlci.cpp; grep -n &#34;ReadImgExtDM1&#34; dmghlci.cpp dmghlci.h | he...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">199</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; sed -n 622,830p dmghlci.h</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">200</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cd /tmp/claude-1000/dm2docs &amp;&amp; sed -n 154,385p dmghlci.h</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">201</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/dm2docs/imgtest.py &lt;&lt;&#39;EOF&#39;
+
+print(&#39;=== ExtDM1 / U4 decode&#39;)
+class Nib:
+    def __init__(s,b): s.b=b; s.p=0; s.half=0; s.cur=0
+    def read(s):
+        if s.half==0:
+        ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">202</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/dm2docs/imgtest.py &lt;&lt;&#39;EOF&#39;
+
+print(&#39;=== with secondary plane variant&#39;)
+def extdm1b(b, primary):
+    cx=((b[0]&lt;&lt;8)|b[1])&amp;0x3FF; cy=((b[2]&lt;&lt;8)|b[3])&amp;0x3FF
+    if cx&lt;1 or cy&lt;1 o...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">203</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/dm2docs/imgtest.py &lt;&lt;&#39;EOF&#39;
+
+print(&#39;=== render sample&#39;)
+import zlib
+def png(path,w,h,rgb):
+    raw=b&#39;&#39;.join(b&#39;\x00&#39;+bytes(rgb[y*w*3:(y+1)*w*3]) for y in range(h))
+    def chu...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">204</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/tmp/claude-1000/dm2docs/sheet.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">205</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/dm2docs/imgtest.py &lt;&lt;&#39;EOF&#39;
+
+print(&#39;=== palette hunt&#39;)
+for key,idx in dirs:
+    if key[2] in (4,7,8,9,14,0) and idx&lt;n:
+        b=entry(idx)
+        if len(b) in (64,768,1024,...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">206</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/dm2docs/imgtest.py &lt;&lt;&#39;EOF&#39;
+
+print(&#39;=== entry 244 analysis&#39;)
+b=entry(244)
+print(len(b),&#39;min&#39;,min(b),&#39;max&#39;,max(b))
+print([tuple(b[i:i+3]) for i in range(0,48,3)])
+print(&#39;as 3 ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">207</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt;&gt; /tmp/claude-1000/dm2docs/imgtest.py &lt;&lt;&#39;EOF&#39;
+
+print(&#39;=== colour render&#39;)
+pal=entry(244)
+def col(i): 
+    r,g,b=pal[i*3],pal[i*3+1],pal[i*3+2]; return (r*255//31,g*255//31,b*255//31)
+buf=bytea...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">208</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/tmp/claude-1000/dm2docs/sheet_color.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">209</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; docs/SPRINT8.md &lt;&lt;&#39;EOF&#39;
+# Sprint 8 — DM2 GRAPHICS.DAT (GDAT) Reader (Contract + Architecture)
+
+Tier-1 sprint; Cypher stories, Morpheus architecture and Mouse plan share this document.
+
+## Sco...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">210</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/data/gdat.ts &lt;&lt;&#39;EOF&#39;
+/**
+ * Reader for the Dungeon Master II &#34;GDAT&#34; GRAPHICS.DAT container (container, directory, text, images).
+ *
+ * TLDR:
+ *   parseGdat validates the container arithme...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">211</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/data/gdat.test.ts &lt;&lt;&#39;EOF&#39;
+import { existsSync, readFileSync } from &#39;node:fs&#39;;
+import { resolve } from &#39;node:path&#39;;
+import { describe, expect, it } from &#39;vitest&#39;;
+import {
+  GDAT_TRANSPA...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">212</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/data/gdat.test.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;const nibbles = [1, 2, 3, 4, 5, 5, 0xf, 7, 0xf, 0xe];&#34;,&#34;const nibbles = [1, 2, 3, 4, 5, 5, 7, 7];&#34;)
+s=s.replace(&#34;// 5 pal...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">213</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;tests/data/gdat.test.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;    console.log(&#39;IMAGES&#39;, images.length, primary, secondary);&#34;,&#34;    expect(images).toHaveLength(3011);\n    expect(primar...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">214</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">head -c 16 public/assets/extracted/dm1/graphics.dat | od -An -tx1; cat &gt; tests/data/gdatProbeTmp.test.ts &lt;&lt;&#39;EOF&#39;
+import { readFileSync } from &#39;node:fs&#39;;
+import { it } from &#39;vitest&#39;;
+import { parseG...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">215</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+def sub(p,a,b):
+    s=open(p).read(); assert a in s,(p,a); open(p,&#39;w&#39;).write(s.replace(a,b,1))
+p=&#39;src/data/importFiles.ts&#39;
+sub(p,&#34;import { createCleanRoomGraphicsBundle, parseGrap...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">216</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">ls node_modules/.bin | grep -i -E &#34;vite-node|tsx&#34; ; cat &gt; scripts/dm2-sheet.ts &lt;&lt;&#39;EOF&#39;
+/**
+ * Developer review tool: grayscale PNG contact sheets of every decodable DM2 GDAT image.
+ *
+ * TLDR:
+ *  ...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">217</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/dm2-sheets/sheet-03.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">218</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; scripts/sprint8-visual-review.mjs &lt;&lt;&#39;EOF&#39;
+/** Actual-browser Sprint 8 check: import real DM2 Dungeon.dat + GRAPHICS.DAT; honest message, generated art, no errors. */
+import { existsSync } fro...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">219</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint8-visual-review/dm2-graphics-imported.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">220</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed -i -E &#39;s/^- \[ \] \*\*S8-P(3\.1|3\.2|4\.1)\./- [x] **S8-P\1./&#39; task.md; for t in lint test-serial build sprint3-visual-review sprint4-visual-review sprint5-visual-review sprint6-visual-review s...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-BYPASS ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-BYPASS AP-MAKE-PIPE">
+      <td class="seq">221</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp make judge-trace &gt; build/mk_trace.txt 2&gt;&amp;1; echo &#34;$(grep -E &#39;tool calls&#39; build/mk_trace.txt | tail -1)&#34;
+python3 - &lt;&lt;&#39;EOF&#39;
+def app(p,t):
+    s=open(p).read().rstrip(&#39;\n&#39;); open(p,&#39;w&#39;).write(s+&#34;...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#ef4444">
+          AP-MAKE-BYPASS
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-BYPASS</div>
+            <div class="t-desc">Bash runs pytest/ruff/pylint/mypy directly — bypasses make targets.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Always use `bobp make <target>`. Output is captured to build/build.out.</div>
+          </span>
+        </span>
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">222</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp chat &#34;P1-P4.2 evidence: serial 424/424, lint, types, build, browser gates 3-8 green. GDAT reader: header arithmetic exact (3,493,879), 10,045-record directory, text/names, 3,011 distinct image...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">223</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">git status --short | wc -l; sed -n 1,60p src/data/spriteCatalog.ts; grep -n &#34;interface DecodedSprite&#34; -A14 src/data/graphicsDatParser.ts; grep -n &#34;interface GraphicsBundle&#34; -A16 src/data/graphicsDa...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">224</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; /tmp/claude-1000/survey.ts &lt;&lt;&#39;EOF&#39;
+import { readFileSync } from &#39;node:fs&#39;;
+import { parseGraphicsDat } from &#39;/var/home/drusifer/Projects/dungeon-master/src/data/graphicsDatParser&#39;;
+const g = ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">225</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">sed &#39;s#/var/home/drusifer/Projects/dungeon-master/src#../src#; s#/var/home/drusifer/Projects/dungeon-master/public#public#&#39; /tmp/claude-1000/survey.ts &gt; scripts/_tmp_survey.ts &amp;&amp; npx vite-node scri...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">226</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">mkdir -p scripts/lib &amp;&amp; python3 - &lt;&lt;&#39;EOF&#39;
+s=open(&#39;scripts/dm2-sheet.ts&#39;).read()
+a=s.index(&#34;function png(&#34;)
+b=s.index(&#34;if (!existsSync(INPUT))&#34;)
+png_fn=s[a:b]
+lib=&#34;&#34;&#34;/** Minimal RGB PNG encoder for ...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">227</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;scripts/dm1-sheet.ts&#39;
+s=open(p).read()
+s=s.replace(&#34;const SCALE = 3;&#34;,&#34;const SCALE = 3;\nconst HALF = process.env.HALF !== &#39;0&#39;; // show sprites at half size so a sheet holds mo...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">228</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/dm1-sheets/sheet-00.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">229</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/dm1-sheets/sheet-01.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">230</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/dm1-sheets/sheet-02.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">231</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/dm1-sheets/sheet-03.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">232</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -n &#34;getViewportLightPalette&#34; src/render/*.ts | head; grep -n &#34;export function getViewportLightPalette&#34; -A25 src/render/palette.ts; grep -n &#34;public blitSprite&#34; -A40 src/render/framebuffer.ts | ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">233</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; scripts/_tmp_levels.ts &lt;&lt;&#39;EOF&#39;
+import { readFileSync } from &#39;node:fs&#39;;
+import { parseDungeonDat } from &#39;../src/data/dungeonDatParser&#39;;
+import { MONSTER_CATALOG } from &#39;../src/data/monsterCata...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">234</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">rm -f build/dm1-sheets/sheet-0[4-9].png build/dm1-sheets/sheet-1*.png; cat &gt; docs/SPRINT9.md &lt;&lt;&#39;EOF&#39;
+# Sprint 9 — Original DM1 Monster Art (Contract + Architecture)
+
+Tier-1 sprint; Cypher stories, ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">235</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; src/data/monsterSprites.ts &lt;&lt;&#39;EOF&#39;
+/**
+ * Evidence-gated map from DM1 monster type ids to original graphics.dat sprite indices.
+ *
+ * TLDR:
+ *   Groups were identified on index-labelled revie...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">236</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;src/data/monsterSprites.ts&#39;
+s=open(p).read()
+s+=&#34;&#34;&#34;
+/** Transparent key of a sprite: its dominant colour on the outer border ring (each creature has its own key). */
+export fun...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">237</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+def sub(p,a,b):
+    s=open(p).read(); assert a in s,(p,a); open(p,&#39;w&#39;).write(s.replace(a,b,1))
+p=&#39;src/render/monsterPainter.ts&#39;
+s=open(p).read()
+a=s.index(&#34;export function paintMo...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">238</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">cat &gt; tests/render/monsterOriginalArt.test.ts &lt;&lt;&#39;EOF&#39;
+import { existsSync, readFileSync } from &#39;node:fs&#39;;
+import { resolve } from &#39;node:path&#39;;
+import { describe, expect, it } from &#39;vitest&#39;;
+import ...</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">239</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">bobp make sprint4-visual-review &gt; build/s4.txt 2&gt;&amp;1; grep -E &#34;browser smoke|FAILED|silhouette|monster&#34; build/s4.txt | head -5</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">240</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint4-visual-review/amiga_graphics_dat-seen.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">241</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#3b82f6">Read</span>
+      </td>
+      <td class="summary">/var/home/drusifer/Projects/dungeon-master/build/sprint4-visual-review/amiga_graphics_dat-injured.png</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-BYPASS"
+        data-flags="AP-MAKE-BYPASS">
+      <td class="seq">242</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;scripts/sprint4-visual-review.mjs&#39;
+s=open(p).read()
+a=&#34;      await page.screenshot({ path: `${output}/${source.toLowerCase()}-seen.png` });\n      checks.push(`${source}:monste...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#ef4444">
+          AP-MAKE-BYPASS
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-BYPASS</div>
+            <div class="t-desc">Bash runs pytest/ruff/pylint/mypy directly — bypasses make targets.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Always use `bobp make <target>`. Output is captured to build/build.out.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="clean"
+        data-flags="">
+      <td class="seq">243</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">grep -v &#34;^$&#34; build/mk_sprint3-visual-review.txt | tail -15</td>
+      <td class="badges">
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">244</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">for i in 1 2 3; do bobp make sprint3-visual-review &gt; build/mk_s3_$i.txt 2&gt;&amp;1; echo &#34;run $i: $(grep -E &#39;^=== exit&#39; build/mk_s3_$i.txt | tail -1) $(grep -E &#39;prepared|rejection mismatch&#39; build/mk_s3_$...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
+    <tr class="flagged ap-AP-MAKE-PIPE"
+        data-flags="AP-MAKE-PIPE">
+      <td class="seq">245</td>
+      <td class="tool">
+        <span class="tool-chip" style="background:#64748b">Bash</span>
+      </td>
+      <td class="summary">python3 - &lt;&lt;&#39;EOF&#39;
+p=&#39;scripts/sprint3-visual-review.mjs&#39;
+s=open(p).read()
+a=&#34;    if (afterReject.party.champions[0].mana !== beforeReject.party.champions[0].mana) {&#34;
+assert a in s
+s=s.replace(a,&#34;   ...</td>
+      <td class="badges">
+        
+        
+        <span class="badge" style="background:#f97316">
+          AP-MAKE-PIPE
+          <span class="tooltip">
+            <div class="t-code">AP-MAKE-PIPE</div>
+            <div class="t-desc">Bash pipes `bobp make` output — it already captures to build/build.out.</div>
+            <div class="t-fix-lbl">Fix</div>
+            <div class="t-fix">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</div>
+          </span>
+        </span>
+        
+      </td>
+    </tr>
+    
   </table>
 </details>
 
@@ -1116,14 +3896,14 @@ s=s.replace(&#34;  drawBitmapText(fb, &#39;PLACEHOLDER MONSTER ART&#39;&#34;,&#3
     
     <tr>
       <td><span class="badge" style="background:#f97316">AP-MAKE-PIPE</span></td>
-      <td class="count">7</td>
+      <td class="count">25</td>
       <td style="color:#94a3b8">Run `bobp make <target>`, then tail -n 30 build/build.out. Or use `bobp make -vv <target>` to see failures live. Never pipe.</td>
     </tr>
     
     
     <tr>
       <td><span class="badge" style="background:#ef4444">AP-MAKE-BYPASS</span></td>
-      <td class="count">1</td>
+      <td class="count">4</td>
       <td style="color:#94a3b8">Always use `bobp make <target>`. Output is captured to build/build.out.</td>
     </tr>
     

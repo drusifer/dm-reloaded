@@ -1,4 +1,4 @@
-import { itemIconIndex } from '../data/itemCatalog';
+import { getItemDef, itemIconIndex } from '../data/itemCatalog';
 /**
  * Classic 320x200 Amiga HUD, Movement Pad, Utility Pills, Message Strip, and Mirror Modal painter.
  *
@@ -9,7 +9,6 @@ import { itemIconIndex } from '../data/itemCatalog';
  */
 
 import { DIRECTION_NAMES } from '../engine/types';
-import { getItemDef } from '../data/itemCatalog';
 import { partyLightBonus } from '../engine/inventory';
 import { partyMagicLightBonus } from '../engine/effects';
 import type { ChampionState, GameState, MirrorModalState } from '../engine/types';

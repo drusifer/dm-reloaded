@@ -102,7 +102,7 @@ describe('Sprint 3 Phase 3 independent rune and spell UAT', () => {
   });
 
   it('enforces None-to-Neophyte and invalid/mana/flask gates with zero costs or draws', () => {
-    const cases: Array<{ state: GameState; reason: string }> = [];
+    const cases: { state: GameState; reason: string }[] = [];
     cases.push({
       state: formula(withRank(partyOf('iaido'), WIZARD_FIRE, 0), ['LO', 'FUL', 'IR']),
       reason: 'INSUFFICIENT_SKILL'
@@ -252,7 +252,7 @@ describe('Sprint 3 Phase 3 independent rune and spell UAT', () => {
 
 describe('Sprint 3 Phase 3 independent potion UAT', () => {
   it('brews all five formulas across six monotonically powered same-ID flasks without duplication', () => {
-    const recipes: ReadonlyArray<readonly [string, RuneId]> = [
+    const recipes: readonly (readonly [string, RuneId])[] = [
       ['VI', 'VI'], ['YA', 'YA'], ['EE', 'POWER_EE'], ['KU', 'KU'], ['BRO', 'BRO']
     ];
     const powers: readonly RuneId[] = ['LO', 'UM', 'ON', 'POWER_EE', 'PAL', 'MON'];

@@ -43,6 +43,33 @@ Agents **must** use this for every message posted to CHAT.md:
 
 ---
 
+> **Previous sprint archived:** `agents/chat_archive/CHAT_sprint-5.md` (2026-11-11 01:00:58) — Delivered Sprint 5: versioned checksummed saves (slot/export/open) with typed failures, local-only Dungeon.dat/graphics.dat import with restart seam, Lord Chaos victory ending, real 14-level campaign audit, and a two-source browser gate. Browser screenshot review caught the menu covering the message log; fixed with a menu strip and an overlap assertion. Serial 388/388, lint/types/build green; judge trace ran with process flags (not a pass). Seven retros recorded. Limits: Firestaff script, one save version/slot, imports not persisted, polish bounded to audit. No commit/push.
+
 ---
-[<small>2026-11-11 00:19:54</small>] [**Mouse**]->[**all**] *close*:
- Sprint4 CLOSED locally: board 10/10, archived to agents/chat_archive/CHAT_sprint-4.md. Awaiting direction for Sprint5.
+
+> **Previous sprint archived:** `agents/chat_archive/CHAT_sprint-6.md` (2026-11-11 01:44:32) — Delivered Sprint 6 as champion carry-over: versioned checksummed roster export of living champions, strict validation, content-id based Hall mirror placement via IMPORT_ROSTER, recruit through the existing mirror flow (Resurrect keeps skills/gear), menu controls with visible status. Scope was cut at the gate because the repo has no Chaos Strikes Back data: Prison, Corbums and Ful Ya were not invented. Screenshot review caught GEAR: NONE on imported veterans and truncated log lines; both fixed. Serial 399/399, lint/types/build, Sprint 3-6 two-source browser gates green; judge trace ran with process flags (not a pass). Seven retros recorded. No commit/push.
+
+---
+
+> **Previous sprint archived:** `agents/chat_archive/CHAT_sprint-7.md` (2026-11-11 02:26:36) — Sprint 7 reframed from DM2 gameplay to DM2 data enablement because the only DM2 data was an undecoded Amiga LZX archive. Three from-memory decoder attempts failed CRC checks and stopped at the anti-loop rule; on the user's prompt to research online, the public libxmp LZX description produced an extractor that matches all 35 stored CRCs. Delivered: verified extractor and make target, DM2 findings doc (DM1-style Dungeon.dat container, 44 maps, size arithmetic closes, undecoded AGA graphics, creature ids to 85, no champions), content-derived campaign ids, unrecognized import message. Screenshot review caught a stale DM1 start message; fixed. Serial 412/412, lint/types/build, Sprint 3-7 browser checks green; judge trace ran with process flags. Seven retros. No DM2 gameplay; no commit/push.
+
+---
+
+> **Previous sprint archived:** `agents/chat_archive/CHAT_sprint-8.md` (2026-11-11 03:33:48) — Sprint 8 was research-first: online research found the public skproject sources describing DM2's GDAT GRAPHICS.DAT (unlicensed, so facts only). An independent TypeScript reader was written and verified: container arithmetic closes to the byte (3,493,879), 10,045 directory records, text decodes (THORN DEMON, VORTEX; every DUNGEON.DAT creature id named), 3,011 distinct images decode with the encoding's own self-check (2,060 primary + 951 overlay, 0 failures), reviewed visually in grayscale. A guessed palette was rejected, so no colour is claimed. Import now recognizes the DM2 graphics file honestly with generated art kept; bobp make dm2-sheet writes review sheets. Trin corrected an early overcount (records vs entries). Serial 424/424, lint/types/build, Sprint 3-8 browser checks green; judge trace ran with process flags. Seven retros. No DM2 gameplay; no commit/push.
+
+---
+
+> **Previous sprint archived:** `agents/chat_archive/CHAT_sprint-9.md` (2026-11-12 10:29:43) — Sprint 9 replaced placeholder monsters with original DM1 art on the original-data source. Index-labelled review sheets showed creature sprites at atlas 446-532 in monster-type order with up to four views; the real Dungeon.dat agreed with the type order (screamers on levels 1-4, dragon on level 13). A confidence-gated map draws 25 of 27 types (front view, depth scale, depth lighting, border-derived transparency); Materializer and Water Elemental stay placeholders. Evidence tests pin indices, contiguity, border dominance and depth order. Browser checks confirm real Screamer art and label logic for both sources. The Sprint 3 gate flaked once on live mana regen and was corrected to assert mana is never spent. Serial 435/435, lint/types/build green; judge trace ran with process flags. Seven retros. No commit/push.
+
+---
+
+> **Previous sprint archived:** `agents/chat_archive/CHAT_sprint-10.md` (2026-11-12 10:41:52) — Sprint 10 tech debt: scripted/lint scans found drift; enabled five zero-violation lint rules plus tsc unused checks, deleted four dead symbols and their tests, deduplicated viewport flanking walls, fixed a flaky Sprint 5 browser assertion. Serial 434/434, lint/types/build, Sprint 3-8 browser checks, screenshots reviewed. Backlog: non-null assertions, complexity, file splits, IndependentUat merge. No commit/push.
+
+---
+
+---
+[<small>2026-11-13 14:03:23</small>] [**make**]->[**all**] *build*:
+ Build PASSED | make gates | /var/home/drusifer/Projects/dungeon-master/build/build.out
+Sprint 7 browser check passed: 3 checks.
+npm exec -- node scripts/sprint8-visual-review.mjs
+Sprint 8 browser check passed: 3 checks.

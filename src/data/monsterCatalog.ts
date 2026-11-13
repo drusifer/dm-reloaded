@@ -82,7 +82,3 @@ export const MONSTER_CATALOG: readonly MonsterTypeDef[] = ROWS.map((row, typeId)
 export function monsterTypeDef(typeId: number): MonsterTypeDef | undefined {
   return Number.isInteger(typeId) ? MONSTER_CATALOG[typeId] : undefined;
 }
-
-export function monsterHasTrait(typeId: number, trait: MonsterTrait): boolean {
-  return monsterTypeDef(typeId)?.traits.includes(trait) ?? false;
-}

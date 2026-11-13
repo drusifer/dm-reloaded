@@ -435,10 +435,6 @@ export interface CampaignBundle {
   readonly source: 'AMIGA_DAT' | 'CLEAN_ROOM';
 }
 
-export interface CampaignProvider {
-  loadCampaign(): Promise<CampaignBundle>;
-}
-
 export interface GameState {
   readonly campaignId: string;
   readonly tick: number;
@@ -456,6 +452,8 @@ export interface GameState {
   readonly runeFormulas: Readonly<Record<string, readonly RuneId[]>>;
   readonly selectedBrewFlasks: Readonly<Record<string, ItemInstanceId | null>>;
   readonly gameOver: boolean;
+  /** Set once when a Lord Chaos monster is defeated; distinct from gameOver. */
+  readonly victory: boolean;
   readonly party: PartyState;
   readonly activeMirror: MirrorModalState | null;
   readonly pendingActuators: readonly PendingActuatorOp[];
@@ -473,6 +471,7 @@ export type GameCommand =
   | { readonly type: 'RECRUIT_CHAMPION'; readonly mode: RecruitMode }
   | { readonly type: 'CANCEL_MIRROR' }
   | { readonly type: 'TICK'; readonly count?: number }
+  | { readonly type: 'IMPORT_ROSTER'; readonly champions: readonly ChampionDefinition[] }
   | { readonly type: 'TOGGLE_QOL_MODE' }
   | { readonly type: 'TOGGLE_AUTOMAP' }
   | { readonly type: 'SET_AUDIO_MUTED'; readonly muted: boolean }
@@ -567,6 +566,7 @@ export type EngineEvent =
   | { readonly type: 'MONSTER_ATTACKED'; readonly monsterId: string; readonly typeId: number; readonly championId: string; readonly hit: boolean; readonly amount: number }
   | { readonly type: 'MONSTER_MOVED'; readonly monsterId: string; readonly level: number; readonly x: number; readonly y: number }
   | { readonly type: 'MONSTER_KILLED'; readonly monsterId: string; readonly typeId: number; readonly killerChampionId: string | null; readonly cause: 'COMBAT' | 'CRUSHED' }
+  | { readonly type: 'VICTORY'; readonly tick: number }
   | { readonly type: 'MONSTER_SPAWNED'; readonly monsterId: string; readonly typeId: number; readonly level: number; readonly x: number; readonly y: number }
   | { readonly type: 'PROJECTILE_LAUNCHED'; readonly projectileId: string; readonly ownerChampionId: string }
   | { readonly type: 'PROJECTILE_IMPACT'; readonly projectileId: string; readonly level: number; readonly x: number; readonly y: number }

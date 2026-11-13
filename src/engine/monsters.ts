@@ -26,6 +26,7 @@ import {
   type Tile
 } from './types';
 
+export const LORD_CHAOS_TYPE_ID = 23;
 export const SCENT_RANGE_BONUS = 4;
 export const MAX_MONSTERS_PER_TILE = 4;
 export const MAX_LIVE_MONSTERS_PER_LEVEL = 24;
@@ -65,9 +66,9 @@ export function buildDistanceField(
   const field = new Map<string, number>();
   const { x, y, level } = state.party;
   field.set(key(x, y), 0);
-  let frontier: Array<[number, number]> = [[x, y]];
+  let frontier: [number, number][] = [[x, y]];
   for (let d = 1; d <= radius; d++) {
-    const nextFrontier: Array<[number, number]> = [];
+    const nextFrontier: [number, number][] = [];
     for (const [cx, cy] of frontier) {
       for (const dir of DIRS) {
         const nx = cx + DIRECTION_DELTAS[dir].dx;
@@ -220,6 +221,10 @@ function reapDefeated(state: GameState, events: EngineEvent[], cause: 'COMBAT' |
     events.push({ type: 'SOUND_CUE', cue: 'MONSTER_DEATH', sourceLevel: target.level, sourceX: target.x, sourceY: target.y });
     next = pushMessage(next, cause === 'CRUSHED' ? `${def.name} IS CRUSHED BY A DOOR.` : `${def.name} DIES.`, events);
     next = dropItem(next, target, def);
+    if (def.typeId === LORD_CHAOS_TYPE_ID && cause === 'COMBAT' && !next.victory) {
+      events.push({ type: 'VICTORY', tick: next.tick });
+      next = pushMessage({ ...next, victory: true }, 'LORD CHAOS IS DEFEATED. VICTORY!', events);
+    }
   }
   const deadIds = new Set(dead.map((t) => t.id));
   return { ...next, combatTargets: next.combatTargets.filter((t) => !deadIds.has(t.id)) };
@@ -270,10 +275,10 @@ function stepGenerators(state: GameState, events: EngineEvent[]): GameState {
 
 /** One deterministic monster tick; cheap when no live monster is on the party level. */
 export function stepMonsters(input: GameState, events: EngineEvent[]): GameState {
-  let state = stepGenerators(input, events);
+  let state = input.victory ? input : stepGenerators(input, events);
   state = reapDefeated(state, events, 'COMBAT');
   state = crushOnDoors(state, events);
-  if (state.gameOver || state.party.champions.length === 0) return state;
+  if (state.gameOver || state.victory || state.party.champions.length === 0) return state;
 
   const onLevel = liveMonsters(state.combatTargets).filter((t) => t.level === state.party.level);
   if (onLevel.length === 0) return state;

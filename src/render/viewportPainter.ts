@@ -828,6 +828,58 @@ function paintSideWallFeatures(
   });
 }
 
+/** Source sprite id, destination offset/size and source column of each flanking wall cube by depth (1..3). */
+const FLANK_CUBES = {
+  LEFT: [
+    { id: 86, dstX: 0, dstY: 9, w: 64, h: 111, srcX: 192 },
+    { id: 87, dstX: 0, dstY: 20, w: 75, h: 71, srcX: 61 },
+    { id: 88, dstX: 0, dstY: 25, w: 84, h: 51, srcX: 32 }
+  ],
+  RIGHT: [
+    { id: 86, dstX: 160, dstY: 9, w: 64, h: 111, srcX: 0 },
+    { id: 87, dstX: 149, dstY: 20, w: 75, h: 71, srcX: 0 },
+    { id: 88, dstX: 139, dstY: 25, w: 85, h: 51, srcX: 0 }
+  ]
+} as const;
+const FLANK_D0 = { LEFT: { id: 85, dstX: 0 }, RIGHT: { id: 84, dstX: 192 } } as const;
+
+/** Opaque wall beside the party: original cube sprite, or the generated fallback when the art is missing. */
+function paintFlankingWall(
+  fb: Framebuffer,
+  state: GameState,
+  side: 'LEFT' | 'RIGHT',
+  depth: 0 | 1 | 2 | 3,
+  frustum: DepthFrustum,
+  palette: readonly RgbColor[],
+  bundle?: GraphicsBundle
+): void {
+  const vp = LAYOUT_RECTS.VIEWPORT;
+  const parity = state.party.stepParity;
+  if (depth === 0) {
+    const d0 = FLANK_D0[side];
+    const sprite = bundle?.sprites.get(d0.id);
+    if (sprite) fb.blitSprite(sprite, vp.x + d0.dstX, vp.y, palette, { transparentIndex: PALETTE_INDEX.FLESH_KEY }, vp);
+    else drawSideWallTrapezoid(fb, vp.x, vp.y, side, frustum, palette, parity);
+    return;
+  }
+  const cube = FLANK_CUBES[side][depth - 1]!;
+  const sprite = bundle?.sprites.get(cube.id);
+  if (sprite) {
+    fb.blitSprite(sprite, vp.x + cube.dstX, vp.y + cube.dstY, palette, {
+      transparentIndex: PALETTE_INDEX.FLESH_KEY,
+      srcX: cube.srcX,
+      srcWidth: cube.w,
+      dstWidth: cube.w,
+      dstHeight: cube.h
+    }, vp);
+    return;
+  }
+  const stoneX = side === 'LEFT' ? vp.x : vp.x + frustum.rightOuterX;
+  const stoneW = side === 'LEFT' ? frustum.leftOuterX : 224 - frustum.rightOuterX;
+  drawStoneWallRect(fb, stoneX, vp.y + frustum.topOuterY, stoneW, frustum.bottomOuterY - frustum.topOuterY, palette, parity + depth);
+  drawSideWallTrapezoid(fb, vp.x, vp.y, side, frustum, palette, parity + depth);
+}
+
 export function paintDungeonViewport(
   fb: Framebuffer,
   state: GameState,
@@ -921,97 +973,9 @@ export function paintDungeonViewport(
     const rightTile = getLevelTile(level, rightCoords.wx, rightCoords.wy);
     const centerTile = getLevelTile(level, centerCoords.wx, centerCoords.wy);
 
-    // Left flanking wall cube (D3L=88[32..115], D2L=87[61..135], D1L=86[192..255], D0L=85[0..31])
-    if (isOpaqueWall(leftTile)) {
-      if (depth === 0) {
-        const d0l = bundle?.sprites.get(85);
-        if (d0l) {
-          fb.blitSprite(d0l, vp.x, vp.y, palette, { transparentIndex: PALETTE_INDEX.FLESH_KEY }, vp);
-        } else {
-          drawSideWallTrapezoid(fb, vp.x, vp.y, 'LEFT', frustum, palette, state.party.stepParity);
-        }
-      } else {
-        const cubeSpec = depth === 1
-          ? { id: 86, dstX: 0, dstY: 9, w: 64, h: 111, srcX: 192 }
-          : depth === 2
-            ? { id: 87, dstX: 0, dstY: 20, w: 75, h: 71, srcX: 61 }
-            : { id: 88, dstX: 0, dstY: 25, w: 84, h: 51, srcX: 32 };
-        const cubeSprite = bundle?.sprites.get(cubeSpec.id);
-        if (cubeSprite) {
-          fb.blitSprite(
-            cubeSprite,
-            vp.x + cubeSpec.dstX,
-            vp.y + cubeSpec.dstY,
-            palette,
-            {
-              transparentIndex: PALETTE_INDEX.FLESH_KEY,
-              srcX: cubeSpec.srcX,
-              srcWidth: cubeSpec.w,
-              dstWidth: cubeSpec.w,
-              dstHeight: cubeSpec.h
-            },
-            vp
-          );
-        } else {
-          drawStoneWallRect(
-            fb,
-            vp.x,
-            vp.y + frustum.topOuterY,
-            frustum.leftOuterX,
-            frustum.bottomOuterY - frustum.topOuterY,
-            palette,
-            state.party.stepParity + depth
-          );
-          drawSideWallTrapezoid(fb, vp.x, vp.y, 'LEFT', frustum, palette, state.party.stepParity + depth);
-        }
-      }
-    }
-
-    // Right flanking wall cube (D3R=88[0..84], D2R=87[0..74], D1R=86[0..63], D0R=84[0..31])
-    if (isOpaqueWall(rightTile)) {
-      if (depth === 0) {
-        const d0r = bundle?.sprites.get(84);
-        if (d0r) {
-          fb.blitSprite(d0r, vp.x + 192, vp.y, palette, { transparentIndex: PALETTE_INDEX.FLESH_KEY }, vp);
-        } else {
-          drawSideWallTrapezoid(fb, vp.x, vp.y, 'RIGHT', frustum, palette, state.party.stepParity);
-        }
-      } else {
-        const cubeSpec = depth === 1
-          ? { id: 86, dstX: 160, dstY: 9, w: 64, h: 111, srcX: 0 }
-          : depth === 2
-            ? { id: 87, dstX: 149, dstY: 20, w: 75, h: 71, srcX: 0 }
-            : { id: 88, dstX: 139, dstY: 25, w: 85, h: 51, srcX: 0 };
-        const cubeSprite = bundle?.sprites.get(cubeSpec.id);
-        if (cubeSprite) {
-          fb.blitSprite(
-            cubeSprite,
-            vp.x + cubeSpec.dstX,
-            vp.y + cubeSpec.dstY,
-            palette,
-            {
-              transparentIndex: PALETTE_INDEX.FLESH_KEY,
-              srcX: cubeSpec.srcX,
-              srcWidth: cubeSpec.w,
-              dstWidth: cubeSpec.w,
-              dstHeight: cubeSpec.h
-            },
-            vp
-          );
-        } else {
-          drawStoneWallRect(
-            fb,
-            vp.x + frustum.rightOuterX,
-            vp.y + frustum.topOuterY,
-            224 - frustum.rightOuterX,
-            frustum.bottomOuterY - frustum.topOuterY,
-            palette,
-            state.party.stepParity + depth
-          );
-          drawSideWallTrapezoid(fb, vp.x, vp.y, 'RIGHT', frustum, palette, state.party.stepParity + depth);
-        }
-      }
-    }
+    // Flanking wall cubes (D3=88, D2=87, D1=86, D0=85 left / 84 right)
+    if (isOpaqueWall(leftTile)) paintFlankingWall(fb, state, 'LEFT', depth, frustum, palette, bundle);
+    if (isOpaqueWall(rightTile)) paintFlankingWall(fb, state, 'RIGHT', depth, frustum, palette, bundle);
 
     paintSideWallFeatures(fb, state, leftTile, depth, 'LEFT', palette, bundle);
     paintSideWallFeatures(fb, state, rightTile, depth, 'RIGHT', palette, bundle);
@@ -1061,7 +1025,10 @@ export function paintDungeonViewport(
     paintTileItems(fb, state, centerTile, depth, centerCoords.wx, centerCoords.wy, palette, bundle);
   }
 
-  paintMonsters(fb, state);
+  paintMonsters(fb, state, {
+    ...(bundle ? { graphics: bundle } : {}),
+    paletteAt: (depth) => getViewportLightPalette(effectiveLight, depth, bundle)
+  });
 
   for (const projectile of state.projectiles) {
     const marker = projectileMarkerRect(state, projectile);

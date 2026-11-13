@@ -25,3 +25,6 @@ export type { DecodedSound, DecodedSprite, GraphicsBundle, RgbColor } from './gr
 export * from './combatCatalog';
 export * from './magicCatalog';
 export * from './monsterCatalog';
+export * from './importFiles';
+export * from './gdat';
+export * from './monsterSprites';

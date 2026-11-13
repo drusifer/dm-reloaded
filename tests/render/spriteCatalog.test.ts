@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { buildSpriteCatalog, dm1ExportMetadata, itemIconAddress, panelSourceIndex } from '../../src/data/spriteCatalog';
-import { createCleanRoomGraphicsBundle, parseGraphicsDat, extractItemIcon } from '../../src/data/graphicsDatParser';
+import { createCleanRoomGraphicsBundle, parseGraphicsDat } from '../../src/data/graphicsDatParser';
 import type { GraphicsBundle } from '../../src/data/graphicsDatParser';
 import { createSpriteExport } from '../../src/tools/spriteExport';
 import { createSpriteSource } from '../../src/render/spriteSource';
@@ -53,19 +53,6 @@ describe('verified raw sprite catalog',()=>{
     expect(itemIconAddress(32)).toEqual({rawSourceIndex:43,crop:{x:0,y:0,width:16,height:16}});
     expect(itemIconAddress(223)).toEqual({rawSourceIndex:48,crop:{x:240,y:16,width:16,height:16}});
     for(const icon of [-1,224,NaN,1.5])expect(itemIconAddress(icon)).toBeUndefined();
-  });
-
-  it('preserves legacy extractor clamping and oversized atlas compatibility',()=>{
-    const atlas={index:42,width:260,height:33,pixels:new Uint8Array(260*33)};
-    for(let y=0;y<16;y++)atlas.pixels.fill(7,y*260,y*260+16);
-    const input={...fixture(),sprites:new Map([[42,atlas]])};
-    const extracted=extractItemIcon(input,-10)!;
-    expect(extracted.index).toBe(4200);
-    expect(Array.from(extracted.pixels)).toEqual(Array(256).fill(7));
-    // SpriteSource intentionally requires an exact256x32 atlas, unlike this older helper.
-    expect(createSpriteSource(input).getSprite('item.icon.0').index).toBe(-1);
-    const last={index:48,width:256,height:32,pixels:new Uint8Array(8192).fill(9)};
-    expect(extractItemIcon({...input,sprites:new Map([[48,last]])},999)).toMatchObject({index:4423,width:16,height:16});
   });
 
   it('rejects invalid raw map identity rather than joining derived IDs',()=>{

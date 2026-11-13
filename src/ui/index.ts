@@ -18,3 +18,6 @@ export {
 export type { SoundboardController, SoundboardPreset } from './soundboard';
 export { mountContactSheetUI } from './contactSheet';
 export type { ContactSheetController } from './contactSheet';
+export { mountGameMenu } from './gameMenu';
+export type { GameMenuController, GameMenuHandlers } from './gameMenu';
+export * from './saveStore';

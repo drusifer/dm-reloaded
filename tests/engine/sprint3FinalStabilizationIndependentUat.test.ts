@@ -22,7 +22,7 @@ describe('Sprint 3 final stabilization independent UAT', () => {
     const base = withInteraction(partyOf('zed'));
     const emptyFloor = placeAt(base, 0, 2, 2, base.party.facing);
     const wall = placeAt(base, 0, 0, 0, base.party.facing);
-    const cases: ReadonlyArray<readonly [GameState, GameCommand]> = [
+    const cases: readonly (readonly [GameState, GameCommand])[] = [
       [base, { type: 'TOGGLE_INVENTORY', championIndex: 9 }],
       [base, { type: 'SELECT_LEADER', championIndex: 9 }],
       [base, { type: 'CLICK_EQUIP_SLOT', championIndex: 9, slot: 'head' }],

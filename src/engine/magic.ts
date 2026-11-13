@@ -56,8 +56,8 @@ function removeOwnedItem(state: GameState, championIndex: number, itemId: ItemIn
   const slots = { ...champion.inventory.slots };
   for (const slot of ALL_EQUIP_SLOTS) if (slots[slot] === itemId) slots[slot] = null;
   const backpack = champion.inventory.backpack.map((value) => value === itemId ? null : value);
-  const items = { ...state.items };
-  delete items[itemId];
+  const { [itemId]: removed, ...items } = state.items;
+  void removed;
   return replaceChampion({ ...state, items, handItem: state.handItem === itemId ? null : state.handItem }, championIndex, {
     ...champion, inventory: { slots, backpack },
     leftHand: champion.leftHand === itemId ? null : champion.leftHand,

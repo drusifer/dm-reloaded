@@ -516,8 +516,7 @@ export function findItemDefByLegacyName(rawName: string): ItemDef {
 export function parseItemNamesFrom556(bytes: Uint8Array): readonly string[] {
   const result: string[] = [];
   let current = '';
-  for (let i = 0; i < bytes.length; i += 1) {
-    const b = bytes[i] ?? 0;
+  for (const b of bytes) {
     if ((b & 0x80) !== 0) {
       current += String.fromCharCode(b & 0x7f);
       result.push(current);

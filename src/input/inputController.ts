@@ -57,7 +57,7 @@ export function clientPointToAmigaCoords(
  * Resolves a [0..319, 0..199] Amiga pixel click into a pure GameCommand, or null if non-interactive.
  */
 export function resolvePointerHitCommand(px: number, py: number, state: GameState, button = 0): GameCommand | null {
-  if (state.gameOver) return null;
+  if (state.gameOver || state.victory) return null;
   if (state.party.sleeping) return { type: 'SET_SLEEPING', sleeping: false };
   // Modal dialog captures every click until resolved or cancelled.
   if (state.activeMirror !== null) {
@@ -191,7 +191,7 @@ export function resolvePointerHitCommand(px: number, py: number, state: GameStat
  * Escape always cancels active modals; QWEASD / Arrow keys / M require settings.qolMode === true.
  */
 export function resolveKeyboardCommand(key: string, state: GameState): GameCommand | null {
-  if (state.gameOver) return null;
+  if (state.gameOver || state.victory) return null;
   if (state.party.sleeping) return {type:'SET_SLEEPING',sleeping:false};
   if (key === 'Escape') {
     if (state.activeMirror !== null) {

@@ -115,7 +115,7 @@ export interface ExecuteCombatActionCommand {
   readonly actionId: CombatActionId;
 }
 
-type AmmunitionSelection = { readonly slot: typeof QUIVER_SLOTS[number]; readonly id: string };
+interface AmmunitionSelection { readonly slot: typeof QUIVER_SLOTS[number]; readonly id: string }
 type CombatValidationResult =
   | { readonly ok: false; readonly reason: CombatFailureReason }
   | {

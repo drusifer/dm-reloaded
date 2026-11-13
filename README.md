@@ -2,7 +2,7 @@ Project overview, quickstart commands, controls, and documentation index for the
 
 TLDR:
     Goal: Provide a complete browser-based TypeScript/Canvas/WebAudio recreation of the FTL Games Amiga Dungeon Master trilogy.
-    Status: Sprint 4 monsters (27 type slots, Amiga group parsing, hunting AI, fighting, door crushing) delivered locally with placeholder art; Sprint 3 combat/magic baseline unchanged.
+    Status: Sprint 9 original DM1 monster art (25 of 27 types, original-data source) on top of Sprint 8 DM2 GDAT reader (names + 3,011 images, no colour/gameplay) on top of Sprint 7 CRC-verified DM2 extraction and findings (no DM2 gameplay) on top of Sprint 6 champion carry-over (roster export/import via Hall mirrors; no CSB content) on top of Sprint 5 saves, own-file import and Lord Chaos victory delivered locally on top of Sprint 4 monsters (27 type slots, Amiga group parsing, hunting AI, fighting, door crushing) delivered locally with placeholder art; Sprint 3 combat/magic baseline unchanged.
     Action: Run bobp make setup to install dependencies and unpack local Amiga archives, then bobp make dev to play or bobp make test to verify.
 
 # Dungeon Master — Amiga Trilogy (Web Edition)
@@ -107,6 +107,12 @@ Press `G` in the running game or use **SPRITES [G]**. Search by numeric source i
 - **[USER_STORIES.md](docs/USER_STORIES.md)** — Sprint 2 Stories and archived Sprint 1 Acceptance Criteria
 - **[ARCH.md](docs/ARCH.md)** — Hexagonal Architecture, `320×200` HUD Spec, and Data Flow
 - **[SPRINT3.md](docs/SPRINT3.md)** — Accepted progression, combat, projectile, magic, potion and UX contract
+- **[SPRINT9.md](docs/SPRINT9.md)** — Sprint 9 original monster art, evidence and limits
+- **[SPRINT8.md](docs/SPRINT8.md)** — Sprint 8 DM2 GDAT reader, decisions and limits
+- **[SPRINT7.md](docs/SPRINT7.md)** — Sprint 7 DM2 extraction, campaign identity and limits
+- **[DM2_DATA.md](docs/DM2_DATA.md)** — DM2 data findings (observations only)
+- **[SPRINT6.md](docs/SPRINT6.md)** — Sprint 6 champion carry-over, scope decision and limits
+- **[SPRINT5.md](docs/SPRINT5.md)** — Sprint 5 saves, import, victory, campaign audit and honest limits
 - **[SPRINT4.md](docs/SPRINT4.md)** — Sprint 4 monster contract, architecture and honest deviations
 - **[SPRINT3_ARCHITECTURE.md](docs/SPRINT3_ARCHITECTURE.md)** — Sprint 3 deterministic architecture and final implementation evidence
 - **[DECISIONS.md](docs/DECISIONS.md)** — Product & Architectural Decision Records (`PDR-001`, `ADR-001..014`)

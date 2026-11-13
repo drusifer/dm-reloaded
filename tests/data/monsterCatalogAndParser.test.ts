@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { MONSTER_CATALOG, MONSTER_TYPE_COUNT, monsterHasTrait, monsterTypeDef, parseDungeonDat, createCleanRoomBundle } from '../../src/data';
+import { MONSTER_CATALOG, MONSTER_TYPE_COUNT, monsterTypeDef, parseDungeonDat, createCleanRoomBundle } from '../../src/data';
 import { createInitialGameState } from '../../src/engine';
 import { expandMonsterGroup } from '../../src/engine/monsterSpawn';
 
@@ -22,12 +22,10 @@ describe('S4-1 monster catalog', () => {
     expect(MONSTER_CATALOG[24]!.name).toBe('RED DRAGON');
   });
 
-  it('fails safely for unknown ids and exposes traits', () => {
+  it('fails safely for unknown ids', () => {
     expect(monsterTypeDef(27)).toBeUndefined();
     expect(monsterTypeDef(-1)).toBeUndefined();
     expect(monsterTypeDef(1.5)).toBeUndefined();
-    expect(monsterHasTrait(8, 'NON_MATERIAL')).toBe(true);
-    expect(monsterHasTrait(6, 'NON_MATERIAL')).toBe(false);
   });
 });
 

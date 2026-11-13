@@ -9,7 +9,7 @@ import { partyOf, patchChampion, placeAt, run, tick } from './testkit';
 const floor = (): Tile => ({ type: 'FLOOR', rawFlags: 0, wallFeatures: [], actuators: [], itemNames: [] });
 const wall = (): Tile => ({ ...floor(), type: 'WALL' });
 
-function arena(width: number, height: number, walls: Array<[number, number]> = []): DungeonLevel {
+function arena(width: number, height: number, walls: [number, number][] = []): DungeonLevel {
   const blocked = new Set(walls.map(([x, y]) => `${x},${y}`));
   return {
     id: 0, name: 'Arena', width, height, offsetX: 0, offsetY: 0, depth: 1, ambientLight: 5,

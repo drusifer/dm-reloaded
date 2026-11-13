@@ -76,7 +76,17 @@ export function renderFrame(
     if (item && pointer) fb.blitSprite(createSpriteSource(options.graphics).getSprite(`item.icon.${itemIconIndex(item)}`),
       pointer.x - 8, pointer.y - 8,getUiPalette(options.graphics),{transparentIndex:0});
   }
-  if (state.gameOver) {
+  if (state.victory) {
+    const alive = state.party.champions.filter((c) => c.alive).length;
+    fb.fillRect(0, 33, 224, 136, [24, 18, 0]);
+    fb.drawBevelBox(20, 52, 184, 100, [24, 18, 0], [255, 215, 64], [120, 90, 0]);
+    drawBitmapText(fb, 'VICTORY!', 84, 62, [255, 230, 90], options.graphics?.systemFont);
+    drawBitmapText(fb, 'LORD CHAOS IS DEFEATED', 38, 82, [255, 255, 255], options.graphics?.systemFont);
+    drawBitmapText(fb, `SURVIVORS ${alive} OF ${state.party.champions.length}`, 54, 100, [255, 215, 64], options.graphics?.systemFont);
+    drawBitmapText(fb, `TIME ${Math.floor(state.tick / 6)} SECONDS`, 56, 110, [255, 215, 64], options.graphics?.systemFont);
+    drawBitmapText(fb, 'EXPORT ROSTER TO KEEP PARTY', 31, 122, [255, 215, 64], options.graphics?.systemFont);
+    drawBitmapText(fb, 'CLICK OR ENTER TO PLAY', 38, 138, [200, 200, 200], options.graphics?.systemFont);
+  } else if (state.gameOver) {
     fb.drawBevelBox(28, 67, 264, 58, [0, 0, 0], [220, 40, 40], [96, 0, 0]);
     drawBitmapText(fb, 'GAME OVER', 133, 79, [255, 80, 80], options.graphics?.systemFont);
     drawBitmapText(fb, 'CLICK OR ENTER TO RESTART', 85, 101, [255, 255, 255], options.graphics?.systemFont);
@@ -86,4 +96,4 @@ export function renderFrame(
 export { paintInventory } from './inventoryPainter';
 import { createSpriteSource } from './spriteSource';
 export { createSpriteSource } from './spriteSource';
-export { monsterViewRect, monsterVisibleAt } from './monsterPainter';
+export { monsterViewRect, monsterVisibleAt, originalMonsterSprite, originalSpriteRect } from './monsterPainter';

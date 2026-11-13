@@ -43,3 +43,14 @@ export function createSprint4ReviewScenario(state: GameState): GameState {
     monsterGenerators: []
   };
 }
+
+/** Sprint 5 victory review arena: a weakened Lord Chaos stands directly ahead of the party. */
+export function createVictoryReviewScenario(state: GameState): GameState {
+  const base = createSprint4ReviewScenario(state);
+  return {
+    ...base,
+    combatTargets: expandMonsterGroups([
+      { id: 'rv_chaos', typeId: 23, level: 0, x: 2, y: 1, facing: 3, healths: [5] }
+    ])
+  };
+}

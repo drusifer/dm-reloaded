@@ -10,7 +10,6 @@
 
 import type {
   CampaignBundle,
-  CampaignProvider,
   ChampionDefinition,
   DungeonLevel,
   ItemInstance,
@@ -403,10 +402,4 @@ export function createCleanRoomBundle(): CampaignBundle {
       initialItems
     }
   };
-}
-
-export class CleanRoomCampaignProvider implements CampaignProvider {
-  public async loadCampaign(): Promise<CampaignBundle> {
-    return createCleanRoomBundle();
-  }
 }

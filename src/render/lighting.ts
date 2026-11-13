@@ -74,14 +74,3 @@ export function lightRgb(rgb: RgbColor, context: LightingContext): RgbColor {
 export function lightPalette(palette: readonly RgbColor[], context: LightingContext): readonly RgbColor[] {
   return Array.from(palette, rgb => lightRgb(rgb, context));
 }
-
-/** Transform RGB through the identical formula and preserve alpha, including hidden RGB. */
-export function lightRgba(rgba: Uint8Array | Uint8ClampedArray, context: LightingContext): Uint8ClampedArray {
-  if (rgba.length % 4 !== 0) throw new Error('Lighting RGBA data length must be divisible by four');
-  const output = new Uint8ClampedArray(rgba.length);
-  for (let i = 0; i < rgba.length; i += 4) {
-    const rgb = transform(rgba[i]!, rgba[i + 1]!, rgba[i + 2]!, context);
-    output[i] = rgb[0]; output[i + 1] = rgb[1]; output[i + 2] = rgb[2]; output[i + 3] = rgba[i + 3]!;
-  }
-  return output;
-}

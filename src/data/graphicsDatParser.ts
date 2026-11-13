@@ -1,4 +1,3 @@
-import { itemIconAddress } from './spriteCatalog';
 /**
  * Parser and decoder for the original 1988 Amiga Dungeon Master graphics.dat archive.
  *
@@ -330,33 +329,6 @@ export function extractChampionPortrait(bundle: GraphicsBundle, portraitIndex: n
     index: 2600 + clamped,
     width: portraitW,
     height: portraitH,
-    pixels: out
-  };
-}
-
-/**
- * Slices an individual 16x16 Item Icon (0..223) from Amiga graphics.dat items 42..48 (each 256x32 = 16 cols x 2 rows).
- */
-export function extractItemIcon(bundle: GraphicsBundle, iconIndex: number): DecodedSprite | null {
-  const clamped = Math.max(0, Math.min(223, iconIndex));
-  const address = itemIconAddress(clamped);
-  if (!address) return null;
-  const sheet = bundle.sprites.get(address.rawSourceIndex);
-  if (!sheet || sheet.width < 256 || sheet.height < 32) {
-    return null;
-  }
-  const { x: cropX, y: cropY } = address.crop;
-  const out = new Uint8Array(16 * 16);
-
-  for (let y = 0; y < 16; y += 1) {
-    const srcRowStart = (cropY + y) * sheet.width + cropX;
-    out.set(sheet.pixels.subarray(srcRowStart, srcRowStart + 16), y * 16);
-  }
-
-  return {
-    index: 4200 + clamped,
-    width: 16,
-    height: 16,
     pixels: out
   };
 }

@@ -253,6 +253,32 @@ const RAW_TILE_TYPES: readonly TileType[] = [
 /**
  * Parses a compressed or uncompressed Amiga Dungeon.dat buffer into a CampaignBundle.
  */
+export const DM1_LEVEL_COUNT = 14;
+
+function fnv1a32Hex(bytes: Uint8Array): string {
+  let hash = 0x811c9dc5;
+  for (const byte of bytes) {
+    hash ^= byte;
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+/**
+ * Only a 14-map file is treated as the Dungeon Master I campaign. Any other map count gets a
+ * content-derived id so saves can never cross campaigns.
+ */
+export function identifyAmigaCampaign(levelCount: number, bytes: Uint8Array): { campaignId: string; title: string; recognized: boolean } {
+  if (levelCount === DM1_LEVEL_COUNT) {
+    return { campaignId: 'dm1-amiga-v2', title: 'Dungeon Master (1988 Amiga)', recognized: true };
+  }
+  return {
+    campaignId: `amiga-dat-${levelCount}maps-${fnv1a32Hex(bytes)}`,
+    title: `Imported Amiga campaign (${levelCount} maps, unrecognized)`,
+    recognized: false
+  };
+}
+
 export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
   const buf = decompressDungeon8104(rawInput);
 
@@ -920,11 +946,12 @@ export function parseDungeonDat(rawInput: Uint8Array): CampaignBundle {
     });
   }
 
+  const identity = identifyAmigaCampaign(levels.length, buf);
   return {
     source: 'AMIGA_DAT',
     dungeon: {
-      campaignId: 'dm1-amiga-v2',
-      title: 'Dungeon Master (1988 Amiga)',
+      campaignId: identity.campaignId,
+      title: identity.title,
       seed,
       startLevel: 0,
       startX,

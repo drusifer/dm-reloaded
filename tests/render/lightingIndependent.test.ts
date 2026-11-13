@@ -4,7 +4,7 @@ import { createCleanRoomGraphicsBundle } from '../../src/data/graphicsDatParser'
 import type { RgbColor } from '../../src/data/graphicsDatParser';
 import { Framebuffer } from '../../src/render/framebuffer';
 import { getViewportLightPalette } from '../../src/render/palette';
-import { createLightingContext, lightPalette, lightRgb, lightRgba, validateLightingProfile } from '../../src/render/lighting';
+import { createLightingContext, lightPalette, lightRgb, validateLightingProfile } from '../../src/render/lighting';
 const neutral={brightnessExponent:1,tint:[1,1,1],tintStrength:0,depthMultipliers:[1,1,0.8,0.6],desaturation:0};
 describe('independent parametric lighting acceptance',()=>{
   it('matches the literal neutral RGB table at all24 integer light/depth combinations',()=>{
@@ -20,14 +20,11 @@ describe('independent parametric lighting acceptance',()=>{
     expect(lightRgb([100,150,200],createLightingContext(-100,0))).toEqual([0,0,0]);
     expect(lightRgb([100,150,200],createLightingContext(100,0))).toEqual([100,150,200]);
   });
-  it('combines desaturation,tint,exponent anddepth with one rounding and preserves hiddenRGB and alpha',()=>{
+  it('combines desaturation,tint,exponent anddepth with one rounding and preserves hidden RGB',()=>{
     const profile=validateLightingProfile({...neutral,brightnessExponent:2,tint:[0.2,0.6,1],tintStrength:0.5,desaturation:0.25});
     const context=createLightingContext(2.5,2,profile);
-    const input=new Uint8ClampedArray([120,80,40,0,120,80,40,128,120,80,40,255]),before=input.slice();
     expect(lightRgb([120,80,40],context)).toEqual([13,13,10]);
     expect(lightPalette([[120,80,40]],context)).toEqual([[13,13,10]]);
-    expect([...lightRgba(input,context)]).toEqual([13,13,10,0,13,13,10,128,13,13,10,255]);
-    expect(input).toEqual(before);
   });
   it('resolves raw0/10 masks before transformed colors collide and preserves clip/flip/scale behavior',()=>{
     const base:RgbColor[]=Array.from({length:16},()=>[255,200,100] as const);base[1]=[0,0,0];
@@ -52,7 +49,6 @@ describe('independent parametric lighting acceptance',()=>{
     expect(()=>lightPalette(palette,createLightingContext(5,0))).toThrow(/RGB/i);
     for(const light of [NaN,Infinity,-Infinity])expect(()=>createLightingContext(light,0)).toThrow(/finite/i);
     for(const depth of [-1,4,0.5,NaN,Infinity])expect(()=>createLightingContext(3,depth)).toThrow(/depth/i);
-    for(const length of [1,2,3,5])expect(()=>lightRgba(new Uint8Array(length),createLightingContext(5,0))).toThrow(/RGBA/i);
   });
   it('copies input profile settings instead of retaining live aliases',()=>{
     const settings={...neutral,tint:[1,1,1],depthMultipliers:[1,1,0.8,0.6]},profile=validateLightingProfile(settings);

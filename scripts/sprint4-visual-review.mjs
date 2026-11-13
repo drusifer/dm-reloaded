@@ -77,6 +77,13 @@ try {
       const px = await canvasPixels({ x: first.x, y: first.y, w: first.w, h: first.h });
       if (px.colored < first.w * first.h * 0.4) failures.push(`${source}: no silhouette pixels where state says monster is`);
       await page.screenshot({ path: `${output}/${source.toLowerCase()}-seen.png` });
+      // The placeholder label bar (pure black box at the viewport's bottom-left) must appear only for placeholder art.
+      const labelBarBlack = await page.locator('#amiga-screen').evaluate(canvas => {
+        const d = canvas.getContext('2d').getImageData(5, 33 + 136 - 9, 1, 1).data;
+        return d[0] === 0 && d[1] === 0 && d[2] === 0;
+      });
+      if (source === 'AMIGA_GRAPHICS_DAT' && labelBarBlack) failures.push(`${source}: placeholder label bar shown although original art exists`);
+      if (source === 'CLEAN_ROOM' && !labelBarBlack) failures.push(`${source}: placeholder label bar missing for placeholder art`);
       checks.push(`${source}:monster-visible`);
     }
 
